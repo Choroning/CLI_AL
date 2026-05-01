@@ -1,9 +1,9 @@
-# [Spring 2026] Algorithms — Team Project: CLI_AL
+# [Spring 2026] Algorithms — Term-Project: Team CLI
 
 ![Last Commit](https://img.shields.io/github/last-commit/Choroning/CLI_AL)
 ![Languages](https://img.shields.io/github/languages/top/Choroning/CLI_AL)
 
-This repository hosts **Team CLI**'s final team project for the Spring 2026 Algorithms course at Korea University Sejong — a web-based LLM application powered by **Upstage Solar**, with a **Frontend + Backend** architecture, that intentionally applies algorithm concepts learned in the course.
+This repository hosts **Team CLI**'s term-project for the Spring 2026 Algorithms course at Korea University Sejong — a web-based LLM application powered by **Upstage Solar**, with a **Frontend + Backend** architecture, that intentionally applies algorithm concepts learned in the course.
 
 *Team CLI — Korea University Sejong, Department of Computer Science and Software Engineering — Spring 2026*
 <br><br>
@@ -16,10 +16,7 @@ This repository hosts **Team CLI**'s final team project for the Spring 2026 Algo
 - [Project Overview](#project-overview)
 - [Algorithm Concepts Applied](#algorithm-concepts-applied)
 - [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
 - [Repository Structure](#repository-structure)
-- [Deliverables](#deliverables)
 - [Roadmap](#roadmap)
 - [License](#license)
 
@@ -29,12 +26,7 @@ This repository hosts **Team CLI**'s final team project for the Spring 2026 Algo
 <br><a name="about-this-repository"></a>
 ## 📝 About This Repository
 
-This repository organizes the source code, documentation, and deliverables for Team CLI's term-long team project in the Spring 2026 Algorithms course. The project must satisfy the following:
-
-- A **web-based application** built as a **Frontend + Backend** architecture
-- **Upstage Solar** as the primary LLM
-- Public GitHub repository with setup instructions and demo
-- Intentional application of **course algorithm concepts**, documented in this README and the technical report
+This repository organizes the source code, documentation, and deliverables for Team CLI's term-project in the Spring 2026 Algorithms course.
 
 > **🤖 AI-Assisted Development**
 > This course encourages the use of AI agents.
@@ -57,7 +49,7 @@ This repository organizes the source code, documentation, and deliverables for T
 |Textbook|"Introduction to Algorithms, 3rd Edition" by Cormen, Leiserson, Rivest, and Stein (CLRS)|
 |Lecture Notes|[Instructor's Markdown notes and slides (GitHub)](https://github.com/codingchild2424/2026-lecture-algorithm)|
 |LLM API|[Upstage Solar — AI Initiative 2025](https://www.upstage.ai/events/ai-initiative-2025-ko)|
-|Auxiliary API (optional)|NVIDIA NIM (NVIDIA Inference Microservices)|
+|Auxiliary API|NVIDIA NIM (NVIDIA Inference Microservices)|
 
 <br><a name="team"></a>
 ## 👥 Team
@@ -66,10 +58,10 @@ This repository organizes the source code, documentation, and deliverables for T
 
 | Role | Name | Student ID |
 |:-----|:-----|:----------:|
-| PM | 박철원 (Park Cheolwon) | 2024270616 |
-| Backend | 강성욱 (Kang Seonguk) | 2022270628 |
-| Frontend | 송민성 (Song Minseong) | 2024270601 |
-| LLM / Prompt Engineering | 곽준 (Kwak Jun) | 2023270636 |
+| Project Manager | Park Cheolwon | 2024270616 |
+| Backend | Kang Seonguk | 2022270628 |
+| Frontend | Song Minseong | 2024270601 |
+| LLM / Prompt Engineering | Kwak Jun | 2023270636 |
 
 <br><a name="project-overview"></a>
 ## 🎯 Project Overview
@@ -77,8 +69,6 @@ This repository organizes the source code, documentation, and deliverables for T
 > _One-paragraph topic summary — TBD._
 
 ### Core Features
-
-> _Three core features — TBD._
 
 1. _TBD_
 2. _TBD_
@@ -108,73 +98,17 @@ Candidate concepts: sorting / searching, divide & conquer, greedy, dynamic progr
 
 | Layer | Choice |
 |:------|:-------|
-| Frontend | TBD (e.g., React / Vue / Svelte / plain HTML+JS) |
-| Backend | TBD (e.g., FastAPI / Flask / Express / Spring) |
-| LLM | Upstage Solar (required) |
-| Auxiliary models | NVIDIA NIM (optional) |
-| Deployment | Local (public deployment optional) |
+| Frontend | TBD |
+| Backend | TBD |
+| LLM | Upstage Solar |
+| Auxiliary models | NVIDIA NIM |
+| Deployment | TBD (Public deployments are optional in this project.) |
 
-<br><a name="prerequisites"></a>
-## ✅ Prerequisites
-
-- Understanding of data structures and basic algorithms (course-level)
-- Runtime for the chosen stack (e.g., Node.js / Python) — TBD
-- An Upstage Solar API key
-- Familiarity with command-line tools and Git
-
-- **💻 Development Environment**
-
-| Tool | Company |  OS  | Notes |
-|:-----|:-------:|:----:|:------|
-|Visual Studio Code|Microsoft|macOS / Windows|Primary editor|
-|Claude Code|Anthropic|macOS / Windows|Team-licensed AI coding assistant|
-
-<br><a name="getting-started"></a>
-## 🚀 Getting Started
-
-> _Setup and run instructions — TBD once the stack is decided._
-
-### Installation
-
-```bash
-# TBD
-```
-
-### Running locally
-
-```bash
-# Backend
-# TBD
-
-# Frontend
-# TBD
-```
-
-### Environment variables
-
-Create a `.env` file based on `.env.example` (to be added):
-
-```
-UPSTAGE_SOLAR_API_KEY=your_key_here
-# NVIDIA_NIM_API_KEY=optional
-```
 
 <br><a name="repository-structure"></a>
 ## 🗂 Repository Structure
 
 > _Layout — TBD._
-
-```plaintext
-CLI_AL
-├── frontend/               # Frontend application — TBD
-├── backend/                # Backend / API server — TBD
-├── docs/
-│   ├── technical-report/   # System architecture, LLM usage, key implementation details
-│   └── dev-process/        # Planning, scheduling, meeting notes, retrospective
-├── slides/                 # Final presentation slides (English)
-├── LICENSE
-└── README.md
-```
 
 <br><a name="deliverables"></a>
 ## 📦 Deliverables
@@ -203,8 +137,7 @@ CLI_AL
 - [ ] Feature polish
 - [ ] Technical report
 - [ ] Development process document
-- [ ] Presentation slides (English)
-- [ ] Final presentation (English)
+- [ ] Presentation slides
 
 <br><a name="license"></a>
 ## 🤝 License
