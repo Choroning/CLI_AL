@@ -76,6 +76,48 @@ class LLMService:
         except Exception as e:
             return {'error': str(e)}
 
+    def analyze_document_stream(self, document: str):
+        """
+        분석 결과를 SSE 이벤트로 스트리밍.
+        yield {'meta': {...}}  — RAG 메타 (첫 번째)
+        yield {'t': '...'}    — 텍스트 청크
+        """
+        from rag_service import get_rag_context
+        rag_context, rag_laws = get_rag_context(document)
+        prompt = build_analyze_prompt(document, rag_context)
+
+        yield {'meta': {'rag_used': bool(rag_context), 'rag_laws': rag_laws}}
+
+        if self.provider == 'gemini':
+            response = self.model.generate_content(prompt, stream=True)
+            for chunk in response:
+                if chunk.text:
+                    yield {'t': chunk.text}
+
+        elif self.provider == 'groq':
+            stream = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[{'role': 'user', 'content': prompt}],
+                temperature=0.3,
+                stream=True,
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield {'t': delta}
+
+        elif self.provider == 'ollama':
+            import ollama
+            stream = ollama.chat(
+                model=self.model_name,
+                messages=[{'role': 'user', 'content': prompt}],
+                stream=True,
+            )
+            for chunk in stream:
+                delta = chunk['message']['content']
+                if delta:
+                    yield {'t': delta}
+
     def _call_with_messages(self, system: str, messages: list) -> str:
         """system prompt + 대화 기록으로 LLM 호출"""
         if self.provider == 'gemini':

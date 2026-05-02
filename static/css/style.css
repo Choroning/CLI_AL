@@ -438,6 +438,22 @@ header p {
 
 .tooltip-close:hover { color: #374151; }
 
+/* ── 스트리밍 커서 ── */
+.stream-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: #2563eb;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
 /* ── 챗 패널 ── */
 .chat-panel { margin-top: 20px; }
 

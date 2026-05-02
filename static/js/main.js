@@ -59,38 +59,114 @@ fileInput.addEventListener('change', async () => {
   }
 });
 
-// ── 분석 요청 ──────────────────────────────────
+// ── 분석 요청 (스트리밍) ───────────────────────
 analyzeBtn.addEventListener('click', async () => {
-  const document = textarea.value.trim();
-  if (!document) return;
+  const docText = textarea.value.trim();
+  if (!docText) return;
 
-  showLoading('AI가 문서를 분석하고 있습니다...');
   analyzeBtn.disabled = true;
+  currentDocument = docText;
+
+  // 스트리밍 미리보기 초기화
+  resultArea.innerHTML = `
+    <div id="stream-preview" class="result-section">
+      <div class="section-title">📝 쉬운말로 바꾸는 중...</div>
+      <div class="simplified-text" id="stream-text"><span class="stream-cursor"></span></div>
+    </div>`;
+  document.getElementById('chat-panel').style.display = 'none';
+  document.getElementById('result-header-actions').style.display = 'none';
+
+  let accumulated = '';
+  let pendingMeta = {};
 
   try {
-    const res = await fetch('/analyze', {
+    const res = await fetch('/analyze/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ document }),
+      body: JSON.stringify({ document: docText }),
     });
-    const data = await res.json();
 
-    if (data.error) {
-      showToast(data.error, true);
-      resultArea.innerHTML = errorState(data.error);
-      return;
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
     }
 
-    currentDocument = textarea.value.trim();
-    renderResult(data);
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let   buffer  = '';
+
+    outer: while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') break outer;
+
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch { continue; }
+
+        if (parsed.error) {
+          showToast(parsed.error, true);
+          resultArea.innerHTML = errorState(parsed.error);
+          return;
+        }
+        if (parsed.meta) {
+          pendingMeta = parsed.meta;
+          continue;
+        }
+        if (parsed.t) {
+          accumulated += parsed.t;
+          updateStreamPreview(accumulated);
+        }
+      }
+    }
+
+    // 스트리밍 완료 → JSON 파싱 후 전체 렌더링
+    const result = parseStreamResult(accumulated, pendingMeta);
+    if (result.error) {
+      showToast('응답 파싱에 실패했습니다.', true);
+      resultArea.innerHTML = errorState('응답 파싱에 실패했습니다.');
+    } else {
+      renderResult(result);
+    }
+
   } catch (e) {
     showToast('서버 연결에 실패했습니다.', true);
     resultArea.innerHTML = errorState('서버 연결에 실패했습니다.');
   } finally {
-    hideLoading();
     analyzeBtn.disabled = false;
   }
 });
+
+function updateStreamPreview(text) {
+  const el = document.getElementById('stream-text');
+  if (!el) return;
+  // JSON에서 simplified 값 진행 중 추출
+  const m = text.match(/"simplified"\s*:\s*"((?:[^"\\]|\\.)*)/) ;
+  const display = m
+    ? m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\')
+    : text.replace(/[{}"]/g, '').slice(-300); // fallback: 마지막 300자
+  el.innerHTML = escHtml(display) + '<span class="stream-cursor"></span>';
+}
+
+function parseStreamResult(text, meta) {
+  text = text.replace(/```(?:json)?\s*/g, '').trim();
+  const m = text.match(/\{.*\}/s);
+  if (!m) return { error: true };
+  try {
+    const obj = JSON.parse(m[0]);
+    obj.rag_used = meta.rag_used || false;
+    obj.rag_laws = meta.rag_laws || [];
+    return obj;
+  } catch {
+    return { error: true };
+  }
+}
 
 // ── 결과 렌더링 ────────────────────────────────
 function renderResult(data) {

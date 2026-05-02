@@ -4,7 +4,7 @@ import tempfile
 import zipfile
 import subprocess
 from xml.etree import ElementTree as ET
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
 from dotenv import load_dotenv
 from llm_service import LLMService
 
@@ -146,6 +146,34 @@ def _extract_hwp(file_bytes: bytes) -> str:
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
+
+
+@app.route('/analyze/stream', methods=['POST'])
+def analyze_stream():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': '요청 데이터가 없습니다.'}), 400
+
+    document = data.get('document', '').strip()
+    if not document:
+        return jsonify({'error': '문서 내용을 입력해주세요.'}), 400
+    if len(document) > 10000:
+        return jsonify({'error': '문서가 너무 깁니다.'}), 400
+
+    def generate():
+        import json as _json
+        try:
+            for event in llm.analyze_document_stream(document):
+                yield f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
+        except Exception as e:
+            yield f"data: {_json.dumps({'error': str(e)})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return Response(
+        generate(),
+        mimetype='text/event-stream',
+        headers={'X-Accel-Buffering': 'no', 'Cache-Control': 'no-cache'},
+    )
 
 
 @app.route('/chat', methods=['POST'])
