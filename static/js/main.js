@@ -97,11 +97,14 @@ function renderResult(data) {
   const difficultWords = data.difficult_words || [];
 
   resultArea.innerHTML = `
-    ${data.rag_used ? `
-    <div class="rag-badge">
-      ⚖️ 법제처 법령 참고
-      <span class="rag-law-names">${(data.rag_laws || []).map(n => `<span class="rag-law-tag">${escHtml(n)}</span>`).join('')}</span>
-    </div>` : ''}
+    <div class="doc-meta">
+      ${data.doc_type ? `<span class="doc-type-badge ${docTypeClass(data.doc_type)}">${docTypeIcon(data.doc_type)} ${escHtml(data.doc_type)}</span>` : ''}
+      ${data.rag_used ? `
+      <div class="rag-badge">
+        ⚖️ 법제처 법령 참고
+        <span class="rag-law-names">${(data.rag_laws || []).map(n => `<span class="rag-law-tag">${escHtml(n)}</span>`).join('')}</span>
+      </div>` : ''}
+    </div>
 
     ${simplified ? `
     <div class="result-section">
@@ -236,6 +239,25 @@ function errorState(msg) {
     <div class="empty-icon">⚠️</div>
     <p>${escHtml(msg)}</p>
   </div>`;
+}
+
+// ── 문서 유형 아이콘 / 색상 ───────────────────────
+function docTypeIcon(type) {
+  const icons = {
+    '임대차계약서': '🏠', '근로계약서': '💼', '기타계약서': '📝',
+    '공문서': '🏛️', '의료안내문': '🏥', '약관': '📋',
+    '법령·규정': '⚖️', '기타': '📄',
+  };
+  return icons[type] || '📄';
+}
+
+function docTypeClass(type) {
+  const classes = {
+    '임대차계약서': 'type-lease', '근로계약서': 'type-work', '기타계약서': 'type-contract',
+    '공문서': 'type-official', '의료안내문': 'type-medical', '약관': 'type-terms',
+    '법령·규정': 'type-law', '기타': 'type-other',
+  };
+  return classes[type] || 'type-other';
 }
 
 // ── 복사 / 저장 ────────────────────────────────
