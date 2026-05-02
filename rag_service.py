@@ -36,9 +36,13 @@ def search_laws(query: str, display: int = 3) -> list:
 # ── 법령 본문 조회 ────────────────────────────────────────
 def get_law_articles(mst: str, max_articles: int = 4) -> str:
     data = _get('lawService.do', {'target': 'law', 'MST': mst})
-    articles = _to_list(
-        data.get('법령', {}).get('조문', {}).get('조문단위')
-    )
+    law = data.get('법령', {})
+    # 조문단위가 없으면 조문 전체 텍스트 시도
+    articles = _to_list(law.get('조문', {}).get('조문단위'))
+    if not articles:
+        # 일부 법령은 조문 구조가 다름 — 전문(前文) 텍스트 사용
+        preamble = law.get('전문', '')
+        return preamble[:500] if preamble else ''
     texts = []
     for art in articles[:max_articles]:
         title   = art.get('조문제목', '')
@@ -62,20 +66,40 @@ def search_term(term: str) -> str:
 _STOPWORDS = {
     '이다', '있다', '없다', '한다', '하는', '하여', '위하여', '대하여',
     '따라', '경우', '때에는', '것으로', '되는', '하고', '또는', '및',
-    '에서', '으로', '에게', '부터', '까지', '이상', '이하', '이내',
     '관하여', '관련', '사항', '규정', '조항', '내용', '해당', '적용',
+    '목적', '조항', '본문', '단서', '전항', '해당', '이하', '이상',
 }
+
+# 조사 제거용 (길이 긴 것 우선 처리)
+_PARTICLES = ['에서', '으로', '에게', '부터', '까지', '이라', '이고',
+              '과', '와', '은', '는', '이', '가', '을', '를', '의',
+              '도', '만', '로', '에', '서']
+
+
+def _strip_particle(word: str) -> str:
+    for p in sorted(_PARTICLES, key=len, reverse=True):
+        if word.endswith(p) and len(word) - len(p) >= 2:
+            return word[:-len(p)]
+    return word
 
 
 def extract_keywords(document: str) -> list:
-    # 법령명 패턴 우선 (예: 민법, 근로기준법, 주택임대차보호법)
+    # 1. 붙여쓴 법령명 우선 (예: 민법, 근로기준법, 주택임대차보호법)
     law_names = re.findall(r'[가-힣]{2,15}법(?:률|령|규|칙)?', document)
 
-    # 2~5글자 한글 단어
-    words = re.findall(r'[가-힣]{2,5}', document)
-    words = [w for w in words if w not in _STOPWORDS]
+    # 2. 공백 단위로 토큰 분리 → 조사 제거 → 의미 있는 단어 추출
+    tokens = re.split(r'[\s,.\(\)\[\]·\-·「」『』《》]+', document)
+    cleaned = []
+    for t in tokens:
+        t = t.strip()
+        if not t:
+            continue
+        t = _strip_particle(t)
+        # 2~6글자 순수 한글만
+        if re.fullmatch(r'[가-힣]{2,6}', t) and t not in _STOPWORDS:
+            cleaned.append(t)
 
-    top_words = [w for w, _ in Counter(words).most_common(5)]
+    top_words = [w for w, _ in Counter(cleaned).most_common(5)]
 
     # 법령명 우선, 중복 제거, 최대 4개
     keywords = list(dict.fromkeys(law_names[:2] + top_words))[:4]
@@ -100,7 +124,8 @@ def get_rag_context(document: str) -> str:
         for keyword in keywords[:3]:
             laws = search_laws(keyword, display=2)
             for law in laws[:1]:
-                mst      = law.get('법령MST') or law.get('MST', '')
+                # API 응답의 MST 키는 '법령일련번호'
+                mst      = law.get('법령일련번호') or law.get('법령MST') or law.get('MST', '')
                 law_name = law.get('법령명한글', '')
                 if not mst or mst in seen_mst:
                     continue
