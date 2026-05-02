@@ -47,9 +47,21 @@ _RAG_SECTION = """
 """
 
 
-def build_analyze_prompt(document: str, rag_context: str = '') -> str:
-    rag_section = _RAG_SECTION.format(rag_context=rag_context) if rag_context else '\n'
-    return _ANALYZE_BASE.format(document=document, rag_section=rag_section)
+_DETAIL_INSTRUCTIONS = {
+    'brief':    '- simplified는 3~5문장으로 핵심만 간결하게 요약\n- key_points 최대 3개\n- action_items 최대 3개',
+    'normal':   '- key_points 최대 6개\n- action_items 최대 8개',
+    'detailed': '- simplified는 원문 내용을 빠짐없이 모두 포함하여 문단별로 자세히 설명\n- key_points 최대 8개\n- action_items 최대 10개',
+}
+
+
+def build_analyze_prompt(document: str, rag_context: str = '', detail_level: str = 'normal') -> str:
+    rag_section  = _RAG_SECTION.format(rag_context=rag_context) if rag_context else '\n'
+    detail_note  = _DETAIL_INSTRUCTIONS.get(detail_level, _DETAIL_INSTRUCTIONS['normal'])
+    base = _ANALYZE_BASE.replace(
+        '- key_points는 최대 6개, 가장 중요한 것만\n- action_items는 실제로 사용자가 해야 할 행동만, 최대 8개',
+        detail_note
+    )
+    return base.format(document=document, rag_section=rag_section)
 
 
 # 단순 호환용 (rag 없이 호출할 때)

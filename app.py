@@ -154,7 +154,8 @@ def analyze_stream():
     if not data:
         return jsonify({'error': '요청 데이터가 없습니다.'}), 400
 
-    document = data.get('document', '').strip()
+    document     = data.get('document', '').strip()
+    detail_level = data.get('detail_level', 'normal')
     if not document:
         return jsonify({'error': '문서 내용을 입력해주세요.'}), 400
     if len(document) > 10000:
@@ -163,7 +164,7 @@ def analyze_stream():
     def generate():
         import json as _json
         try:
-            for event in llm.analyze_document_stream(document):
+            for event in llm.analyze_document_stream(document, detail_level):
                 yield f"data: {_json.dumps(event, ensure_ascii=False)}\n\n"
         except Exception as e:
             yield f"data: {_json.dumps({'error': str(e)})}\n\n"

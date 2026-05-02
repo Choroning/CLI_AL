@@ -11,6 +11,11 @@ body {
   min-height: 100vh;
 }
 
+/* ── 글자 크기 ── */
+body.font-sm { font-size: 14px; }
+body.font-md { font-size: 16px; }
+body.font-lg { font-size: 19px; }
+
 /* ── 헤더 ── */
 header {
   background: #2563eb;
@@ -21,6 +26,147 @@ header {
   gap: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
+.header-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.font-controls {
+  display: flex;
+  gap: 2px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.font-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.75);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.font-btn.active,
+.font-btn:hover { background: rgba(255,255,255,0.25); color: #fff; }
+
+.history-btn {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.3) !important;
+  font-size: 0.82rem !important;
+}
+
+.history-btn:hover { background: rgba(255,255,255,0.25) !important; }
+
+/* ── 히스토리 드롭다운 ── */
+.history-dropdown {
+  position: fixed;
+  top: 64px;
+  right: 32px;
+  width: 340px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  z-index: 150;
+  overflow: hidden;
+}
+
+.history-header {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.history-item:hover { background: #f9fafb; }
+.history-item:last-child { border-bottom: none; }
+
+.history-type { font-size: 0.8rem; font-weight: 600; color: #6b7280; margin-bottom: 4px; }
+.history-preview { font-size: 0.88rem; color: #374151; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-time { font-size: 0.75rem; color: #9ca3af; }
+.history-empty { padding: 24px; text-align: center; color: #9ca3af; font-size: 0.88rem; }
+
+/* ── 요약 수준 토글 ── */
+.detail-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.detail-label { font-size: 0.82rem; color: #6b7280; font-weight: 500; }
+
+.detail-options {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.detail-btn {
+  background: none;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: #6b7280;
+  transition: all 0.15s;
+}
+
+.detail-btn.active { background: #fff; color: #2563eb; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: 700; }
+.detail-btn:hover:not(.active) { color: #374151; }
+
+/* ── TTS 버튼 ── */
+.tts-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: #6b7280;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.tts-btn:hover { background: #f3f4f6; color: #374151; }
+
+/* ── 단어 하이라이트 ── */
+mark.word-highlight {
+  background: #fef9c3;
+  color: inherit;
+  border-bottom: 1.5px dashed #ca8a04;
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+mark.word-highlight:hover { background: #fde047; }
 
 header h1 {
   font-size: 1.4rem;

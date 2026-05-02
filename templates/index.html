@@ -16,7 +16,24 @@
     <h1>📋 쉬운말 변환기</h1>
     <p>행정문서 · 계약서 · 공문서를 누구나 이해할 수 있도록 변환합니다</p>
   </div>
+  <div class="header-controls">
+    <div class="font-controls">
+      <button class="font-btn" onclick="setFontSize('sm')" title="글자 작게">A-</button>
+      <button class="font-btn active" id="font-md-btn" onclick="setFontSize('md')" title="기본 크기">A</button>
+      <button class="font-btn" onclick="setFontSize('lg')" title="글자 크게">A+</button>
+    </div>
+    <button class="btn btn-secondary history-btn" id="history-btn" onclick="toggleHistory()" title="최근 기록">🕘 최근 기록</button>
+  </div>
 </header>
+
+<!-- ── 히스토리 드롭다운 ── -->
+<div class="history-dropdown" id="history-dropdown" style="display:none;">
+  <div class="history-header">
+    <span>최근 분석 기록</span>
+    <button onclick="clearHistory()" style="background:none;border:none;color:#9ca3af;cursor:pointer;font-size:0.8rem;">전체 삭제</button>
+  </div>
+  <div id="history-list"></div>
+</div>
 
 <!-- ── 메인 ── -->
 <div class="container">
@@ -50,7 +67,16 @@
           <span class="char-count" id="char-count">0 / 10,000자</span>
         </div>
 
-        <div style="margin-top: 16px;">
+        <div class="detail-toggle">
+          <span class="detail-label">요약 수준</span>
+          <div class="detail-options">
+            <button class="detail-btn" data-level="brief" onclick="setDetailLevel('brief')">간단히</button>
+            <button class="detail-btn active" data-level="normal" onclick="setDetailLevel('normal')">기본</button>
+            <button class="detail-btn" data-level="detailed" onclick="setDetailLevel('detailed')">자세히</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 12px;">
           <button class="btn btn-primary" id="analyze-btn" disabled style="width:100%; justify-content:center; padding:13px;">
             🔄 쉬운말로 변환하기
           </button>

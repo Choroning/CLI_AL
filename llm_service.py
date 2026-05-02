@@ -76,7 +76,7 @@ class LLMService:
         except Exception as e:
             return {'error': str(e)}
 
-    def analyze_document_stream(self, document: str):
+    def analyze_document_stream(self, document: str, detail_level: str = 'normal'):
         """
         분석 결과를 SSE 이벤트로 스트리밍.
         yield {'meta': {...}}  — RAG 메타 (첫 번째)
@@ -84,7 +84,7 @@ class LLMService:
         """
         from rag_service import get_rag_context
         rag_context, rag_laws = get_rag_context(document)
-        prompt = build_analyze_prompt(document, rag_context)
+        prompt = build_analyze_prompt(document, rag_context, detail_level)
 
         yield {'meta': {'rag_used': bool(rag_context), 'rag_laws': rag_laws}}
 

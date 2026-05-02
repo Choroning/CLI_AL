@@ -10,6 +10,8 @@ const tooltip    = document.getElementById('tooltip-overlay');
 let lastResult      = null;
 let chatHistory     = [];
 let currentDocument = '';
+let currentDetail   = 'normal';
+let ttsActive       = false;
 
 const MAX_CHARS = 10000;
 
@@ -83,7 +85,7 @@ analyzeBtn.addEventListener('click', async () => {
     const res = await fetch('/analyze/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ document: docText }),
+      body: JSON.stringify({ document: docText, detail_level: currentDetail }),
     });
 
     if (!res.ok) {
@@ -133,6 +135,7 @@ analyzeBtn.addEventListener('click', async () => {
       resultArea.innerHTML = errorState('응답 파싱에 실패했습니다.');
     } else {
       renderResult(result);
+    saveHistory(docText, result);
     }
 
   } catch (e) {
@@ -197,8 +200,11 @@ function renderResult(data) {
 
     ${simplified ? `
     <div class="result-section">
-      <div class="section-title">📝 쉬운말로 바꾼 내용</div>
-      <div class="simplified-text">${escHtml(simplified)}</div>
+      <div class="section-title">
+        📝 쉬운말로 바꾼 내용
+        <button class="tts-btn" id="tts-btn" onclick="toggleTTS(${JSON.stringify(simplified)})" title="음성으로 듣기">🔊 듣기</button>
+      </div>
+      <div class="simplified-text">${buildHighlightedText(simplified, difficultWords)}</div>
     </div>` : ''}
 
     ${keyPoints.length ? `
@@ -475,6 +481,151 @@ function saveResult() {
   URL.revokeObjectURL(url);
   showToast('파일로 저장됐습니다.');
 }
+
+// ── 글자 크기 ──────────────────────────────────
+(function initFontSize() {
+  const saved = localStorage.getItem('fontSize') || 'md';
+  applyFontSize(saved);
+})();
+
+function setFontSize(size) {
+  applyFontSize(size);
+  localStorage.setItem('fontSize', size);
+}
+
+function applyFontSize(size) {
+  document.body.classList.remove('font-sm', 'font-md', 'font-lg');
+  document.body.classList.add('font-' + size);
+  document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.font-btn[onclick*="'${size}'"]`);
+  if (btn) btn.classList.add('active');
+}
+
+// ── 요약 수준 ──────────────────────────────────
+function setDetailLevel(level) {
+  currentDetail = level;
+  document.querySelectorAll('.detail-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.level === level);
+  });
+}
+
+// ── TTS ───────────────────────────────────────
+function toggleTTS(text) {
+  if (speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    ttsActive = false;
+    updateTTSBtn('🔊 듣기');
+    return;
+  }
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ko-KR';
+  utt.rate = 0.9;
+  const voices = speechSynthesis.getVoices();
+  const koVoice = voices.find(v => v.lang.startsWith('ko'));
+  if (koVoice) utt.voice = koVoice;
+  utt.onend = utt.onerror = () => { ttsActive = false; updateTTSBtn('🔊 듣기'); };
+  speechSynthesis.speak(utt);
+  ttsActive = true;
+  updateTTSBtn('⏹ 정지');
+}
+
+function updateTTSBtn(label) {
+  const btn = document.getElementById('tts-btn');
+  if (btn) btn.textContent = label;
+}
+
+// ── 단어 하이라이트 ────────────────────────────
+function buildHighlightedText(text, difficultWords) {
+  if (!difficultWords || !difficultWords.length) return escHtml(text);
+  const sorted = [...difficultWords].sort((a, b) => b.word.length - a.word.length);
+  let segs = [{ text, hl: false }];
+  for (const w of sorted) {
+    const next = [];
+    for (const seg of segs) {
+      if (seg.hl) { next.push(seg); continue; }
+      const parts = seg.text.split(w.word);
+      for (let i = 0; i < parts.length; i++) {
+        if (parts[i]) next.push({ text: parts[i], hl: false });
+        if (i < parts.length - 1)
+          next.push({ text: w.word, hl: true, explanation: w.explanation });
+      }
+    }
+    segs = next;
+  }
+  return segs.map(s => s.hl
+    ? `<mark class="word-highlight" data-word="${escAttr(s.text)}" data-explanation="${escAttr(s.explanation)}" onclick="showWordTooltip(this)">${escHtml(s.text)}</mark>`
+    : escHtml(s.text)
+  ).join('');
+}
+
+// ── 히스토리 ───────────────────────────────────
+const HIST_KEY  = 'doc_history';
+const HIST_MAX  = 5;
+
+function saveHistory(doc, result) {
+  const list = getHistory();
+  list.unshift({
+    id:          Date.now(),
+    doc_preview: doc.slice(0, 80).replace(/\n/g, ' '),
+    doc_type:    result.doc_type || '기타',
+    document:    doc,
+    result,
+    timestamp:   new Date().toLocaleString('ko-KR'),
+  });
+  if (list.length > HIST_MAX) list.splice(HIST_MAX);
+  localStorage.setItem(HIST_KEY, JSON.stringify(list));
+}
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch { return []; }
+}
+
+function toggleHistory() {
+  const dd = document.getElementById('history-dropdown');
+  const show = dd.style.display === 'none';
+  dd.style.display = show ? 'block' : 'none';
+  if (show) renderHistoryList();
+}
+
+function renderHistoryList() {
+  const list = getHistory();
+  const el   = document.getElementById('history-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="history-empty">저장된 기록이 없습니다</div>';
+    return;
+  }
+  el.innerHTML = list.map(item => `
+    <div class="history-item" onclick="loadHistory(${item.id})">
+      <div class="history-type">${docTypeIcon(item.doc_type)} ${escHtml(item.doc_type)}</div>
+      <div class="history-preview">${escHtml(item.doc_preview)}...</div>
+      <div class="history-time">${escHtml(item.timestamp)}</div>
+    </div>
+  `).join('');
+}
+
+function loadHistory(id) {
+  const item = getHistory().find(h => h.id === id);
+  if (!item) return;
+  textarea.value = item.document;
+  textarea.dispatchEvent(new Event('input'));
+  currentDocument = item.document;
+  renderResult(item.result);
+  document.getElementById('history-dropdown').style.display = 'none';
+  showToast('기록을 불러왔습니다.');
+}
+
+function clearHistory() {
+  localStorage.removeItem(HIST_KEY);
+  renderHistoryList();
+}
+
+// 외부 클릭 시 히스토리 닫기
+document.addEventListener('click', e => {
+  const dd  = document.getElementById('history-dropdown');
+  const btn = document.getElementById('history-btn');
+  if (dd && !dd.contains(e.target) && !btn.contains(e.target))
+    dd.style.display = 'none';
+});
 
 // ── 유틸 ──────────────────────────────────────
 function escHtml(str) {
