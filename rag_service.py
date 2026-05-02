@@ -62,7 +62,37 @@ def search_term(term: str) -> str:
     return ''
 
 
+# ── 관련성 검사 ──────────────────────────────────────────
+def _is_standalone(keyword: str, law_name: str) -> bool:
+    """
+    키워드가 법령명에서 독립적인 단어 단위로 포함되는지 확인.
+    앞 글자가 한글이면 다른 단어에 묻힌 것으로 판단해 거부.
+    예) '약관' in '농약관리법' → 앞글자 '농'이 한글 → False
+        '임차인' in '임차인 보호 특별법' → 앞글자 없음 → True
+        '계약' in '공기업 계약사무규칙' → 앞글자 ' '(공백) → True
+    """
+    idx = law_name.find(keyword)
+    if idx == -1:
+        return False
+    if idx > 0 and re.match(r'[가-힣]', law_name[idx - 1]):
+        return False
+    return True
+
+
 # ── 키워드 추출 ───────────────────────────────────────────
+# 이 단어 중 하나라도 있어야 법령 검색 의미 있음
+_LEGAL_TRIGGERS = {
+    '계약', '임차', '임대', '채무', '채권', '담보', '보증', '손해', '배상',
+    '행정', '처분', '허가', '신청', '승인', '인가', '등록', '고지', '공문',
+    '근로', '급여', '임금', '해고', '퇴직', '고용', '노동',
+    '의료', '진료', '처방', '환자', '보험', '급여',
+    '세금', '과세', '납세', '신고', '부과', '징수',
+    '상속', '유언', '증여', '재산', '소유권',
+    '소송', '판결', '재판', '고소', '고발', '소장',
+    '법률', '법령', '조항', '조문', '시행령', '규정',
+    '약관', '조건', '의무', '권리', '위반', '제재',
+}
+
 _STOPWORDS = {
     '이다', '있다', '없다', '한다', '하는', '하여', '위하여', '대하여',
     '따라', '경우', '때에는', '것으로', '되는', '하고', '또는', '및',
@@ -114,6 +144,12 @@ def get_rag_context(document: str) -> tuple[str, list[str]]:
     API 오류 시 ('', []) 반환 (서비스 중단 없음).
     """
     try:
+        # 법률 관련 문서가 아니면 RAG 건너뜀
+        # 공백·특수문자 제거 후 서브스트링 검색 (조사 붙은 형태도 감지)
+        doc_korean = ''.join(re.findall(r'[가-힣]', document))
+        if not any(trigger in doc_korean for trigger in _LEGAL_TRIGGERS):
+            return '', []
+
         keywords = extract_keywords(document)
         if not keywords:
             return '', []
@@ -123,17 +159,22 @@ def get_rag_context(document: str) -> tuple[str, list[str]]:
         seen_mst = set()
 
         for keyword in keywords[:3]:
-            laws = search_laws(keyword, display=2)
-            for law in laws[:1]:
+            laws = search_laws(keyword, display=3)
+            for law in laws:
                 mst      = law.get('법령일련번호') or law.get('법령MST') or law.get('MST', '')
                 law_name = law.get('법령명한글', '')
                 if not mst or mst in seen_mst:
+                    continue
+                # 관련성 필터: 키워드가 법령명에서 독립 단위로 등장해야 함
+                # 예) '약관' → '농약관리법' 거부 (앞에 '농'이라는 한글이 붙음)
+                if not _is_standalone(keyword, law_name):
                     continue
                 seen_mst.add(mst)
                 articles = get_law_articles(mst)
                 if articles:
                     parts.append(f"▶ {law_name}\n{articles}")
                     law_names_used.append(law_name)
+                break  # 키워드당 관련 법령 1개만
 
         context = '\n\n'.join(parts) if parts else ''
         return context, law_names_used
