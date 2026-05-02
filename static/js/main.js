@@ -187,6 +187,7 @@ function renderResult(data) {
   const keyPoints     = data.key_points    || [];
   const actionItems   = data.action_items  || [];
   const difficultWords = data.difficult_words || [];
+  const riskClauses   = data.risk_clauses  || [];
 
   resultArea.innerHTML = `
     <div class="doc-meta">
@@ -212,6 +213,21 @@ function renderResult(data) {
       <div class="section-title">⭐ 핵심 의무 · 권리 · 기한</div>
       <ul class="key-points-list">
         ${keyPoints.map(p => `<li>${escHtml(p)}</li>`).join('')}
+      </ul>
+    </div>` : ''}
+
+    ${riskClauses.length ? `
+    <div class="result-section">
+      <div class="section-title">🚨 위험 조항 탐지</div>
+      <ul class="risk-list">
+        ${riskClauses.map(r => `
+        <li class="risk-item risk-${r.level === '높음' ? 'high' : r.level === '중간' ? 'mid' : 'low'}">
+          <span class="risk-badge">${escHtml(r.level)}</span>
+          <div class="risk-content">
+            <div class="risk-clause">"${escHtml(r.clause)}"</div>
+            <div class="risk-desc">${escHtml(r.risk)}</div>
+          </div>
+        </li>`).join('')}
       </ul>
     </div>` : ''}
 
@@ -449,6 +465,11 @@ function buildResultText() {
   if (lastResult.action_items?.length) {
     lines.push('=== 해야 할 일 체크리스트 ===');
     lastResult.action_items.forEach(item => lines.push(`☐ ${item}`));
+    lines.push('');
+  }
+  if (lastResult.risk_clauses?.length) {
+    lines.push('=== 위험 조항 탐지 ===');
+    lastResult.risk_clauses.forEach(r => lines.push(`[${r.level}] ${r.clause} → ${r.risk}`));
     lines.push('');
   }
   if (lastResult.difficult_words?.length) {

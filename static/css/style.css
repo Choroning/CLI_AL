@@ -484,6 +484,55 @@ header p {
   cursor: pointer;
 }
 
+/* ── 위험 조항 ── */
+.risk-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.risk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-left: 4px solid transparent;
+}
+
+.risk-item.risk-high  { background: #fff1f2; border-left-color: #ef4444; }
+.risk-item.risk-mid   { background: #fffbeb; border-left-color: #f59e0b; }
+.risk-item.risk-low   { background: #f0fdf4; border-left-color: #22c55e; }
+
+.risk-badge {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.risk-item.risk-high .risk-badge  { background: #fee2e2; color: #b91c1c; }
+.risk-item.risk-mid  .risk-badge  { background: #fef3c7; color: #b45309; }
+.risk-item.risk-low  .risk-badge  { background: #dcfce7; color: #15803d; }
+
+.risk-content { display: flex; flex-direction: column; gap: 5px; }
+
+.risk-clause {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.risk-desc {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
 /* ── 어려운 단어 태그 ── */
 .word-tags {
   display: flex;
