@@ -159,6 +159,21 @@ header p {
   background: #eff6ff;
 }
 
+/* ── RAG 뱃지 ── */
+.rag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #1e40af;
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
 /* ── 결과 패널 ── */
 .result-empty {
   text-align: center;

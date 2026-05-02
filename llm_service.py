@@ -1,7 +1,7 @@
 import os
 import json
 import re
-from prompts import ANALYZE_PROMPT, EXPLAIN_PROMPT
+from prompts import build_analyze_prompt, EXPLAIN_PROMPT
 
 # .env 또는 환경변수에서 LLM_PROVIDER 읽음
 # 지원 값: 'gemini' | 'groq' | 'ollama'
@@ -64,10 +64,14 @@ class LLMService:
         return {'error': '응답에서 JSON을 찾을 수 없습니다.', 'raw': text}
 
     def analyze_document(self, document: str) -> dict:
-        prompt = ANALYZE_PROMPT.format(document=document)
+        from rag_service import get_rag_context
+        rag_context = get_rag_context(document)
+        prompt = build_analyze_prompt(document, rag_context)
         try:
             raw = self._call(prompt)
-            return self._parse_json(raw)
+            result = self._parse_json(raw)
+            result['rag_used'] = bool(rag_context)  # 프론트에서 뱃지 표시용
+            return result
         except Exception as e:
             return {'error': str(e)}
 

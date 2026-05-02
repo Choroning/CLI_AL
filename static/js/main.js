@@ -97,6 +97,9 @@ function renderResult(data) {
   const difficultWords = data.difficult_words || [];
 
   resultArea.innerHTML = `
+    ${data.rag_used ? `
+    <div class="rag-badge">⚖️ 법제처 법령 데이터 참고하여 분석됨</div>` : ''}
+
     ${simplified ? `
     <div class="result-section">
       <div class="section-title">📝 쉬운말로 바꾼 내용</div>
