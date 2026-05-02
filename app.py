@@ -1,5 +1,6 @@
 import os
 import io
+import json as _json_module
 import tempfile
 import zipfile
 import subprocess
@@ -15,10 +16,25 @@ app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 최대 20MB
 
 llm = LLMService()
 
+# 행정 용어 사전: 앱 시작 시 1회 로드
+_TERM_DICT = {}
+_term_dict_path = os.path.join(os.path.dirname(__file__), 'static', 'data', 'term_dict.json')
+if os.path.exists(_term_dict_path):
+    with open(_term_dict_path, encoding='utf-8') as _f:
+        _TERM_DICT = _json_module.load(_f)
+
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', active='converter')
+
+@app.route('/welfare')
+def welfare_page():
+    return render_template('welfare.html', active='welfare')
+
+@app.route('/civil')
+def civil_page():
+    return render_template('civil.html', active='civil')
 
 
 @app.route('/analyze', methods=['POST'])
@@ -51,7 +67,55 @@ def explain():
     if not word:
         return jsonify({'error': '단어를 입력해주세요.'}), 400
 
+    # 용어 사전 우선 조회 (LLM 호출 없이 즉각 응답)
+    if word in _TERM_DICT:
+        entry = _TERM_DICT[word]
+        return jsonify({'word': word, 'explanation': entry['explanation'], 'example': entry.get('example', '')})
+
     result = llm.explain_word(word, context)
+    if 'error' in result:
+        return jsonify(result), 500
+    return jsonify(result)
+
+
+@app.route('/welfare/match', methods=['POST'])
+def welfare_match():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': '입력 데이터가 없습니다.'}), 400
+
+    profile = {
+        'age':         data.get('age', '정보 없음'),
+        'household':   data.get('household', '정보 없음'),
+        'income':      data.get('income', '정보 없음'),
+        'disability':  data.get('disability', '없음'),
+        'has_infant':  '예' if data.get('has_infant') else '아니오',
+        'has_child':   '예' if data.get('has_child') else '아니오',
+        'has_elderly': '예' if data.get('has_elderly') else '아니오',
+        'region':      data.get('region', '전국'),
+    }
+
+    result = llm.match_welfare(profile)
+    if 'error' in result:
+        return jsonify(result), 500
+    return jsonify(result)
+
+
+@app.route('/civil/draft', methods=['POST'])
+def civil_draft():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': '입력 데이터가 없습니다.'}), 400
+
+    civil_type = data.get('civil_type', '민원')
+    situation  = data.get('situation', '').strip()
+
+    if not situation:
+        return jsonify({'error': '상황을 설명해주세요.'}), 400
+    if len(situation) > 1000:
+        return jsonify({'error': '상황 설명이 너무 깁니다. 1,000자 이하로 입력해주세요.'}), 400
+
+    result = llm.draft_civil(civil_type, situation)
     if 'error' in result:
         return jsonify(result), 500
     return jsonify(result)

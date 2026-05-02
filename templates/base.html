@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}쉬운말 서비스{% endblock %} — 행정문서 쉽게 읽기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<header>
+  <div>
+    <h1>📋 쉬운말 서비스</h1>
+    <p>행정문서 · 계약서 · 복지 · 민원을 누구나 이해할 수 있도록</p>
+  </div>
+  <div class="header-controls">
+    {% block header_controls %}{% endblock %}
+  </div>
+</header>
+
+<!-- ── 서비스 네비게이션 ── -->
+<nav class="service-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-item {{ 'active' if active == 'converter' else '' }}">
+      📋 문서 변환기
+    </a>
+    <a href="/welfare" class="nav-item {{ 'active' if active == 'welfare' else '' }}">
+      🤝 복지 혜택 매칭
+    </a>
+    <a href="/civil" class="nav-item {{ 'active' if active == 'civil' else '' }}">
+      ✍️ 민원 작성 도우미
+    </a>
+  </div>
+</nav>
+
+{% block before_container %}{% endblock %}
+
+{% block body %}{% endblock %}
+
+<!-- ── 로딩 ── -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">AI가 처리하고 있습니다...</div>
+</div>
+
+<!-- ── 토스트 ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// 글자 크기 초기화 (모든 페이지 공통)
+(function() {
+  const size = localStorage.getItem('fontSize') || 'md';
+  document.body.classList.add('font-' + size);
+})();
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -155,6 +155,24 @@ class LLMService:
         except Exception as e:
             return {'error': str(e)}
 
+    def match_welfare(self, profile: dict) -> dict:
+        from prompts import WELFARE_PROMPT
+        prompt = WELFARE_PROMPT.format(**profile)
+        try:
+            raw = self._call(prompt)
+            return self._parse_json(raw)
+        except Exception as e:
+            return {'error': str(e)}
+
+    def draft_civil(self, civil_type: str, situation: str) -> dict:
+        from prompts import CIVIL_PROMPT
+        prompt = CIVIL_PROMPT.format(civil_type=civil_type, situation=situation)
+        try:
+            raw = self._call(prompt)
+            return self._parse_json(raw)
+        except Exception as e:
+            return {'error': str(e)}
+
     def explain_word(self, word: str, context: str = '') -> dict:
         prompt = EXPLAIN_PROMPT.format(word=word, context=context)
         try:

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}복지 혜택 매칭{% endblock %}
+
+{% block header_controls %}
+<div class="font-controls">
+  <button class="font-btn" onclick="setFontSize('sm')" title="글자 작게">A-</button>
+  <button class="font-btn" onclick="setFontSize('md')" title="기본 크기">A</button>
+  <button class="font-btn" onclick="setFontSize('lg')" title="글자 크게">A+</button>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="page-intro">
+    <h2 class="page-title">🤝 나에게 맞는 복지 혜택 찾기</h2>
+    <p class="page-desc">정보를 입력하면 AI가 받을 수 있는 복지 혜택을 알려드립니다. 입력한 정보는 저장되지 않습니다.</p>
+  </div>
+
+  <div class="layout">
+    <!-- 입력 패널 -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="icon">📝</span>
+        기본 정보 입력
+      </div>
+      <div class="panel-body">
+        <div class="welfare-form">
+
+          <div class="form-row">
+            <label class="form-label">나이</label>
+            <input type="number" id="w-age" class="form-input" placeholder="예: 65" min="0" max="120">
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">가구 유형</label>
+            <select id="w-household" class="form-select">
+              <option value="">선택해주세요</option>
+              <option value="1인가구">1인가구</option>
+              <option value="부부가구 (자녀 없음)">부부가구 (자녀 없음)</option>
+              <option value="일반 가족 (부모+자녀)">일반 가족 (부모+자녀)</option>
+              <option value="한부모가족">한부모가족</option>
+              <option value="조손가족 (조부모+손자녀)">조손가족 (조부모+손자녀)</option>
+              <option value="노인단독가구">노인단독가구</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">소득 수준</label>
+            <select id="w-income" class="form-select">
+              <option value="">선택해주세요</option>
+              <option value="기초생활수급자">기초생활수급자</option>
+              <option value="차상위계층 (중위소득 50% 이하)">차상위계층 (중위소득 50% 이하)</option>
+              <option value="중위소득 50~100%">중위소득 50~100%</option>
+              <option value="중위소득 100~150%">중위소득 100~150%</option>
+              <option value="중위소득 150% 초과">중위소득 150% 초과</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">장애 여부</label>
+            <select id="w-disability" class="form-select">
+              <option value="없음">없음</option>
+              <option value="경증 장애 (4~6급)">경증 장애 (4~6급)</option>
+              <option value="중증 장애 (1~3급)">중증 장애 (1~3급)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">거주 지역</label>
+            <select id="w-region" class="form-select">
+              <option value="전국">전국 (지역 무관)</option>
+              <option value="서울">서울특별시</option>
+              <option value="부산">부산광역시</option>
+              <option value="대구">대구광역시</option>
+              <option value="인천">인천광역시</option>
+              <option value="광주">광주광역시</option>
+              <option value="대전">대전광역시</option>
+              <option value="울산">울산광역시</option>
+              <option value="세종">세종특별자치시</option>
+              <option value="경기">경기도</option>
+              <option value="강원">강원특별자치도</option>
+              <option value="충북">충청북도</option>
+              <option value="충남">충청남도</option>
+              <option value="전북">전북특별자치도</option>
+              <option value="전남">전라남도</option>
+              <option value="경북">경상북도</option>
+              <option value="경남">경상남도</option>
+              <option value="제주">제주특별자치도</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">가구 구성원</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item">
+                <input type="checkbox" id="w-infant"> 영유아 있음 (6세 이하)
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="w-child"> 청소년 있음 (7~18세)
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="w-elderly"> 노인 있음 (65세 이상)
+              </label>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="welfare-btn" style="width:100%; justify-content:center; padding:13px; margin-top:8px;">
+            🔍 혜택 찾기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결과 패널 -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="icon">🎁</span>
+        추천 복지 혜택
+      </div>
+      <div class="panel-body">
+        <div id="welfare-result">
+          <div class="result-empty">
+            <div class="empty-icon">🤝</div>
+            <p>왼쪽에 정보를 입력하고<br><strong>혜택 찾기</strong>를 눌러주세요</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/welfare.js"></script>
+{% endblock %}
