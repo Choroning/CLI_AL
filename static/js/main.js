@@ -7,7 +7,9 @@ const resultArea = document.getElementById('result-area');
 const loading    = document.getElementById('loading');
 const tooltip    = document.getElementById('tooltip-overlay');
 
-let lastResult = null;  // 복사/저장용 마지막 결과 저장
+let lastResult      = null;
+let chatHistory     = [];
+let currentDocument = '';
 
 const MAX_CHARS = 10000;
 
@@ -25,7 +27,10 @@ clearBtn.addEventListener('click', () => {
   textarea.dispatchEvent(new Event('input'));
   resultArea.innerHTML = emptyState();
   lastResult = null;
+  currentDocument = '';
+  chatHistory = [];
   document.getElementById('result-header-actions').style.display = 'none';
+  document.getElementById('chat-panel').style.display = 'none';
 });
 
 // ── 파일 업로드 ────────────────────────────────
@@ -76,6 +81,7 @@ analyzeBtn.addEventListener('click', async () => {
       return;
     }
 
+    currentDocument = textarea.value.trim();
     renderResult(data);
   } catch (e) {
     showToast('서버 연결에 실패했습니다.', true);
@@ -90,6 +96,13 @@ analyzeBtn.addEventListener('click', async () => {
 function renderResult(data) {
   lastResult = data;
   document.getElementById('result-header-actions').style.display = 'flex';
+  // 챗 패널 초기화 후 표시
+  chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = `<div class="chat-hint">
+    이 문서에 대해 궁금한 점을 물어보세요.<br>
+    예: <em>"계약 해지하려면 어떻게 해야 하나요?"</em> &nbsp;·&nbsp; <em>"보증금은 언제 돌려받나요?"</em>
+  </div>`;
+  document.getElementById('chat-panel').style.display = 'block';
 
   const simplified    = data.simplified    || '';
   const keyPoints     = data.key_points    || [];
@@ -238,6 +251,82 @@ function errorState(msg) {
   return `<div class="result-empty">
     <div class="empty-icon">⚠️</div>
     <p>${escHtml(msg)}</p>
+  </div>`;
+}
+
+// ── Q&A 챗 ────────────────────────────────────────
+const chatInput   = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
+
+chatSendBtn.addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) sendChat(); });
+
+async function sendChat() {
+  const question = chatInput.value.trim();
+  if (!question || !currentDocument) return;
+
+  chatInput.value = '';
+  chatSendBtn.disabled = true;
+
+  appendBubble('user', question);
+  chatHistory.push({ role: 'user', content: question });
+
+  const typingEl = appendTyping();
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        document: currentDocument,
+        history: chatHistory.slice(0, -1),
+        question,
+      }),
+    });
+    const data = await res.json();
+    typingEl.remove();
+
+    const answer = data.error ? '죄송합니다. 답변을 가져오지 못했습니다.' : data.answer;
+    appendBubble('assistant', answer);
+    if (!data.error) chatHistory.push({ role: 'assistant', content: answer });
+  } catch {
+    typingEl.remove();
+    appendBubble('assistant', '서버 연결에 실패했습니다.');
+  } finally {
+    chatSendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+function appendBubble(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  // 처음 메시지 오면 hint 제거
+  const hint = msgs.querySelector('.chat-hint');
+  if (hint) hint.remove();
+
+  const div = document.createElement('div');
+  div.className = `chat-bubble ${role}`;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-bubble assistant typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function clearChat() {
+  chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = `<div class="chat-hint">
+    이 문서에 대해 궁금한 점을 물어보세요.<br>
+    예: <em>"계약 해지하려면 어떻게 해야 하나요?"</em>
   </div>`;
 }
 

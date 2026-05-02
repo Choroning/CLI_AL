@@ -79,6 +79,28 @@
     </div>
 
   </div>
+
+  <!-- 챗 패널 (분석 후 표시) -->
+  <div class="panel chat-panel" id="chat-panel" style="display:none; margin-top:20px;">
+    <div class="panel-header">
+      <span class="icon">💬</span>
+      문서에 대해 질문하기
+      <button class="btn btn-secondary" onclick="clearChat()" style="margin-left:auto; padding:4px 10px; font-size:0.8rem;">대화 초기화</button>
+    </div>
+    <div class="panel-body">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-hint">
+          이 문서에 대해 궁금한 점을 물어보세요.<br>
+          예: <em>"계약 해지하려면 어떻게 해야 하나요?"</em> &nbsp;·&nbsp; <em>"보증금은 언제 돌려받나요?"</em>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="문서에 대해 궁금한 점을 입력하세요..." maxlength="500">
+        <button class="btn btn-primary" id="chat-send-btn">전송</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── 단어 풀이 모달 ── -->

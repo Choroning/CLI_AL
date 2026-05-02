@@ -1,7 +1,7 @@
 import os
 import json
 import re
-from prompts import build_analyze_prompt, EXPLAIN_PROMPT
+from prompts import build_analyze_prompt, EXPLAIN_PROMPT, CHAT_SYSTEM
 
 # .env 또는 환경변수에서 LLM_PROVIDER 읽음
 # 지원 값: 'gemini' | 'groq' | 'ollama'
@@ -73,6 +73,43 @@ class LLMService:
             result['rag_used'] = bool(rag_context)
             result['rag_laws'] = rag_laws  # 참고한 법령명 목록
             return result
+        except Exception as e:
+            return {'error': str(e)}
+
+    def _call_with_messages(self, system: str, messages: list) -> str:
+        """system prompt + 대화 기록으로 LLM 호출"""
+        if self.provider == 'gemini':
+            # Gemini는 단일 프롬프트로 변환
+            parts = [system, '']
+            for m in messages:
+                prefix = '사용자' if m['role'] == 'user' else '상담사'
+                parts.append(f"{prefix}: {m['content']}")
+            response = self.model.generate_content('\n'.join(parts))
+            return response.text
+
+        elif self.provider == 'groq':
+            all_msgs = [{'role': 'system', 'content': system}] + messages
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=all_msgs,
+                temperature=0.5,
+            )
+            return response.choices[0].message.content
+
+        elif self.provider == 'ollama':
+            import ollama
+            all_msgs = [{'role': 'system', 'content': system}] + messages
+            response = ollama.chat(model=self.model_name, messages=all_msgs)
+            return response['message']['content']
+
+        raise ValueError(f'지원하지 않는 LLM_PROVIDER: {self.provider}')
+
+    def chat_with_document(self, document: str, history: list, question: str) -> dict:
+        system = CHAT_SYSTEM.format(document=document[:4000])  # 토큰 절약
+        messages = history + [{'role': 'user', 'content': question}]
+        try:
+            answer = self._call_with_messages(system, messages)
+            return {'answer': answer.strip()}
         except Exception as e:
             return {'error': str(e)}
 

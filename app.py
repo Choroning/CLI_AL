@@ -148,6 +148,29 @@ def _extract_hwp(file_bytes: bytes) -> str:
             os.unlink(tmp_path)
 
 
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': '요청 데이터가 없습니다.'}), 400
+
+    document = data.get('document', '').strip()
+    history  = data.get('history', [])
+    question = data.get('question', '').strip()
+
+    if not question:
+        return jsonify({'error': '질문을 입력해주세요.'}), 400
+    if not document:
+        return jsonify({'error': '먼저 문서를 분석해주세요.'}), 400
+    if len(history) > 20:
+        history = history[-20:]  # 최근 20개만 유지
+
+    result = llm.chat_with_document(document, history, question)
+    if 'error' in result:
+        return jsonify(result), 500
+    return jsonify(result)
+
+
 if __name__ == '__main__':
     print(f'LLM Provider: {os.getenv("LLM_PROVIDER", "gemini")}')
     app.run(debug=True, host='0.0.0.0', port=5000)

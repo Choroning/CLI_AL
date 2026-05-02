@@ -55,6 +55,15 @@ def build_analyze_prompt(document: str, rag_context: str = '') -> str:
 # 단순 호환용 (rag 없이 호출할 때)
 ANALYZE_PROMPT = _ANALYZE_BASE.replace('{rag_section}', '\n')
 
+CHAT_SYSTEM = """당신은 아래 문서를 완전히 이해한 전문 상담사입니다.
+사용자가 이 문서에 관해 질문하면 쉽고 친절하게 답변해주세요.
+장애인과 고령자도 이해할 수 있도록 짧고 쉬운 문장으로 설명하세요.
+문서에 없는 내용은 "이 문서에서는 확인할 수 없습니다"라고 정직하게 답하세요.
+추측이나 일반 법률 지식으로 보완할 경우 반드시 "문서 외 일반 정보"임을 밝히세요.
+
+[분석 대상 문서]
+{document}"""
+
 EXPLAIN_PROMPT = """다음 단어를 장애인과 고령자도 이해할 수 있도록 쉽게 설명해주세요.
 
 단어: {word}
