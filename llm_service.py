@@ -65,12 +65,13 @@ class LLMService:
 
     def analyze_document(self, document: str) -> dict:
         from rag_service import get_rag_context
-        rag_context = get_rag_context(document)
+        rag_context, rag_laws = get_rag_context(document)
         prompt = build_analyze_prompt(document, rag_context)
         try:
             raw = self._call(prompt)
             result = self._parse_json(raw)
-            result['rag_used'] = bool(rag_context)  # 프론트에서 뱃지 표시용
+            result['rag_used'] = bool(rag_context)
+            result['rag_laws'] = rag_laws  # 참고한 법령명 목록
             return result
         except Exception as e:
             return {'error': str(e)}

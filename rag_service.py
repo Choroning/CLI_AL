@@ -107,24 +107,24 @@ def extract_keywords(document: str) -> list:
 
 
 # ── RAG 컨텍스트 생성 (메인 함수) ────────────────────────
-def get_rag_context(document: str) -> str:
+def get_rag_context(document: str) -> tuple[str, list[str]]:
     """
-    문서를 분석해 관련 법령 조문을 가져오고
-    LLM 프롬프트에 넣을 참고 텍스트를 반환한다.
-    API 오류 시 빈 문자열 반환 (서비스 중단 없음).
+    문서를 분석해 관련 법령 조문을 가져온다.
+    반환값: (프롬프트용 컨텍스트 문자열, 참고 법령명 리스트)
+    API 오류 시 ('', []) 반환 (서비스 중단 없음).
     """
     try:
         keywords = extract_keywords(document)
         if not keywords:
-            return ''
+            return '', []
 
         parts = []
+        law_names_used = []
         seen_mst = set()
 
         for keyword in keywords[:3]:
             laws = search_laws(keyword, display=2)
             for law in laws[:1]:
-                # API 응답의 MST 키는 '법령일련번호'
                 mst      = law.get('법령일련번호') or law.get('법령MST') or law.get('MST', '')
                 law_name = law.get('법령명한글', '')
                 if not mst or mst in seen_mst:
@@ -133,8 +133,10 @@ def get_rag_context(document: str) -> str:
                 articles = get_law_articles(mst)
                 if articles:
                     parts.append(f"▶ {law_name}\n{articles}")
+                    law_names_used.append(law_name)
 
-        return '\n\n'.join(parts) if parts else ''
+        context = '\n\n'.join(parts) if parts else ''
+        return context, law_names_used
 
     except Exception:
-        return ''
+        return '', []

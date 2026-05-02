@@ -98,7 +98,10 @@ function renderResult(data) {
 
   resultArea.innerHTML = `
     ${data.rag_used ? `
-    <div class="rag-badge">⚖️ 법제처 법령 데이터 참고하여 분석됨</div>` : ''}
+    <div class="rag-badge">
+      ⚖️ 법제처 법령 참고
+      <span class="rag-law-names">${(data.rag_laws || []).map(n => `<span class="rag-law-tag">${escHtml(n)}</span>`).join('')}</span>
+    </div>` : ''}
 
     ${simplified ? `
     <div class="result-section">
