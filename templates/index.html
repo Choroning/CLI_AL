@@ -39,9 +39,9 @@
 
         <div class="input-actions">
           <button class="btn btn-upload" id="upload-btn">
-            📁 파일 업로드 (.txt / .pdf)
+            📁 파일 업로드 (.txt / .pdf / .hwp / .hwpx)
           </button>
-          <input type="file" id="file-input" accept=".txt,.pdf" style="display:none">
+          <input type="file" id="file-input" accept=".txt,.pdf,.hwp,.hwpx" style="display:none">
 
           <button class="btn btn-secondary" id="clear-btn">
             🗑️ 초기화
@@ -63,6 +63,10 @@
       <div class="panel-header">
         <span class="icon">✅</span>
         변환 결과
+        <div class="result-header-actions" id="result-header-actions" style="display:none; margin-left:auto; display:none; gap:8px;">
+          <button class="btn btn-secondary" onclick="copyResult()" style="padding:5px 12px; font-size:0.82rem;">📋 복사</button>
+          <button class="btn btn-secondary" onclick="saveResult()" style="padding:5px 12px; font-size:0.82rem;">💾 저장</button>
+        </div>
       </div>
       <div class="panel-body">
         <div id="result-area">

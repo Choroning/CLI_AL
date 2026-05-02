@@ -11,5 +11,6 @@ groq>=1.2.0
 # Ollama (로컬 설치 필요: https://ollama.ai)
 # ollama>=0.2.0
 
-# PDF 업로드 지원 (선택)
-# pdfplumber>=0.11.0
+# 파일 파싱
+pdfplumber>=0.11.0
+pyhwp>=0.1b12

@@ -1,4 +1,9 @@
 import os
+import io
+import tempfile
+import zipfile
+import subprocess
+from xml.etree import ElementTree as ET
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from llm_service import LLMService
@@ -6,7 +11,7 @@ from llm_service import LLMService
 load_dotenv()
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 파일 업로드 최대 2MB
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 최대 20MB
 
 llm = LLMService()
 
@@ -62,27 +67,85 @@ def upload():
         return jsonify({'error': '파일을 선택해주세요.'}), 400
 
     filename = file.filename.lower()
+    file_bytes = file.read()
 
     if filename.endswith('.txt'):
         try:
-            text = file.read().decode('utf-8')
+            text = file_bytes.decode('utf-8')
         except UnicodeDecodeError:
-            text = file.read().decode('cp949', errors='ignore')
+            text = file_bytes.decode('cp949', errors='ignore')
         return jsonify({'text': text})
 
     elif filename.endswith('.pdf'):
         try:
             import pdfplumber
-            import io
-            with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-                text = '\n'.join(
-                    page.extract_text() or '' for page in pdf.pages
-                )
-            return jsonify({'text': text})
+            with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+                text = '\n'.join(page.extract_text() or '' for page in pdf.pages)
+            return jsonify({'text': text.strip()})
         except ImportError:
             return jsonify({'error': 'PDF 지원을 위해 pdfplumber를 설치해주세요: pip install pdfplumber'}), 500
 
-    return jsonify({'error': '.txt 또는 .pdf 파일만 지원합니다.'}), 400
+    elif filename.endswith('.hwpx'):
+        try:
+            text = _extract_hwpx(file_bytes)
+            return jsonify({'text': text})
+        except Exception as e:
+            return jsonify({'error': f'HWPX 파싱 실패: {e}'}), 500
+
+    elif filename.endswith('.hwp'):
+        try:
+            text = _extract_hwp(file_bytes)
+            return jsonify({'text': text})
+        except Exception as e:
+            return jsonify({'error': f'HWP 파싱 실패: {e}'}), 500
+
+    return jsonify({'error': '.txt / .pdf / .hwp / .hwpx 파일만 지원합니다.'}), 400
+
+
+def _extract_hwpx(file_bytes: bytes) -> str:
+    """HWPX(ZIP+XML) 텍스트 추출"""
+    texts = []
+    with zipfile.ZipFile(io.BytesIO(file_bytes)) as z:
+        section_files = sorted([
+            n for n in z.namelist()
+            if n.startswith('Contents/section') and n.endswith('.xml')
+        ])
+        if not section_files:
+            # 구조가 다를 경우 fallback
+            section_files = sorted([
+                n for n in z.namelist() if n.endswith('.xml')
+            ])
+        for name in section_files:
+            with z.open(name) as f:
+                content = f.read().decode('utf-8', errors='ignore')
+            root = ET.fromstring(content)
+            for elem in root.iter():
+                tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+                if tag == 't' and elem.text:
+                    texts.append(elem.text)
+                elif tag in ('lineBreak', 'br'):
+                    texts.append('\n')
+    return ''.join(texts).strip()
+
+
+def _extract_hwp(file_bytes: bytes) -> str:
+    """HWP 바이너리 텍스트 추출 (pyhwp 사용)"""
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.hwp', delete=False) as f:
+            f.write(file_bytes)
+            tmp_path = f.name
+
+        result = subprocess.run(
+            ['hwp5txt', tmp_path],
+            capture_output=True, encoding='utf-8', errors='ignore', timeout=30
+        )
+        if result.returncode != 0:
+            raise RuntimeError(result.stderr or 'hwp5txt 변환 실패')
+        return result.stdout.strip()
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
 
 if __name__ == '__main__':

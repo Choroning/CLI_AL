@@ -7,6 +7,8 @@ const resultArea = document.getElementById('result-area');
 const loading    = document.getElementById('loading');
 const tooltip    = document.getElementById('tooltip-overlay');
 
+let lastResult = null;  // 복사/저장용 마지막 결과 저장
+
 const MAX_CHARS = 10000;
 
 // ── 글자수 카운터 ──────────────────────────────
@@ -22,6 +24,8 @@ clearBtn.addEventListener('click', () => {
   textarea.value = '';
   textarea.dispatchEvent(new Event('input'));
   resultArea.innerHTML = emptyState();
+  lastResult = null;
+  document.getElementById('result-header-actions').style.display = 'none';
 });
 
 // ── 파일 업로드 ────────────────────────────────
@@ -84,6 +88,9 @@ analyzeBtn.addEventListener('click', async () => {
 
 // ── 결과 렌더링 ────────────────────────────────
 function renderResult(data) {
+  lastResult = data;
+  document.getElementById('result-header-actions').style.display = 'flex';
+
   const simplified    = data.simplified    || '';
   const keyPoints     = data.key_points    || [];
   const actionItems   = data.action_items  || [];
@@ -223,6 +230,57 @@ function errorState(msg) {
     <div class="empty-icon">⚠️</div>
     <p>${escHtml(msg)}</p>
   </div>`;
+}
+
+// ── 복사 / 저장 ────────────────────────────────
+function buildResultText() {
+  if (!lastResult) return '';
+  const lines = [];
+
+  if (lastResult.simplified) {
+    lines.push('=== 쉬운말로 바꾼 내용 ===');
+    lines.push(lastResult.simplified);
+    lines.push('');
+  }
+  if (lastResult.key_points?.length) {
+    lines.push('=== 핵심 의무 · 권리 · 기한 ===');
+    lastResult.key_points.forEach(p => lines.push(`• ${p}`));
+    lines.push('');
+  }
+  if (lastResult.action_items?.length) {
+    lines.push('=== 해야 할 일 체크리스트 ===');
+    lastResult.action_items.forEach(item => lines.push(`☐ ${item}`));
+    lines.push('');
+  }
+  if (lastResult.difficult_words?.length) {
+    lines.push('=== 어려운 단어 풀이 ===');
+    lastResult.difficult_words.forEach(w => lines.push(`[${w.word}] ${w.explanation}`));
+  }
+  return lines.join('\n');
+}
+
+async function copyResult() {
+  const text = buildResultText();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('클립보드에 복사됐습니다.');
+  } catch {
+    showToast('복사에 실패했습니다. 브라우저 권한을 확인해주세요.', true);
+  }
+}
+
+function saveResult() {
+  const text = buildResultText();
+  if (!text) return;
+  const blob = new Blob(['﻿' + text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = '쉬운말_변환결과.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('파일로 저장됐습니다.');
 }
 
 // ── 유틸 ──────────────────────────────────────
