@@ -4,7 +4,7 @@
 정부 공문, 계약서, 약관, 의료 안내문 등을 누구나 이해할 수 있는 쉬운 한국어로 변환하고,
 복지 혜택 매칭·민원 작성까지 한 곳에서 제공합니다.
 
-> 흑백 모노크롬 디자인 · 풀스크린 히어로 영상 · 스트리밍 AI 분석
+> 흑백 모노크롬 디자인 · 풀스크린 히어로 영상 · 스트리밍 AI 분석 · 모바일 반응형
 
 ---
 
@@ -24,7 +24,7 @@
 - **요약 수준 선택** — 간단히 / 기본 / 자세히
 - **결과 복사·저장** — 클립보드 복사 및 .txt 다운로드
 - **최근 기록** — 최근 분석 5개 localStorage 저장
-- **글자 크기 조절** — A- / A / A+
+- **글자 크기 조절** — 우하단 플로팅 위젯으로 A- / A / A+ 조절 (전 페이지 공통)
 
 ### 복지 혜택 매칭 (`/welfare`)
 - 나이, 가구 유형, 소득 수준, 장애 여부, 지역 등 입력
@@ -44,10 +44,18 @@
 | 분류 | 사용 기술 |
 |------|-----------|
 | Backend | Python 3.10+, Flask |
-| Frontend | HTML / CSS / Vanilla JavaScript |
+| Frontend | HTML / CSS / Vanilla JavaScript (모바일 반응형) |
 | LLM | Groq (`llama-3.3-70b-versatile`) — Gemini, Ollama 교체 가능 |
 | RAG | 법제처 국가법령정보 Open API |
 | 파일 파싱 | pdfplumber (PDF), pyhwp (HWP), zipfile+ElementTree (HWPX) |
+
+## UI 디자인
+
+- **모노크롬 시스템** — `#111111` (블랙) / `#fafafa` (배경) / 그레이 스케일로만 구성
+- **풀스크린 히어로** — 첫 화면 전체를 영상 슬롯으로 채움, 다크 오버레이에 브랜딩 배치
+- **오픈 컬럼 레이아웃** — 패널 박스 없이 INPUT / RESULT 두 컬럼이 화면을 채움
+- **반응형** — 900px 이하 단일 컬럼, 600px 이하 폰 최적화 (네비 가로 스크롤 등)
+- **모션** — fadeUp, sectionIn, tagPop, checkSlide, bubbleIn 키프레임 + IntersectionObserver 스크롤 리빌
 
 ---
 
