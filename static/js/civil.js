@@ -20,8 +20,8 @@ function showToast(msg, isError = false) {
 }
 
 function setFontSize(size) {
-  document.body.classList.remove('font-sm', 'font-md', 'font-lg');
-  document.body.classList.add('font-' + size);
+  document.documentElement.classList.remove('font-sm', 'font-md', 'font-lg');
+  document.documentElement.classList.add('font-' + size);
   localStorage.setItem('fontSize', size);
   document.querySelectorAll('.font-btn').forEach(b => {
     b.classList.toggle('active', b.getAttribute('onclick').includes(`'${size}'`));

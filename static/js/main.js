@@ -67,6 +67,7 @@ analyzeBtn.addEventListener('click', async () => {
   if (!docText) return;
 
   analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<span class="btn-dots"><span></span><span></span><span></span></span>변환 중...';
   currentDocument = docText;
 
   // 스트리밍 미리보기 초기화
@@ -143,6 +144,7 @@ analyzeBtn.addEventListener('click', async () => {
     resultArea.innerHTML = errorState('서버 연결에 실패했습니다.');
   } finally {
     analyzeBtn.disabled = false;
+    analyzeBtn.textContent = '쉬운말로 변환하기';
   }
 });
 
@@ -169,6 +171,22 @@ function parseStreamResult(text, meta) {
   } catch {
     return { error: true };
   }
+}
+
+// ── 결과 스태거 애니메이션 ──────────────────────
+function staggerResult() {
+  document.querySelectorAll('#result-area .result-section').forEach((el, i) => {
+    el.style.animationDelay = `${i * 85}ms`;
+  });
+  document.querySelectorAll('#result-area .word-tag').forEach((el, i) => {
+    el.style.animationDelay = `${i * 35}ms`;
+  });
+  document.querySelectorAll('#result-area .checklist li').forEach((el, i) => {
+    el.style.animationDelay = `${i * 55}ms`;
+  });
+  document.querySelectorAll('#result-area .risk-item').forEach((el, i) => {
+    el.style.animationDelay = `${i * 65}ms`;
+  });
 }
 
 // ── 결과 렌더링 ────────────────────────────────
@@ -257,6 +275,9 @@ function renderResult(data) {
       </div>
     </div>` : ''}
   `;
+
+  // 스태거 애니메이션 적용 (requestAnimationFrame으로 DOM 반영 후 실행)
+  requestAnimationFrame(staggerResult);
 }
 
 // ── 체크리스트 토글 ────────────────────────────
@@ -340,8 +361,8 @@ function showToast(msg, isError = false) {
 // ── 상태 템플릿 ────────────────────────────────
 function emptyState() {
   return `<div class="result-empty">
-    <div class="empty-icon">📄</div>
-    <p>왼쪽에 문서를 입력하고<br><strong>변환하기</strong>를 눌러주세요</p>
+    <div class="empty-icon">↑</div>
+    <p>문서를 입력하고<br>변환하기를 눌러주세요</p>
   </div>`;
 }
 
@@ -515,8 +536,8 @@ function setFontSize(size) {
 }
 
 function applyFontSize(size) {
-  document.body.classList.remove('font-sm', 'font-md', 'font-lg');
-  document.body.classList.add('font-' + size);
+  document.documentElement.classList.remove('font-sm', 'font-md', 'font-lg');
+  document.documentElement.classList.add('font-' + size);
   document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
   const btn = document.querySelector(`.font-btn[onclick*="'${size}'"]`);
   if (btn) btn.classList.add('active');
