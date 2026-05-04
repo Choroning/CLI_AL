@@ -141,14 +141,23 @@
 }
 
 @layer components {
-  /* Citation marker chip — surface-2 fill, lavender on hover (link emphasis). */
+  /* Citation marker chip — em-relative size so it scales with the surrounding
+   * paragraph (e.g. larger on the body-lg rewrite). */
   .citation-marker {
     @apply inline-flex items-center justify-center align-super
-           text-[11px] leading-none font-medium font-mono
+           leading-none font-medium font-mono
            px-1.5 py-0.5 mx-0.5 rounded-xs
            bg-surface-2 text-ink-muted ring-1 ring-hairline
            hover:bg-primary hover:text-primary-on hover:ring-primary
            transition-colors cursor-pointer;
+    font-size: 0.6em;
+  }
+
+  /* Glossary term highlight — used inline in rewrite text to flag words the
+   * user can look up below. Subtle dotted underline in lavender. */
+  .glossary-term {
+    border-bottom: 2px dotted rgb(94 106 210 / 0.55);  /* primary @ 55% */
+    cursor: help;
   }
 
   /* status-badge from DESIGN.md — pill, surface-2, ink-muted, caption type. */

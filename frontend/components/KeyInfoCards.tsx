@@ -35,7 +35,9 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
       <dt className="text-caption text-ink-muted">{label}</dt>
-      <dd className="text-ink font-mono break-keep">{value}</dd>
+      {/* No font-mono: values can contain Korean (e.g. "30,000원", "민원실"),
+       * which JetBrains Mono lacks glyphs for and falls back inconsistently. */}
+      <dd className="text-ink break-keep">{value}</dd>
     </div>
   );
 }

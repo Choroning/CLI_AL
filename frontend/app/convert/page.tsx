@@ -175,8 +175,12 @@ function ResultView({
             {original}
           </p>
         </Section>
-        <Section title="쉬운말 재작성">
-          <RewriteText text={result.rewrite} citations={result.citations} />
+        <Section title="쉬운말 재작성" accent>
+          <RewriteText
+            text={result.rewrite}
+            citations={result.citations}
+            glossary={result.glossary}
+          />
         </Section>
       </div>
 
