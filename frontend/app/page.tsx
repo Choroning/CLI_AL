@@ -35,16 +35,46 @@ export default function LandingPage() {
 function Section({
   children,
   className = "",
+  last = false,
 }: {
   children: React.ReactNode;
   className?: string;
+  /** Suppress the scroll cue on the last section (nowhere to scroll). */
+  last?: boolean;
 }) {
   return (
     <section
-      className={`snap-section min-h-screen flex flex-col justify-center px-6 py-16 ${className}`}
+      className={`snap-section relative min-h-screen flex flex-col justify-center px-6 py-16 ${className}`}
     >
       <div className="mx-auto w-full max-w-content">{children}</div>
+      {!last && <ScrollCue />}
     </section>
+  );
+}
+
+/**
+ * Down-chevron with a fade-in → hold → fade-out-while-moving-down loop.
+ * Matches user spec (2026-05-04): fade in at top, hold, then move top→bottom
+ * while fading out. Movement starts only AFTER fade-in completes.
+ */
+function ScrollCue() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 text-ink-subtle"
+    >
+      <svg
+        className="animate-scroll-cue h-6 w-6"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </div>
   );
 }
 
@@ -190,7 +220,7 @@ function Trust() {
 
 function FinalCTA() {
   return (
-    <Section>
+    <Section last>
       <div className="rounded-xl bg-surface-1 ring-1 ring-hairline p-12 md:p-section flex flex-col items-start gap-6">
         <p className="eyebrow">시작하기</p>
         <h2 className="text-headline md:text-display-md text-ink max-w-2xl">
