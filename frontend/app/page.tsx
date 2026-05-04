@@ -9,10 +9,10 @@ import { useEffect, useState } from "react";
  */
 const HERO_PHRASES = [
   "권리를 놓치지 마세요.",
-  "포기하지 마세요.",
   "기한을 놓치지 마세요.",
   "혼자 고민하지 마세요.",
   "당황하지 마세요.",
+  "불필요한 지출하지 마세요.",
 ];
 
 const TYPE_MS = 90;
