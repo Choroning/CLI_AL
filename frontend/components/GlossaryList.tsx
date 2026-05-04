@@ -15,8 +15,10 @@ export function GlossaryList({ items }: { items: GlossaryTerm[] }) {
           <dd className="mt-2 text-body leading-relaxed text-ink">
             {g.definition}
             {g.example && (
-              <div className="mt-3 text-body-sm text-ink">
-                <span className="eyebrow inline-block mr-2">예</span>
+              <div className="mt-3 text-body text-ink leading-relaxed">
+                <span className="inline-flex items-center rounded-sm bg-primary/15 text-primary ring-1 ring-primary/30 px-2 py-0.5 mr-2 text-caption font-semibold align-middle">
+                  예
+                </span>
                 {g.example}
               </div>
             )}

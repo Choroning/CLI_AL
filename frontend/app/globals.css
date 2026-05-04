@@ -141,13 +141,13 @@
 }
 
 @layer components {
-  /* Citation marker chip — em-relative size so it scales with the surrounding
-   * paragraph (e.g. larger on the body-lg rewrite). */
+  /* Citation marker chip — lavender tint at rest, full lavender on hover.
+   * Em-relative size scales with the surrounding paragraph. */
   .citation-marker {
     @apply inline-flex items-center justify-center align-super
-           leading-none font-medium font-mono
+           leading-none font-semibold font-mono
            px-1.5 py-0.5 mx-0.5 rounded-xs
-           bg-surface-2 text-ink-muted ring-1 ring-hairline
+           bg-primary/15 text-primary ring-1 ring-primary/30
            hover:bg-primary hover:text-primary-on hover:ring-primary
            transition-colors cursor-pointer;
     font-size: 0.6em;
