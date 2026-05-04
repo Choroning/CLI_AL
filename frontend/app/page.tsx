@@ -1,7 +1,71 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+/**
+ * Phrases cycled by the hero typewriter — each completes the lead-in
+ * "공문이 어렵다고 ___". Keep them short and end-stop-able.
+ */
+const HERO_PHRASES = [
+  "권리를 놓치지 마세요.",
+  "포기하지 마세요.",
+  "기한을 놓치지 마세요.",
+  "혼자 고민하지 마세요.",
+  "당황하지 마세요.",
+];
+
+const TYPE_MS = 90;
+const DELETE_MS = 45;
+const HOLD_MS = 1800;
+const PAUSE_MS = 450;
+
+type Phase = "typing" | "holding" | "deleting" | "pausing";
+
+function Typewriter() {
+  const [idx, setIdx] = useState(0);
+  const [text, setText] = useState("");
+  const [phase, setPhase] = useState<Phase>("typing");
+
+  useEffect(() => {
+    const phrase = HERO_PHRASES[idx];
+    let timer: ReturnType<typeof setTimeout>;
+    switch (phase) {
+      case "typing":
+        timer =
+          text.length < phrase.length
+            ? setTimeout(() => setText(phrase.slice(0, text.length + 1)), TYPE_MS)
+            : setTimeout(() => setPhase("holding"), 0);
+        break;
+      case "holding":
+        timer = setTimeout(() => setPhase("deleting"), HOLD_MS);
+        break;
+      case "deleting":
+        timer =
+          text.length > 0
+            ? setTimeout(() => setText(phrase.slice(0, text.length - 1)), DELETE_MS)
+            : setTimeout(() => setPhase("pausing"), 0);
+        break;
+      case "pausing":
+        timer = setTimeout(() => {
+          setIdx((i) => (i + 1) % HERO_PHRASES.length);
+          setPhase("typing");
+        }, PAUSE_MS);
+        break;
+    }
+    return () => clearTimeout(timer);
+  }, [text, phase, idx]);
+
+  return (
+    <span aria-hidden className="whitespace-nowrap">
+      <span className="text-primary">{text}</span>
+      <span
+        className="inline-block ml-1 align-[-0.1em] bg-primary animate-cursor-blink"
+        style={{ width: "0.06em", height: "0.85em" }}
+      />
+    </span>
+  );
+}
 
 /**
  * Landing page with full-viewport snap sections.
@@ -89,17 +153,16 @@ function ScrollCue() {
 function Hero() {
   return (
     <Section>
-      <p className="eyebrow mb-5">행정문서 쉬운말 변환기</p>
-      <h1 className="text-display-md md:text-display-lg text-ink max-w-3xl">
+      <h1 className="text-display-lg md:text-display-xl text-ink max-w-4xl">
         공문이 어렵다고
         <br />
-        <span className="text-primary">권리를 놓치지</span> 마세요.
+        <Typewriter />
       </h1>
-      <p className="mt-7 text-body-lg text-ink leading-relaxed max-w-2xl">
+      <p className="mt-8 text-body-lg text-ink leading-relaxed max-w-2xl">
         어려운 행정문서·공문·약관을 붙여넣으면 의미를 보존한 쉬운말 재작성과 핵심정보·
         액션 체크리스트를 출처 인용·신뢰도 검증과 함께 보여드립니다.
       </p>
-      <div className="mt-8 flex flex-wrap items-center gap-3">
+      <div className="mt-9 flex flex-wrap items-center gap-3">
         <Link href="/convert" className="btn-primary">
           지금 변환하기 →
         </Link>
