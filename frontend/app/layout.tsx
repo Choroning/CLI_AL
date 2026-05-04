@@ -4,7 +4,7 @@ import { DisclaimerModal } from "@/components/DisclaimerModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
-  title: "쉬운말 행정문서 변환기",
+  title: "행정문서 쉬운말 변환기",
   description: "어려운 행정문서·공문·약관을 쉬운 한국어로. 출처 인용·신뢰도 검증 포함.",
 };
 
@@ -49,9 +49,10 @@ export default function RootLayout({
               >
                 쉬
               </span>
-              <span>
-                쉬운말<span className="hidden sm:inline"> 변환기</span>
-              </span>
+              {/* Canonical name on sm+, abbreviated on small phones to fit
+                  the nav within a 375px viewport. */}
+              <span className="sm:hidden">쉬운말</span>
+              <span className="hidden sm:inline">행정문서 쉬운말 변환기</span>
             </a>
             <nav className="flex items-center gap-1">
               <a
