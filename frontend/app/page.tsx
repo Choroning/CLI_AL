@@ -68,7 +68,7 @@ function ScrollCue() {
       aria-hidden
       className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2"
     >
-      <div className="animate-scroll-cue flex flex-col items-center gap-2 text-ink-muted">
+      <div className="animate-scroll-cue flex flex-col items-center gap-0.5 text-ink-muted">
         <span className="text-body-sm font-medium">스크롤</span>
         <svg
           className="h-10 w-10"
