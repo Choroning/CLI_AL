@@ -75,16 +75,17 @@
     scroll-snap-stop: normal;
   }
 
-  /* Scroll cue chevron — fade in (held at top), then move top→bottom while
-   * fading out. Movement begins only AFTER fade-in completes (per spec). */
+  /* Scroll cue — fade in (held at top), then move top→bottom while fading
+   * out. Movement only after fade-in completes (per spec). 3s loop so older
+   * readers have time to notice and follow the motion. */
   @keyframes scroll-cue {
-    0%,   0% { opacity: 0; transform: translateY(-8px); }
-    25%      { opacity: 1; transform: translateY(0);    }  /* fade-in done */
-    50%      { opacity: 1; transform: translateY(0);    }  /* hold */
-    100%     { opacity: 0; transform: translateY(20px); }  /* slide down + fade out */
+    0%   { opacity: 0; transform: translateY(-10px); }
+    25%  { opacity: 1; transform: translateY(0);     }  /* fade-in done */
+    50%  { opacity: 1; transform: translateY(0);     }  /* hold */
+    100% { opacity: 0; transform: translateY(28px);  }  /* slide down + fade out */
   }
   .animate-scroll-cue {
-    animation: scroll-cue 2.6s ease-in-out infinite;
+    animation: scroll-cue 3s ease-in-out infinite;
   }
   /* Respect reduced-motion preference — keep the cue visible but static. */
   @media (prefers-reduced-motion: reduce) {

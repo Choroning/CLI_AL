@@ -53,27 +53,35 @@ function Section({
 }
 
 /**
- * Down-chevron with a fade-in → hold → fade-out-while-moving-down loop.
- * Matches user spec (2026-05-04): fade in at top, hold, then move top→bottom
- * while fading out. Movement starts only AFTER fade-in completes.
+ * "스크롤" label + large down-chevron, animated together.
+ *
+ * Animation (per spec): fade in at top → hold visible → move top→bottom while
+ * fading out. Movement only begins AFTER fade-in completes.
+ *
+ * Tuned for the target audience (older readers): big chevron (40px), readable
+ * label, ink-muted contrast (not the dimmer ink-subtle), slower 3s loop so the
+ * cue is easy to notice and follow.
  */
 function ScrollCue() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 text-ink-subtle"
+      className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2"
     >
-      <svg
-        className="animate-scroll-cue h-6 w-6"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
+      <div className="animate-scroll-cue flex flex-col items-center gap-2 text-ink-muted">
+        <span className="text-body-sm font-medium">스크롤</span>
+        <svg
+          className="h-10 w-10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
     </div>
   );
 }
