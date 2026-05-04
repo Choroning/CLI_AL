@@ -2,6 +2,181 @@
 
 > 어려운 행정문서·공문·약관을 붙여넣으면 (1) 쉬운 한국어 재작성, (2) 핵심 의무·권리·기한 추출, (3) 어려운 용어 풀이, (4) 액션 체크리스트를 **출처 인용**과 함께 제공하는 웹 서비스.
 
+> **이 문서는 살아있는 메모리 파일이다.** 구현 진행 시 [§ Build status](#0-build-status)와 5장 체크박스를 함께 갱신한다.
+
+---
+
+## 0. Build status
+
+> 마지막 업데이트: 2026-05-04 (Auto-mode MVP scaffold)
+
+### 0.1. 스택 변경 사항 (계획서 → 실제 구현)
+
+| 항목 | 원래 계획 | 실제 구현 | 사유 |
+|---|---|---|---|
+| 관계형 DB | SQLite → PostgreSQL | **Supabase (Postgres cloud)** | 사용자 요청. RLS·Auth·실시간 확장성 + 로컬 설치 부담 제거 |
+| 벡터 DB | Chroma (로컬) | **MVP에선 미사용** (RAG 코퍼스 1차 미포함) | 코퍼스 큐레이션 = 별도 워크. 인용은 입력 원문 발췌로 1차 구현 |
+| 배포 | Vercel + Render (선택) | **로컬만** (`http://localhost:3000` + `:8000`) | 사용자 요청 |
+| 모델 ID | `solar-pro3` | `solar-pro2` 기본값 (env로 교체 가능) | 2026-05 시점 공개 모델. 출시 후 env 변경만으로 전환 |
+
+### 0.2. 디렉터리 구조 (실제)
+
+```
+CLI_AL/
+├── README.md                  ← 팀 메타 (수정 안 함)
+├── PROJECT_PLAN.md            ← 이 파일 (살아있는 메모리)
+├── LICENSE
+├── .env.example               ← 전체 스택 env 레퍼런스
+├── .gitignore
+├── backend/                   ← FastAPI
+│   ├── pyproject.toml
+│   ├── .env.example
+│   ├── app/
+│   │   ├── main.py            ← FastAPI app + CORS
+│   │   ├── config.py          ← pydantic-settings
+│   │   ├── routers/           ← /health, /rewrite, /history
+│   │   ├── services/          ← upstage_client, supabase_client, rewrite_service, prompt_loader, history_service
+│   │   └── models/schemas.py
+│   └── tests/                 ← pytest
+├── frontend/                  ← Next.js 15 (App Router)
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tailwind.config.ts
+│   ├── .env.example
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── globals.css
+│   │   ├── page.tsx           ← 입력 + 결과 표시
+│   │   └── history/page.tsx
+│   ├── components/            ← GroundednessBadge, RewriteText, GlossaryList, KeyInfoCards, Checklist, Section
+│   └── lib/                   ← api.ts, cn.ts
+├── llm/
+│   ├── prompts/
+│   │   ├── rewrite_v1.md      ← 1-call 통합 프롬프트 (현재 사용 중)
+│   │   ├── extract_terms_v1.md
+│   │   └── extract_keyinfo_v1.md
+│   ├── eval/                  ← (예정) 골든셋·평가 스크립트
+│   └── corpus/                ← (예정) RAG 코퍼스 원본·정제본
+├── supabase/
+│   ├── README.md
+│   └── migrations/
+│       └── 0001_init.sql      ← documents, rewrites, glossary_cache + RLS
+├── infra/
+│   ├── Makefile               ← make dev / install / test / typecheck
+│   └── dev.ps1                ← Windows 동등물
+└── docs/
+    ├── SETUP.md               ← 로컬 실행 절차 (필독)
+    └── adr/                   ← (예정)
+```
+
+### 0.3. MVP 완료 (2026-05-04, Round 1)
+
+- [x] 디렉터리 스캐폴드 + .gitignore + .env.example
+- [x] Backend FastAPI (`/health`, `/rewrite`, `/history`)
+- [x] Upstage 클라이언트 wrapper (Solar Chat + Groundedness Check)
+- [x] Supabase 클라이언트 (secret key, fail-soft)
+- [x] Supabase 스키마 마이그레이션 (`documents`, `rewrites`, `glossary_cache` + RLS) — **실제 적용 완료**
+- [x] 통합 LLM 프롬프트 v1 (`rewrite_v1.md`) — 단일 호출로 재작성·인용·용어·핵심정보·체크리스트 반환
+- [x] Frontend Next.js 15 + Tailwind 스캐폴드, 다크모드 대응
+- [x] 입력 페이지 + 결과 페이지 (좌우 분할, 인용 마커 클릭, 핵심정보 카드, 체크리스트, 신뢰도 배지)
+- [x] 이력 페이지 (Supabase에서 직접 조회)
+- [x] 로컬 실행: `make dev` (Linux/Mac) 또는 `pwsh ./infra/dev.ps1` (Windows)
+- [x] 면책 고지를 푸터에 고정 노출
+- [x] **End-to-end 동작 검증 — 사용자 환경에서 변환 1건 성공, Supabase 저장 확인 (2026-05-04)**
+
+### 0.3.1. Round 2 추가분 (2026-05-04)
+
+- [x] **PDF 업로드 + `/parse` (Upstage Document Parse 연동)** — multipart, 10MB 제한, MIME 화이트리스트
+- [x] **Frontend Dropzone** — drag&drop + 클릭, .pdf/.txt 검증, 파싱 후 textarea 자동 채움
+- [x] **첫 방문 면책 모달** (`DisclaimerModal`) — localStorage flag, ESC 막힘, 포커스 트랩
+- [x] **레이트 리미팅** — IP+엔드포인트 단위 in-memory 슬라이딩 윈도우. `/rewrite` 분당 10회, `/parse` 분당 5회
+- [x] **입력 검증 보강** — UTF-8/CP949 인코딩 fallback, 파일 크기·MIME 검증
+
+### 0.3.2. Round 3 — 디자인 시스템 (2026-05-04)
+
+`DESIGN.md` (Linear-style 다크 캔버스 + 라벤더-블루 단일 강조)를 디자인 가이드로 채택. 사용자 요청에 따라 **라이트 모드도 함께 지원** (스펙은 다크 전용이지만 inverse-* 토큰을 확장).
+
+- [x] **CSS 변수 기반 듀얼 테마** — `:root` (light) + `.dark` 변수 스왑. 단일 클래스 셋(`bg-canvas`, `text-ink`, ...)으로 양쪽 모두 동작
+- [x] **Tailwind 토큰** — DESIGN.md 컬러/타이포(`display-xl`/`headline`/`body`/`eyebrow`)/라운드(8/12/16) 그대로 매핑
+- [x] **폰트** — Pretendard Variable (한국어) + Inter (Latin/숫자) CDN @import. JetBrains Mono 폴백
+- [x] **테마 토글** (`ThemeToggle`) — localStorage 저장, `prefers-color-scheme` 폴백, 첫 페인트 전 인라인 스크립트로 플래시 방지
+- [x] **layout 갱신** — top-nav 56px 캔버스 바 + 라벤더 브랜드 마크, footer 면책 캡션
+- [x] **컴포넌트 단색화** — `KeyInfoCards`/`Checklist`/`GroundednessBadge`에서 rose/emerald/amber/sky/violet 모두 제거. Eyebrow 라벨 + 위계 ink로 구분. 라벤더는 high 우선순위(`Checklist`) 또는 활성 인용 마커에서만
+- [x] `globals.css` 컴포넌트 클래스 — `.btn-primary`, `.btn-secondary`, `.card`, `.input`, `.eyebrow`, `.pill`, `.citation-marker`
+- [x] 전역 포커스 링 — 라벤더 #5e69d1 2px
+
+이후 모든 UI 변경은 `DESIGN.md`를 다시 읽고 토큰 기반으로 진행.
+
+### 0.3.3. Round 4 — 페이지 분리 (2026-05-04)
+
+랜딩과 서비스 화면을 분리.
+
+- [x] **`/` (랜딩)** — 서버 컴포넌트. Hero(display-lg + 라벤더 강조 + 주 CTA "지금 변환하기"), 3-step "어떻게 작동하나요", 6-card "결과 화면이 보여드리는 것", "왜 결과를 믿어도 되는가" 2-card, 마지막 CTA 배너 (cta-banner 토큰 sized — surface-1 padding 96px)
+- [x] **`/convert`** — 기존 입력·결과 UI를 그대로 이전. 헤더는 가벼운 "원문 입력" 한 줄로 축소
+- [x] **`/history`** — 기존 그대로 (스타일은 디자인 시스템 적용 완료)
+- [x] **Top-nav** — `변환` / `이력` / 테마 토글 순서. 브랜드 마크는 `/`로 복귀
+
+라우트 표:
+
+| 경로 | 역할 |
+|---|---|
+| `/` | 랜딩 (소개 · CTA) |
+| `/convert` | 변환 도구 (붙여넣기 · 업로드 · 결과) |
+| `/history` | 변환 이력 |
+
+### 0.3.4. Round 5 — 가독성 + 레이아웃 재구성 (2026-05-04)
+
+타겟 사용자(부모님 세대 포함, 행정용어 비전문가)를 고려해 **하한 글자 크기**, **사용자 조절 가능한 글자 크기**, **좌우 2열 입력 레이아웃**, **인용 hover 미리보기**, **인쇄/복사 액션** 적용.
+
+- [x] **하한 폰트 크기 보강** — `caption` 12→14, `body-sm` 14→15, `eyebrow` 13→14, `button` 14→15. 본문 줄간격 1.50→1.65~1.70 (한국어 가독성). 자간 px → em으로 일원화. 디스플레이 사이즈는 그대로
+- [x] **읽기 텍스트 토큰 rem 화** — 본문군(`caption`~`subhead`, `card-title`)은 rem, 디스플레이군은 px 유지
+- [x] ~~글자 크기 토글 (A·A·A)~~ → **단일 큼직 사이즈** (2026-05-04 결정). `<html>` 베이스 16 → **18px** 고정. 본문(rem)과 spacing 모두 한 단계 큼. 토글 인프라(`TextSizeToggle`, data-size 룰, localStorage 키) 제거
+- [x] **읽기 텍스트 floor을 `body-lg`(≈20.25px)로 격상** (2026-05-04, 사용자 지적) — `body`/`body-sm`/`caption`/`button`/`eyebrow` 토큰 모두 `1.125rem`로 통일. `subhead`(≈24.8px)·`card-title`(≈29.3px)·`headline`(36px) 한 단계씩 위로 끌어올려 위계 유지. 디스플레이는 그대로. 토큰 이름은 API 호환성 위해 유지하되 시각적으론 별칭화. 인라인 `text-[10px/11px]`은 브랜드 모노그램·인용 마커 칩에 한해 예외 (reading content 아님)
+- [x] **`/convert` 좌우 2열 입력** — `lg:grid-cols-5` 위에 `2/3` 분할 (파일 / 텍스트). textarea가 너무 넓어지지 않게. < lg에서는 자동 stack
+- [x] **`word-break: keep-all`** — 한국어 단어 단위 줄바꿈 (영문 단어처럼 음절 단위로 깨지지 않도록)
+- [x] **인용 마커 hover 미리보기** — 클릭 안 해도 마우스/포커스 올리면 원문 발췌가 별도 박스에 미리 표시. 부모님이 "1번 누르세요" 단계를 몰라도 보임
+- [x] **결과 액션 바** — `결과 복사` (clipboard, 평문 포맷), `인쇄` (window.print)
+- [x] **인쇄용 CSS** (`@media print`) — header/footer/dropzone/액션바 숨김, 강제 흰 배경 검정 글자, 카드 페이지 break 보호, 인용 마커 평문 첨자화
+- [x] **친절한 에러 매핑** — HTTP 상태코드(413/415/429/502/503/5xx/network)를 사용자 언어 한국어로 변환 (`lib/api.ts#friendlyError`)
+- [x] **textarea 접근성** — `aria-labelledby`로 이븐브로 헤딩 연결
+
+### 0.3.5. Round 5 Hotfix — 컨트라스트·균형 (2026-05-04)
+
+사용자 피드백: 본문 글자가 흐리고, 좌우 입력 박스 사이즈가 안 맞음.
+
+- [x] **본문 컨트라스트 일괄 보정** — 사용자가 *읽으려고 온* 텍스트(재작성 본문, 용어 정의, 인용 발췌, 핵심정보 카드 본문, 체크리스트 항목, 원문 패널, 면책 모달, 이력 미리보기, 랜딩의 설명 단락)는 모두 `text-ink-muted` → `text-ink`로 격상. `text-ink-muted`/`subtle`은 메타정보·캡션·placeholder·우선순위 도트 라벨 등 진짜 보조적인 곳에만
+- [x] **footer 면책** caption→body-sm, ink-subtle→ink (작더라도 컨트라스트는 확보)
+- [x] **`/convert` 좌우 균형** — `lg:grid-cols-5` 2/3 분할 → `lg:grid-cols-2 lg:items-stretch` 50/50, 양쪽 `flex flex-col` + Dropzone에 `flex-1 min-h-[260px]`로 textarea 높이와 자동 매칭. 빈 공간 사라짐
+- [x] **Dropzone 시각 보강** — 업로드 아이콘 + 큼지막한 안내 문구. 호버 시 라벤더 강조
+- [x] **메모리 영구 규칙 추가** — `contrast_and_layout.md`에 "본문은 muted 금지", "사이드 바이 사이드 입력은 시각 균형 필수" 명시. 향후 모든 UI 변경에 적용
+
+### 0.4. 다음 작업 (Round 3+)
+
+- [ ] **SSE 스트리밍** — 현재 JSON-mode 응답이라 토큰 스트리밍이 부분 JSON을 만들어 활용도 낮음. 다중 호출 아키텍처로 분리하거나 status-event SSE만 보내는 식으로 재검토
+- [ ] **RAG 코퍼스** — 국립국어원 자료 + 법령 용어 수집·정제, Chroma 적재, `/glossary/{term}` 정밀화
+- [ ] **사용자 인증** (Supabase Auth) — `/history`를 사용자별로
+- [ ] **골든셋 v0 (10건)** → eval 스크립트 → 30건 확장
+- [ ] **자동 eval** — 용어 추출 P/R, BERTScore, Groundedness 분포, 인용 정확도
+- [ ] **프롬프트 인젝션·자문성 가드 회귀 테스트** — 현재 프롬프트엔 명시되어 있으나 테스트 없음
+- [ ] **Lighthouse 90+ 튜닝** — 이미지 최적화, 폰트, 번들 사이즈
+- [ ] **모바일 반응형 정밀 튜닝** + 접근성 회귀
+- [ ] **README 업데이트** — TBD 채우기, 데모 스크린샷, 영상 링크
+- [ ] **발표 산출물** — 영상 2분, 슬라이드 영문, 모델 카드
+
+### 0.5. 환경변수 키 매핑 (한눈에)
+
+| Key | Backend | Frontend | 비고 |
+|---|:-:|:-:|---|
+| `UPSTAGE_API_KEY` | ✓ | | Solar Chat + Groundedness |
+| `SUPABASE_URL` | ✓ | (NEXT_PUBLIC_) | |
+| `SUPABASE_PUBLISHABLE_KEY` | | (NEXT_PUBLIC_) | 브라우저용. RLS 적용 (legacy: `anon`) |
+| `SUPABASE_SECRET_KEY` | ✓ | ✗ 절대 노출 금지 | RLS 우회 (legacy: `service_role`) |
+| `NEXT_PUBLIC_API_BASE_URL` | | ✓ | FE → BE 호출 주소 |
+| `SOLAR_MODEL` | ✓ | | 기본 `solar-pro2` |
+| `GROUNDEDNESS_THRESHOLD` | ✓ | | 0.7 (현재 미사용 — 스코어 노출 시 사용) |
+
+상세 절차: [docs/SETUP.md](docs/SETUP.md).
+
 ---
 
 ## 1. 프로젝트 정의
@@ -44,7 +219,7 @@
 | 문서 파싱 | Upstage **Document Parse** | PDF 표·레이아웃 보존 |
 | 출력 검증 | Upstage **Groundedness Check** | 할루시네이션 방지 |
 | Vector DB | Chroma (로컬 파일 기반) | 학부 규모에 적합, deps 가벼움 |
-| RDB | SQLite → PostgreSQL (배포 시) | 사용자/히스토리 저장 |
+| RDB | ~~SQLite → PostgreSQL~~ → **Supabase (Postgres cloud)** | 사용자/히스토리 저장. RLS 사용 |
 | 협업 | GitHub, GitHub Projects, Discord/Slack | PR 리뷰, GitHub Actions 자동 배포 |
 | 배포 (선택) | Vercel (FE) + Render/Fly.io (BE) | 무료 티어 |
 | 보조 도구 | Claude Code (1개월 라이선스 활용), Google AI Studio·v0 (UI 초안) | 운영 환경엔 직접 검수 후 반영 |
@@ -127,48 +302,43 @@
 - [ ] 위험 목록·면책 정책 문서화
 
 ### 5.2 Frontend
-- [ ] Next.js 15 프로젝트 부트스트랩, Tailwind, shadcn/ui 설치
-- [ ] 글로벌 레이아웃, 다크모드, 라우팅
-- [ ] 입력 페이지: 텍스트 영역 + 파일 드롭존, 파일 검증
-- [ ] 결과 페이지: 원문/재작성 좌우 분할, 용어 하이라이트, 인용 마커
-- [ ] 용어 풀이 사이드 모달 (클릭 시 정의·예시·출처)
-- [ ] 핵심정보 카드 컴포넌트 (의무/권리/기한/금액)
-- [ ] 액션 체크리스트 컴포넌트 (체크박스 인터랙션)
-- [ ] Groundedness 신뢰도 배지 (높음/보통/낮음)
-- [ ] 면책 고지 모달 (첫 방문 강제 노출)
-- [ ] 로딩·에러·빈 상태, 모바일 반응형, 접근성(스크린리더 라벨, 키보드 네비)
+- [x] Next.js 15 프로젝트 부트스트랩, Tailwind 설치 (shadcn/ui는 추후 도입 검토)
+- [x] 글로벌 레이아웃, 다크모드 대응, 라우팅
+- [x] 입력 페이지: 텍스트 영역 + 글자수 카운터 + 예시 채우기 + **PDF 드롭존**
+- [x] 결과 페이지: 원문/재작성 좌우 분할, 인용 마커 클릭 인터랙션
+- [ ] 용어 풀이 사이드 모달 (현재는 인라인 카드 형태 — 클릭 시 모달 확장은 추후)
+- [x] 핵심정보 카드 컴포넌트 (의무/권리/기한/금액/연락처)
+- [x] 액션 체크리스트 컴포넌트 (체크박스 + 우선순위 도트)
+- [x] Groundedness 신뢰도 배지 (높음/보통/낮음)
+- [x] **면책 고지 모달 (첫 방문 강제 노출, localStorage)**
+- [x] 기본 로딩·에러 상태
+- [ ] 빈 상태 일러스트, 모바일 정밀 튜닝, 접근성 회귀 테스트
 - [ ] Lighthouse 90점 이상 목표
 
 ### 5.3 Backend
-- [ ] FastAPI 프로젝트 부트스트랩, Docker, env 관리, CORS
-- [ ] Upstage API 클라이언트 wrapping (Document Parse, Chat, Embedding, Groundedness)
-- [ ] `/parse` — PDF/텍스트 입력 → 정제된 마크다운 반환
-- [ ] `/rewrite` — 재작성 + 인용 + 신뢰도 (SSE 스트리밍 지원)
-- [ ] `/glossary/{term}` — 용어 풀이 (캐시 우선, miss 시 RAG)
-- [ ] `/extract` — 핵심정보 + 체크리스트 구조화 추출
-- [ ] `/history` — 사용자별 변환 이력
-- [ ] 입력 검증 (파일 크기 10MB 제한, MIME 타입 화이트리스트)
-- [ ] 레이트 리미팅 (IP 기반, 분당 N회)
-- [ ] 로깅·모니터링 (구조화 로그, 응답 시간 메트릭)
-- [ ] 단위 테스트 + 통합 테스트 (pytest)
+- [x] FastAPI 프로젝트 부트스트랩, env 관리(pydantic-settings), CORS (Docker는 추후)
+- [x] Upstage API 클라이언트 wrapping — Chat (OpenAI 호환) + Groundedness Check + **Document Parse**
+- [x] `/parse` — PDF/TXT 업로드 → Markdown 반환 (Document Parse 또는 인코딩 자동 감지)
+- [x] `/rewrite` — 재작성 + 인용 + 핵심정보 + 체크리스트 + Groundedness (단일 응답, SSE는 추후)
+- [ ] `/glossary/{term}` — 용어 풀이 (RAG 도입 시. 현재는 `rewrite_v1` 응답에 인라인 포함)
+- [x] `/extract` 기능은 `/rewrite` 응답에 통합 (별도 엔드포인트 분리는 평가 결과 보고 결정)
+- [x] `/history` — 변환 이력 (Supabase 직접 조회, 인증 없음)
+- [x] **입력 검증** — 파일 크기 10MB 제한, MIME 화이트리스트(pdf/txt), UTF-8/CP949 인코딩 fallback
+- [x] **레이트 리미팅** — IP+엔드포인트 슬라이딩 윈도우 (`/rewrite` 10/분, `/parse` 5/분)
+- [ ] 로깅·모니터링 강화 (현재는 stdlib logging만)
+- [x] Smoke 테스트 (`/health`, prompt loader). 통합 테스트는 추후
 
 ### 5.4 LLM / 프롬프트 엔지니어링
-- [ ] 코퍼스 수집·정제 — PDF 추출, 헤더/푸터 제거, 표 정제
-- [ ] 청킹 전략 A/B 테스트 (문단 vs 슬라이딩 윈도우 512토큰), 검색 품질 비교
-- [ ] `solar-embedding-1-large` 임베딩 + Chroma 적재 스크립트 (`make build-index` 한 줄 재현)
-- [ ] **용어 추출 프롬프트** — 일반인이 모를 가능성이 높은 용어 추출, JSON schema 강제, few-shot 5개
-- [ ] **재작성 프롬프트** — 원문 의미 보존 / 초등 6학년 수준 / 한 문장 길이 제한 / 출처 미상 정보 추가 금지 / 인용 마커 `[1]` `[2]` 강제, few-shot 5개 + 부정 예시 3개
-- [ ] **핵심정보 추출 프롬프트** — `{type, content, deadline, amount, contact}` 구조화
-- [ ] **프롬프트 인젝션 방어** — "이전 지시 무시", 시스템 프롬프트 누출 시도 차단
-- [ ] **자문성 질문 가드** — 의료/법률 자문 요청 거부, 면책 자동 삽입
-- [ ] Groundedness Check 통합, 신뢰도 임계값 설정 (예: 0.7 미만 시 "확신 낮음" 배지)
-- [ ] 골든셋 30개 확장
-- [ ] 자동 eval 스크립트:
-  - 용어 추출 recall/precision
-  - 재작성 BERTScore + 사람 평가(3인 합의)
-  - Groundedness 점수 분포
-  - 인용 정확도 (인용된 출처가 실제로 해당 주장 지지하는지)
-- [ ] 프롬프트 버전 히스토리 관리 (`prompts/v1.md`, `v2.md`...)
+- [ ] 코퍼스 수집·정제 (2차)
+- [ ] 청킹 전략 A/B 테스트 (2차)
+- [ ] Chroma 적재 스크립트 (2차)
+- [x] **재작성 프롬프트 v1** — 원문 의미 보존 / 초등 6학년 수준 / 인용 마커 강제 / 출처 미상 정보 추가 금지. Few-shot은 향후 골든셋과 함께 추가 예정. (`llm/prompts/rewrite_v1.md`)
+- [x] **용어/핵심정보 추출** — 단독 프롬프트 파일은 작성됨 (`extract_terms_v1.md`, `extract_keyinfo_v1.md`)이지만 현재는 `rewrite_v1`이 통합 처리
+- [x] **프롬프트 인젝션 방어 / 자문성 질문 거부** — `rewrite_v1.md`에 명시. 회귀 테스트는 2차
+- [x] Groundedness Check 통합 (label만 사용. 점수 노출은 2차)
+- [ ] 골든셋 v0 (10건) → 30건 확장 (2차)
+- [ ] 자동 eval 스크립트 (2차)
+- [x] 프롬프트 버전 히스토리 관리 시작 (`v1.md` 컨벤션)
 
 ### 5.5 통합·QA
 - [ ] 엔드투엔드 데모 시나리오 — 실제 공문 1건으로 입력→결과까지 끊김 없이
@@ -177,12 +347,10 @@
 - [ ] 성능 측정 — 평균/95p 응답 시간, 동시 요청 처리
 
 ### 5.6 배포·문서화·발표
-- [ ] (선택) Vercel + Render 배포, 환경변수 가이드
-- [ ] **README.md** — 프로젝트 소개, 아키텍처 다이어그램, 설치 방법, 실행 방법(`make dev`), 환경변수 목록, 데모 스크린샷 3장+, 데모 영상 링크, 팀원·역할, 라이선스, 출처 표시
-- [ ] 데모 영상 2분 (입력 → 결과 → 핵심 차별화 포인트)
-- [ ] 발표 슬라이드 — 문제 정의 → 해결 접근 → 아키텍처 → 데모 → 평가 결과 → 한계와 향후 → Q&A
-- [ ] 모델 카드 — 사용 데이터, 프롬프트 요약, 한계, 면책
-- [ ] 발표 리허설 2회
+- [x] **로컬 배포** — `make dev` / `pwsh ./infra/dev.ps1` (사용자 요청에 따라 클라우드 배포는 제외)
+- [x] **docs/SETUP.md** — Upstage·Supabase 키 발급, 환경변수, 실행, 트러블슈팅 (실질적 README 역할)
+- [ ] README 업데이트 (TBD 채우기) — 2차
+- [ ] 데모 영상 2분, 발표 슬라이드(영문), 모델 카드, 발표 리허설 — 2차
 
 ---
 

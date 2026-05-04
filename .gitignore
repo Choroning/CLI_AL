@@ -1,0 +1,54 @@
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+.pnpm-store/
+.yarn/
+
+# IDE / OS / Tooling
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/
+
+# Local data
+llm/corpus/raw/
+llm/corpus/processed/
+chroma_db/
+*.sqlite
+*.sqlite3
+*.db
+
+# Scraping / duplicate artifacts (e.g., DESIGN.md was duplicated under linear.app/)
+linear.app/
+
+# Build artifacts
+coverage/
+.coverage
+htmlcov/
+*.log

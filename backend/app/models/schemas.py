@@ -1,0 +1,68 @@
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+
+class RewriteRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=20000, description="원본 행정문서 텍스트")
+    save_history: bool = Field(default=True, description="Supabase 이력 저장 여부")
+
+
+class GlossaryTerm(BaseModel):
+    term: str
+    definition: str
+    example: str | None = None
+
+
+KeyInfoType = Literal["의무", "권리", "기한", "금액", "연락처"]
+
+
+class KeyInfoItem(BaseModel):
+    type: KeyInfoType
+    content: str
+    deadline: str | None = None
+    amount: str | None = None
+    contact: str | None = None
+
+
+class ChecklistItem(BaseModel):
+    text: str
+    priority: Literal["high", "medium", "low"] = "medium"
+
+
+class GroundednessResult(BaseModel):
+    label: Literal["grounded", "notGrounded", "notSure"]
+    score: float | None = None
+    badge: Literal["high", "medium", "low"]
+
+
+class RewriteResponse(BaseModel):
+    rewrite: str = Field(description="쉬운말로 재작성된 본문 (인용 마커 [1] [2] 포함)")
+    citations: list[str] = Field(
+        default_factory=list,
+        description="인용 마커 번호 순으로 원문 발췌 텍스트",
+    )
+    glossary: list[GlossaryTerm] = Field(default_factory=list)
+    key_info: list[KeyInfoItem] = Field(default_factory=list)
+    checklist: list[ChecklistItem] = Field(default_factory=list)
+    groundedness: GroundednessResult
+    document_id: str | None = Field(
+        default=None, description="Supabase에 저장된 documents.id (저장 안 했으면 null)"
+    )
+
+
+class HistoryItem(BaseModel):
+    id: str
+    created_at: str
+    original_text_preview: str
+    rewrite_preview: str
+    groundedness_label: str
+
+
+class HistoryResponse(BaseModel):
+    items: list[HistoryItem]
+
+
+class ParseResponse(BaseModel):
+    text: str = Field(description="Document Parse가 추출한 Markdown 본문")
+    char_count: int
