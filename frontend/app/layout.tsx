@@ -38,10 +38,10 @@ export default function RootLayout({
         <DisclaimerModal />
 
         <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/90 backdrop-blur-sm">
-          <div className="mx-auto flex h-14 max-w-content items-center justify-between px-6">
+          <div className="mx-auto flex h-14 max-w-content items-center justify-between px-3 sm:px-6">
             <a
               href="/"
-              className="flex items-center gap-2 font-sans text-body-sm font-semibold tracking-tight"
+              className="flex items-center gap-2 font-sans font-semibold tracking-tight text-[15px] sm:text-body-sm"
             >
               <span
                 aria-hidden
@@ -49,21 +49,18 @@ export default function RootLayout({
               >
                 쉬
               </span>
-              {/* Canonical name on sm+, abbreviated on small phones to fit
-                  the nav within a 375px viewport. */}
-              <span className="sm:hidden">쉬운말</span>
-              <span className="hidden sm:inline">행정문서 쉬운말 변환기</span>
+              <span>행정문서 쉬운말 변환기</span>
             </a>
-            <nav className="flex items-center gap-1">
+            <nav className="flex items-center gap-0.5 sm:gap-1">
               <a
                 href="/convert"
-                className="inline-flex items-center min-h-[44px] rounded-md px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+                className="inline-flex items-center min-h-[44px] rounded-md px-2.5 sm:px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
               >
                 변환
               </a>
               <a
                 href="/history"
-                className="inline-flex items-center min-h-[44px] rounded-md px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+                className="inline-flex items-center min-h-[44px] rounded-md px-2.5 sm:px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
               >
                 이력
               </a>
