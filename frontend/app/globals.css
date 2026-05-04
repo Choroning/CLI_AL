@@ -73,6 +73,10 @@
   .snap-section {
     scroll-snap-align: start;
     scroll-snap-stop: normal;
+    /* dvh excludes mobile UI chrome (collapsing address bar), preventing
+     * snap jumpiness on iOS/Android. vh kept as fallback for older browsers. */
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   /* Scroll cue — fade in (held at top), then move top→bottom while fading
@@ -167,10 +171,10 @@
            bg-surface-2 text-ink-muted ring-1 ring-hairline;
   }
 
-  /* button-primary token. */
+  /* button-primary token. Touch target ≥44px tall (WCAG AAA / older users). */
   .btn-primary {
     @apply inline-flex items-center justify-center
-           rounded-md px-3.5 py-2
+           min-h-[44px] rounded-md px-4 py-2.5
            text-button bg-primary text-primary-on
            hover:bg-primary-hover active:bg-primary-focus
            transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
@@ -179,7 +183,7 @@
   /* button-secondary token — surface-1 with hairline. */
   .btn-secondary {
     @apply inline-flex items-center justify-center
-           rounded-md px-3.5 py-2
+           min-h-[44px] rounded-md px-4 py-2.5
            text-button bg-surface-1 text-ink ring-1 ring-hairline
            hover:bg-surface-2
            transition-colors disabled:opacity-50 disabled:cursor-not-allowed;

@@ -49,18 +49,20 @@ export default function RootLayout({
               >
                 쉬
               </span>
-              <span>쉬운말 변환기</span>
+              <span>
+                쉬운말<span className="hidden sm:inline"> 변환기</span>
+              </span>
             </a>
             <nav className="flex items-center gap-1">
               <a
                 href="/convert"
-                className="rounded-md px-3 py-1.5 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+                className="inline-flex items-center min-h-[44px] rounded-md px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
               >
                 변환
               </a>
               <a
                 href="/history"
-                className="rounded-md px-3 py-1.5 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+                className="inline-flex items-center min-h-[44px] rounded-md px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
               >
                 이력
               </a>

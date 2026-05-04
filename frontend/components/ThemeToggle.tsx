@@ -33,7 +33,7 @@ export function ThemeToggle() {
 
   // Render a placeholder before hydration to avoid layout shift.
   if (theme === null) {
-    return <span className="inline-block h-8 w-8" aria-hidden />;
+    return <span className="inline-block h-11 w-11" aria-hidden />;
   }
 
   const isDark = theme === "dark";
@@ -41,7 +41,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
       aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
       title={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
     >

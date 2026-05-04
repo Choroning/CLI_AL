@@ -39,7 +39,7 @@ export function DisclaimerModal() {
       aria-modal="true"
       aria-labelledby="disclaimer-title"
     >
-      <div className="max-w-xl w-full rounded-lg bg-surface-1 ring-1 ring-hairline p-8">
+      <div className="max-w-xl w-full rounded-lg bg-surface-1 ring-1 ring-hairline p-6 md:p-8">
         <p className="eyebrow mb-3">이용 약관</p>
         <h2 id="disclaimer-title" className="text-card-title text-ink">
           이용 전 꼭 확인해주세요

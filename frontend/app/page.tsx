@@ -59,7 +59,7 @@ function Typewriter() {
   }, [text, phase, idx]);
 
   return (
-    <span aria-hidden className="whitespace-nowrap">
+    <span aria-hidden>
       <span className="text-primary">{text}</span>
       <span
         className="inline-block ml-1 align-[-0.1em] bg-primary animate-cursor-blink"
@@ -110,7 +110,7 @@ function Section({
 }) {
   return (
     <section
-      className={`snap-section relative min-h-screen flex flex-col justify-center px-6 py-16 ${className}`}
+      className={`snap-section relative flex flex-col justify-center px-6 py-16 ${className}`}
     >
       <div className="mx-auto w-full max-w-content">{children}</div>
       {!last && <ScrollCue />}
