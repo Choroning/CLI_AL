@@ -15,10 +15,12 @@ const HERO_PHRASES = [
   "불필요한 지출하지 마세요.",
 ];
 
-const TYPE_MS = 90;
-const DELETE_MS = 45;
-const HOLD_MS = 1800;
-const PAUSE_MS = 450;
+// Tuned for older readers — slower than a typical typewriter effect so the
+// motion isn't disorienting and the held phrase has plenty of read time.
+const TYPE_MS = 140;
+const DELETE_MS = 75;
+const HOLD_MS = 2600;
+const PAUSE_MS = 700;
 
 type Phase = "typing" | "holding" | "deleting" | "pausing";
 
