@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyDocTemp</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 760px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: vertical;
+            background: #fff;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4f72f5;
+        }
+
+        button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 13px;
+            background: #4f72f5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover { background: #3a5bd9; }
+        button:disabled { background: #a0aec0; cursor: not-allowed; }
+
+        .result-box {
+            margin-top: 28px;
+        }
+
+        #result {
+            min-height: 120px;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 15px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            color: #222;
+        }
+
+        #result.placeholder { color: #aaa; }
+        #result.error { color: #e53e3e; border-color: #fc8181; }
+
+        .spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EasyDocTemp — 행정문서 쉽게 바꾸기</h1>
+
+        <label for="inputText">행정문서 입력</label>
+        <textarea id="inputText" placeholder="변환할 행정문서 텍스트를 붙여넣으세요..."></textarea>
+
+        <button id="convertBtn" onclick="convert()">변환하기</button>
+
+        <div class="result-box">
+            <label>변환 결과</label>
+            <div id="spinner" class="spinner">변환 중...</div>
+            <div id="result" class="placeholder">변환 결과가 여기에 표시됩니다.</div>
+        </div>
+    </div>
+
+    <script>
+        async function convert() {
+            const text = document.getElementById("inputText").value.trim();
+            const resultEl = document.getElementById("result");
+            const btn = document.getElementById("convertBtn");
+            const spinner = document.getElementById("spinner");
+
+            if (!text) {
+                resultEl.className = "error";
+                resultEl.innerText = "텍스트를 입력해주세요.";
+                return;
+            }
+
+            btn.disabled = true;
+            spinner.style.display = "block";
+            resultEl.className = "placeholder";
+            resultEl.innerText = "";
+
+            try {
+                const response = await fetch("http://localhost:8000/convert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text }),
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || "서버 오류가 발생했습니다.");
+                }
+
+                const data = await response.json();
+                resultEl.className = "";
+                resultEl.innerText = data.result;
+            } catch (e) {
+                resultEl.className = "error";
+                resultEl.innerText = "오류: " + e.message;
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
