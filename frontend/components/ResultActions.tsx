@@ -36,7 +36,7 @@ export function ResultActions({ result }: { result: RewriteResponse }) {
     }
     if (result.checklist.length) {
       lines.push("");
-      lines.push("[체크리스트]");
+      lines.push("[할 일 목록]");
       result.checklist.forEach((c) => lines.push(`☐ (${c.priority}) ${c.text}`));
     }
     lines.push("");

@@ -162,7 +162,7 @@ function Hero() {
       </h1>
       <p className="mt-8 text-body-lg text-ink leading-relaxed max-w-2xl">
         어려운 행정문서·공문·약관을 붙여넣으면 의미를 보존한 쉬운말 재작성과 핵심정보·
-        액션 체크리스트를 출처 인용·신뢰도 검증과 함께 보여드립니다.
+        할 일 목록을 출처 인용·신뢰도 검증과 함께 보여드립니다.
       </p>
       <div className="mt-9 flex flex-wrap items-center gap-3">
         <Link href="/convert" className="btn-primary">
@@ -182,7 +182,7 @@ function HowItWorks() {
       n: "01",
       title: "붙여넣거나 업로드",
       body:
-        "텍스트를 직접 붙여넣거나 PDF·TXT 파일을 드롭하세요. PDF는 표·레이아웃을 보존하면서 마크다운으로 추출합니다.",
+        "텍스트를 직접 붙여넣거나 PDF · TXT · DOCX · HWPX 파일을 드롭하세요. 표·레이아웃을 보존하면서 마크다운으로 추출합니다.",
     },
     {
       n: "02",
@@ -192,9 +192,9 @@ function HowItWorks() {
     },
     {
       n: "03",
-      title: "핵심정보·체크리스트",
+      title: "핵심정보·할 일 목록",
       body:
-        "의무·권리·기한·금액·연락처를 카드로 정리하고, 사용자가 실제 해야 할 행동을 체크리스트로 보여드립니다.",
+        "의무·권리·기한·금액·연락처를 카드로 정리하고, 사용자가 실제 해야 할 일을 목록으로 보여드립니다.",
     },
   ];
   return (
@@ -232,7 +232,7 @@ function Features() {
       body: "의무·권리·기한·금액·연락처를 한눈에 볼 수 있도록 카드로 정리.",
     },
     {
-      title: "액션 체크리스트",
+      title: "할 일 목록",
       body: "문서를 받고 사용자가 실제로 해야 할 일을 우선순위와 함께 정리.",
     },
     {
@@ -295,7 +295,7 @@ function FinalCTA() {
   return (
     <Section last>
       <div className="rounded-xl bg-surface-1 ring-1 ring-hairline p-12 md:p-section flex flex-col items-start gap-6">
-        <p className="eyebrow">시작하기</p>
+        <p className="text-body font-medium text-ink-muted">시작하기</p>
         <h2 className="text-headline md:text-display-md text-ink max-w-2xl">
           어떤 문서부터 변환해볼까요?
         </h2>

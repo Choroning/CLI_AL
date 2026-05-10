@@ -64,9 +64,12 @@
 
   /* Landing-only snap scroll. Toggled by app/page.tsx useEffect.
    * scroll-padding-top accounts for the sticky header so each snapped
-   * section appears below the header, not under it. */
+   * section appears below the header, not under it.
+   * `proximity` (not `mandatory`) so the user can scroll past the last
+   * snap-section to reach the footer — mandatory traps the viewport on
+   * the nearest snap point and makes the footer unreachable. */
   html.snap-page {
-    scroll-snap-type: y mandatory;
+    scroll-snap-type: y proximity;
     scroll-behavior: smooth;
     scroll-padding-top: 3.5rem;
   }

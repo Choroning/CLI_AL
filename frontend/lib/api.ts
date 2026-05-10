@@ -6,7 +6,7 @@ const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 function friendlyError(status: number, raw: string): string {
   if (status === 0) return "서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.";
   if (status === 413) return "파일이 너무 커요. 10MB보다 작은 파일을 올려 주세요.";
-  if (status === 415) return "지원하지 않는 파일 형식이에요. PDF 또는 TXT만 가능합니다.";
+  if (status === 415) return "지원하지 않는 파일 형식이에요. PDF · TXT · DOCX · HWPX만 가능합니다.";
   if (status === 429) return "요청이 너무 잦아요. 잠시 후 다시 시도해 주세요.";
   if (status === 502) return "변환 결과를 받지 못했어요. 한 번 더 시도해 주세요.";
   if (status === 503) return "서버가 잠시 응답하지 않아요. 잠시 후 다시 시도해 주세요.";

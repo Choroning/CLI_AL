@@ -19,7 +19,7 @@ export function Checklist({ items }: { items: ChecklistItem[] }) {
   const [done, setDone] = useState<Set<number>>(new Set());
 
   if (items.length === 0) {
-    return <p className="text-body text-ink">생성된 체크리스트가 없습니다.</p>;
+    return <p className="text-body text-ink">생성된 할 일 목록이 없습니다.</p>;
   }
 
   function toggle(i: number) {

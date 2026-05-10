@@ -3,7 +3,12 @@
 import { useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
-const ACCEPT = ".pdf,.txt,application/pdf,text/plain";
+// HWPX has no widely-registered MIME type, so we list the extension only and
+// rely on the extension fallback in `handle()` to validate.
+const ACCEPT =
+  ".pdf,.txt,.docx,.hwpx," +
+  "application/pdf,text/plain," +
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const MAX_BYTES = 10 * 1024 * 1024;
 
 /**
@@ -35,9 +40,11 @@ export function Dropzone({
     const ok =
       file.type === "application/pdf" ||
       file.type === "text/plain" ||
-      /\.(pdf|txt)$/i.test(file.name);
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      /\.(pdf|txt|docx|hwpx)$/i.test(file.name);
     if (!ok) {
-      setError("PDF 또는 TXT 파일만 업로드할 수 있습니다.");
+      setError("PDF · TXT · DOCX · HWPX 파일만 업로드할 수 있습니다.");
       return;
     }
     onFile(file);
@@ -67,9 +74,9 @@ export function Dropzone({
             inputRef.current?.click();
           }
         }}
-        aria-label="PDF 또는 TXT 파일 업로드"
+        aria-label="PDF · TXT · DOCX · HWPX 파일 업로드"
         className={cn(
-          "flex-1 min-h-[260px] grid place-items-center text-center cursor-pointer select-none transition-colors",
+          "flex-1 min-h-[420px] grid place-items-center text-center cursor-pointer select-none transition-colors",
           "rounded-lg p-8 ring-1 ring-dashed",
           over
             ? "ring-primary bg-surface-2"
@@ -101,7 +108,7 @@ export function Dropzone({
             파일을 끌어오거나 클릭해서 선택
           </p>
           <p className="text-body-sm text-ink">
-            PDF · TXT · 최대 10MB
+            PDF · TXT · DOCX · HWPX · 최대 10MB
           </p>
         </div>
         <input

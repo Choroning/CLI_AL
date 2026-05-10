@@ -34,7 +34,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
-      <body className="min-h-screen font-sans antialiased">
+      <body className="flex min-h-screen flex-col font-sans antialiased">
         <DisclaimerModal />
 
         <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/90 backdrop-blur-sm">
@@ -71,11 +71,13 @@ export default function RootLayout({
 
         {/* No max-width / padding here — pages opt in. Landing uses full-bleed
             snap sections; /convert and /history wrap their content in the
-            standard centered container. */}
-        <main>{children}</main>
+            standard centered container. flex-1 anchors the footer to the
+            bottom of the viewport on short pages (e.g. /convert before a
+            result is rendered). */}
+        <main className="flex-1">{children}</main>
 
         <footer className="border-t border-hairline">
-          <div className="mx-auto max-w-content px-6 py-10 text-body-sm text-ink leading-relaxed">
+          <div className="mx-auto max-w-content px-6 py-6 text-body-sm text-ink leading-relaxed">
             본 서비스의 결과는 참고용이며 법적 효력이 없습니다. 실제 권리·의무·기한은 반드시
             원문 또는 발급 기관·전문가에 확인하세요.
           </div>
