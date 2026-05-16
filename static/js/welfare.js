@@ -86,6 +86,8 @@ document.getElementById('welfare-btn').addEventListener('click', async () => {
 function renderWelfare(data) {
   const programs = data.programs || [];
   const el = document.getElementById('welfare-result');
+  const actions = document.getElementById('welfare-result-actions');
+  if (actions && programs.length) actions.style.display = 'flex';
 
   if (!programs.length) {
     el.innerHTML = `<div class="result-empty">
@@ -131,4 +133,67 @@ function renderWelfare(data) {
       <p>${escHtml(data.tips)}</p>
     </div>` : ''}
   `;
+}
+
+// ── 복사 / 저장 ────────────────────────────────
+function buildWelfareText() {
+  if (!lastWelfareResult) return '';
+  const programs = lastWelfareResult.programs || [];
+  let text = `[복지 혜택 매칭 결과]\n총 ${programs.length}개의 혜택\n\n`;
+  programs.forEach(p => {
+    text += `[${p.category}] ${p.name}\n${p.description}\n`;
+    text += `자격 요건: ${p.eligibility}\n지원 내용: ${p.benefit}\n`;
+    text += `신청 방법: ${p.how_to_apply}\n문의처: ${p.contact}\n\n`;
+  });
+  if (lastWelfareResult.tips) text += `[추가 안내]\n${lastWelfareResult.tips}`;
+  return text;
+}
+
+async function copyWelfare() {
+  const text = buildWelfareText();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('클립보드에 복사됐습니다.');
+  } catch { showToast('복사에 실패했습니다.', true); }
+}
+
+function saveWelfare() {
+  const text = buildWelfareText();
+  if (!text) return;
+  const blob = new Blob(['﻿' + text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = '복지혜택_결과.txt'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('파일로 저장됐습니다.');
+}
+
+function printWelfare() { window.print(); }
+
+// ── TTS ────────────────────────────────────────
+let _ttsOn = false;
+
+function toggleTTS() {
+  const btn = document.getElementById('welfare-tts-btn');
+  if (!lastWelfareResult) return;
+  if (_ttsOn || speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    _ttsOn = false;
+    if (btn) btn.textContent = '🔊 읽기';
+    return;
+  }
+  const programs = lastWelfareResult.programs || [];
+  let text = `총 ${programs.length}개의 복지 혜택을 찾았습니다. `;
+  programs.forEach(p => {
+    text += `${p.name}. ${p.description}. 지원 내용: ${p.benefit}. `;
+  });
+  if (lastWelfareResult.tips) text += `추가 안내. ${lastWelfareResult.tips}`;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ko-KR';
+  utt.rate = 0.9;
+  utt.onend = utt.onerror = () => { _ttsOn = false; if (btn) btn.textContent = '🔊 읽기'; };
+  speechSynthesis.speak(utt);
+  _ttsOn = true;
+  if (btn) btn.textContent = '⏹ 중지';
 }

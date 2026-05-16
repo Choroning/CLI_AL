@@ -3,26 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}FOLIO{% endblock %} — 행정문서 도우미</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>{% block title %}PURI{% endblock %} — 행정문서 도우미</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
+<a href="#main-content" class="skip-link">본문으로 이동</a>
+
 <!-- ── 헤더 ── -->
 <header>
   <a href="/" class="header-logo">
-    <span class="logo-mark">FOLIO</span><span class="logo-dot">.</span>
+    <span class="logo-mark">PURI</span><span class="logo-dot">.</span>
   </a>
 </header>
 
 <!-- ── 서비스 네비게이션 ── -->
 <nav class="service-nav">
   <div class="nav-inner">
-    <a href="/" class="nav-item {{ 'active' if active == 'converter' else '' }}">문서 변환기</a>
-    <a href="/welfare" class="nav-item {{ 'active' if active == 'welfare' else '' }}">복지 혜택 매칭</a>
-    <a href="/civil" class="nav-item {{ 'active' if active == 'civil' else '' }}">민원 작성 도우미</a>
+    <a href="/converter" class="nav-item {{ 'active' if active == 'converter' else '' }}">문서 변환기</a>
+    <a href="/welfare"   class="nav-item {{ 'active' if active == 'welfare'   else '' }}">복지 혜택 매칭</a>
+    <a href="/civil"     class="nav-item {{ 'active' if active == 'civil'     else '' }}">민원 작성</a>
+    <a href="/contract"  class="nav-item {{ 'active' if active == 'contract'  else '' }}">계약서 작성</a>
+    <a href="/procedure" class="nav-item {{ 'active' if active == 'procedure' else '' }}">행정 절차 안내</a>
+    <a href="/rights"    class="nav-item {{ 'active' if active == 'rights'    else '' }}">권리 상담</a>
   </div>
 </nav>
 
@@ -31,26 +36,38 @@
 {% block body %}{% endblock %}
 
 <!-- ── 로딩 ── -->
-<div class="loading-overlay" id="loading">
-  <div class="spinner"></div>
+<div class="loading-overlay" id="loading" role="status" aria-live="polite" aria-label="처리 중">
+  <div class="spinner" aria-hidden="true"></div>
   <div class="loading-text" id="loading-text">AI가 처리하고 있습니다...</div>
 </div>
 
 <!-- ── 토스트 ── -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
 <!-- ── 글자 크기 플로팅 위젯 ── -->
-<div class="font-float">
-  <button class="font-btn" id="font-float-sm" onclick="setFontSize('sm')" title="글자 작게">A-</button>
-  <button class="font-btn" id="font-float-md" onclick="setFontSize('md')" title="기본 크기">A</button>
-  <button class="font-btn" id="font-float-lg" onclick="setFontSize('lg')" title="글자 크게">A+</button>
+<div class="font-float" role="group" aria-label="화면 설정">
+  <button class="font-btn" id="font-float-sm" onclick="setFontSize('sm')" aria-label="글자 작게 (14px)">A-</button>
+  <button class="font-btn" id="font-float-md" onclick="setFontSize('md')" aria-label="기본 글자 크기 (16px)">A</button>
+  <button class="font-btn" id="font-float-lg" onclick="setFontSize('lg')" aria-label="글자 크게 (19px)">A+</button>
+  <div class="font-float-sep"></div>
+  <button class="font-btn" id="dark-btn" onclick="toggleDark()" aria-label="다크 모드 전환">🌙</button>
 </div>
 
 <script>
 (function() {
   const size = localStorage.getItem('fontSize') || 'md';
   document.documentElement.classList.add('font-' + size);
+  if (localStorage.getItem('darkMode') === 'on') {
+    document.documentElement.classList.add('dark');
+  }
 })();
+
+function toggleDark() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('darkMode', isDark ? 'on' : 'off');
+  const btn = document.getElementById('dark-btn');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
 
 // 스크롤 리빌
 document.addEventListener('DOMContentLoaded', () => {
@@ -70,6 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.font-btn').forEach(b => {
     b.classList.toggle('active', b.getAttribute('onclick') && b.getAttribute('onclick').includes(`'${savedSize}'`));
   });
+
+  // 다크 버튼 아이콘 초기화
+  const isDark = document.documentElement.classList.contains('dark');
+  const darkBtn = document.getElementById('dark-btn');
+  if (darkBtn) darkBtn.textContent = isDark ? '☀️' : '🌙';
 });
 </script>
 

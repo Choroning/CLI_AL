@@ -1,46 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}FOLIO{% endblock %}
+{% block title %}문서 변환기 — PURI{% endblock %}
 
 {% block before_container %}
 <!-- ── 히스토리 드롭다운 ── -->
-<div class="history-dropdown" id="history-dropdown" style="display:none;">
+<div class="history-dropdown" id="history-dropdown" style="display:none;" role="dialog" aria-label="최근 기록">
   <div class="history-header">
     <span>최근 기록</span>
-    <button onclick="clearHistory()" style="background:none;border:none;color:#a3a3a3;cursor:pointer;font-size:0.75rem;font-weight:600;font-family:inherit;">전체 삭제</button>
+    <button onclick="clearHistory()" style="background:none;border:none;color:#a3a3a3;cursor:pointer;font-size:0.75rem;font-weight:600;font-family:inherit;" aria-label="최근 기록 전체 삭제">전체 삭제</button>
   </div>
   <div id="history-list"></div>
 </div>
-
-<!-- ── 전체화면 히어로 영상 ── -->
-<section class="fs-hero">
-
-  <!-- 영상 자리 — 아래 div를 <video> 또는 <iframe>으로 교체하세요 -->
-  <div class="fs-video" id="hero-video-slot">
-    <div class="fs-video-ph">
-      <div class="fs-play">▶</div>
-      <span class="fs-ph-label">서비스 소개 영상</span>
-    </div>
-  </div>
-
-  <!-- 오버레이: 브랜딩 + 스크롤 CTA -->
-  <div class="fs-overlay">
-    <div class="fs-brand">
-      <div class="fs-logo">FOLIO.</div>
-      <div class="fs-tagline">어려운 문서를 쉽게</div>
-    </div>
-    <a href="#tool" class="fs-enter">
-      시작하기
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
-  </div>
-
-</section>
 {% endblock %}
 
 {% block body %}
 <!-- ── 툴 섹션 ── -->
-<div id="tool">
+<div id="main-content">
   <div class="app-layout">
 
     <!-- 입력 컬럼 -->
@@ -49,31 +24,44 @@
       <div class="app-col-head">
         <span class="app-col-label">INPUT</span>
         <div class="app-col-actions">
-          <button class="app-action-btn" id="history-btn" onclick="toggleHistory()" title="최근 기록">최근 기록</button>
-          <button class="app-file-btn" id="upload-btn">파일 업로드</button>
-          <input type="file" id="file-input" accept=".txt,.pdf,.hwp,.hwpx" style="display:none">
-          <button class="app-clear-btn" id="clear-btn" title="초기화">✕</button>
+          <button class="app-action-btn" id="history-btn" onclick="toggleHistory()" aria-label="최근 기록 보기">최근 기록</button>
+          <button class="app-clear-btn" id="clear-btn" aria-label="입력 초기화">✕</button>
         </div>
       </div>
 
       <textarea id="document-input"
         placeholder="공문서, 계약서, 약관, 의료 안내문을 붙여넣거나 파일로 업로드하세요.
 
-예: 제1조 (목적) 이 계약은 갑과 을 사이의 용역 제공에 관한 제반 사항을 규정함을 목적으로 한다..."></textarea>
+예: 제1조 (목적) 이 계약은 갑과 을 사이의 용역 제공에 관한 제반 사항을 규정함을 목적으로 한다..."
+        aria-label="문서 입력"></textarea>
 
       <div class="input-footer">
         <div class="detail-toggle" style="margin-top:0;">
           <span class="detail-label">요약 수준</span>
-          <div class="detail-options">
+          <div class="detail-options" role="group" aria-label="요약 수준 선택">
             <button class="detail-btn" data-level="brief" onclick="setDetailLevel('brief')">간단히</button>
             <button class="detail-btn active" data-level="normal" onclick="setDetailLevel('normal')">기본</button>
             <button class="detail-btn" data-level="detailed" onclick="setDetailLevel('detailed')">자세히</button>
           </div>
         </div>
-        <span class="char-count" id="char-count">0 / 10,000자</span>
+        <div class="lang-select-wrap">
+          <label class="detail-label" for="output-lang">언어</label>
+          <select id="output-lang" class="lang-select" aria-label="출력 언어 선택">
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="ja">日本語</option>
+          </select>
+        </div>
+        <span class="char-count" id="char-count" aria-live="polite">0 / 10,000자</span>
       </div>
 
-      <button class="btn-analyze" id="analyze-btn" disabled>쉬운말로 변환하기</button>
+      <div class="analyze-action-row">
+        <button class="app-file-btn" id="upload-btn" aria-label="파일 업로드 (.txt .pdf .docx .hwp .hwpx)">파일 업로드</button>
+        <input type="file" id="file-input" accept=".txt,.pdf,.docx,.hwp,.hwpx" style="display:none" aria-label="파일 선택">
+        <button class="btn-analyze" id="analyze-btn" disabled>쉬운말로 변환하기</button>
+      </div>
 
     </div>
 
@@ -82,9 +70,11 @@
 
       <div class="app-col-head">
         <span class="app-col-label">RESULT</span>
-        <div id="result-header-actions" style="display:none; gap:6px;">
+        <div id="result-header-actions" style="display:none; gap:6px; align-items:center; flex-wrap:wrap;">
+          <button class="app-action-btn" id="diff-btn" onclick="toggleDiff()" aria-label="원문과 변환 결과 나란히 비교">원문 비교</button>
+          <button class="app-action-btn" id="tts-btn" onclick="toggleTTS()" aria-label="변환 결과 음성으로 읽기">🔊 읽기</button>
+          <button class="app-action-btn" onclick="printResult()" aria-label="변환 결과 PDF로 저장">PDF</button>
           <button class="app-action-btn" onclick="copyResult()">복사</button>
-          <button class="app-action-btn" onclick="saveResult()">저장</button>
         </div>
       </div>
 

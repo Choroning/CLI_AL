@@ -76,7 +76,7 @@ class LLMService:
         except Exception as e:
             return {'error': str(e)}
 
-    def analyze_document_stream(self, document: str, detail_level: str = 'normal'):
+    def analyze_document_stream(self, document: str, detail_level: str = 'normal', output_lang: str = 'ko'):
         """
         분석 결과를 SSE 이벤트로 스트리밍.
         yield {'meta': {...}}  — RAG 메타 (첫 번째)
@@ -84,7 +84,7 @@ class LLMService:
         """
         from rag_service import get_rag_context
         rag_context, rag_laws = get_rag_context(document)
-        prompt = build_analyze_prompt(document, rag_context, detail_level)
+        prompt = build_analyze_prompt(document, rag_context, detail_level, output_lang)
 
         yield {'meta': {'rag_used': bool(rag_context), 'rag_laws': rag_laws}}
 
@@ -167,6 +167,33 @@ class LLMService:
     def draft_civil(self, civil_type: str, situation: str) -> dict:
         from prompts import CIVIL_PROMPT
         prompt = CIVIL_PROMPT.format(civil_type=civil_type, situation=situation)
+        try:
+            raw = self._call(prompt)
+            return self._parse_json(raw)
+        except Exception as e:
+            return {'error': str(e)}
+
+    def draft_contract(self, contract_type: str, situation: str) -> dict:
+        from prompts import CONTRACT_PROMPT
+        prompt = CONTRACT_PROMPT.format(contract_type=contract_type, situation=situation)
+        try:
+            raw = self._call(prompt)
+            return self._parse_json(raw)
+        except Exception as e:
+            return {'error': str(e)}
+
+    def guide_procedure(self, procedure_type: str, situation: str) -> dict:
+        from prompts import PROCEDURE_PROMPT
+        prompt = PROCEDURE_PROMPT.format(procedure_type=procedure_type, situation=situation)
+        try:
+            raw = self._call(prompt)
+            return self._parse_json(raw)
+        except Exception as e:
+            return {'error': str(e)}
+
+    def advise_rights(self, situation: str) -> dict:
+        from prompts import RIGHTS_PROMPT
+        prompt = RIGHTS_PROMPT.format(situation=situation)
         try:
             raw = self._call(prompt)
             return self._parse_json(raw)

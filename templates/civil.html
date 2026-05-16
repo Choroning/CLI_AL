@@ -30,6 +30,7 @@
           <button class="civil-type-btn" data-type="불만·고충" onclick="setCivilType('불만·고충')">불만·고충</button>
           <button class="civil-type-btn" data-type="정보공개청구" onclick="setCivilType('정보공개청구')">정보공개청구</button>
         </div>
+        <button class="rights-hint-btn" onclick="applyCivilHint()" style="margin-top:10px;" aria-label="현재 유형의 예시로 채우기">예시 불러오기</button>
       </div>
 
       <textarea id="civil-input" class="civil-textarea"
@@ -52,8 +53,10 @@
       <div class="app-col-head">
         <span class="app-col-label">RESULT</span>
         <div id="civil-result-actions" style="display:none; gap:6px;">
-          <button class="app-action-btn" onclick="copyCivil()">복사</button>
+          <button class="app-action-btn" id="civil-tts-btn" onclick="toggleTTS()">🔊 읽기</button>
           <button class="app-action-btn" onclick="saveCivil()">저장</button>
+          <button class="app-action-btn" onclick="copyCivil()">복사</button>
+          <button class="app-action-btn" onclick="printCivil()">PDF</button>
         </div>
       </div>
 

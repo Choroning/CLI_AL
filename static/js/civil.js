@@ -28,6 +28,22 @@ function setFontSize(size) {
   });
 }
 
+// ── 예시 힌트 ──────────────────────────────────
+const CIVIL_HINTS = {
+  '신고': '집 앞 골목에 매일 불법 주정차 차량이 있어서 소방차·구급차 진입이 어렵습니다. 여러 번 자진 이동을 요청했지만 개선이 없어 신고합니다.',
+  '건의': '우리 동네 어린이공원 화장실이 10년 이상 방치되어 노후화가 심각합니다. 리모델링 또는 이동식 화장실 설치를 건의드립니다.',
+  '불만·고충': '○○역 엘리베이터가 3주째 고장 상태인데 수리가 안 되고 있습니다. 어르신과 유아차 보호자들이 큰 불편을 겪고 있어 빠른 조치를 요청합니다.',
+  '정보공개청구': '구청에서 지난해 발주한 ○○로 도로 재포장 공사의 업체 선정 과정, 계약 금액, 감리 결과 및 최종 검사 보고서를 공개 요청합니다.',
+};
+
+function applyCivilHint() {
+  const hint = CIVIL_HINTS[currentCivilType];
+  if (!hint) { showToast('선택된 유형의 예시가 없습니다.', true); return; }
+  civilInput.value = hint;
+  civilInput.dispatchEvent(new Event('input'));
+  showToast('예시를 불러왔습니다.');
+}
+
 // ── 민원 유형 선택 ─────────────────────────────
 let currentCivilType = '신고';
 
@@ -46,6 +62,10 @@ civilInput.addEventListener('input', () => {
   const len = civilInput.value.length;
   civilCount.textContent = `${len.toLocaleString()} / 1,000자`;
   civilCount.className = 'char-count' + (len > 1000 ? ' error' : len > 800 ? ' warning' : '');
+});
+
+civilInput.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') document.getElementById('civil-btn').click();
 });
 
 // ── 민원 작성 ──────────────────────────────────
@@ -175,4 +195,29 @@ function saveCivil() {
   a.href = url; a.download = '민원_작성결과.txt'; a.click();
   URL.revokeObjectURL(url);
   showToast('파일로 저장됐습니다.');
+}
+
+function printCivil() { window.print(); }
+
+// ── TTS ────────────────────────────────────────
+let _ttsOn = false;
+
+function toggleTTS() {
+  const btn = document.getElementById('civil-tts-btn');
+  if (!lastCivilResult) return;
+  if (_ttsOn || speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    _ttsOn = false;
+    if (btn) btn.textContent = '🔊 읽기';
+    return;
+  }
+  const d = lastCivilResult;
+  const text = `${d.title || ''}. ${d.body || ''}`;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'ko-KR';
+  utt.rate = 0.9;
+  utt.onend = utt.onerror = () => { _ttsOn = false; if (btn) btn.textContent = '🔊 읽기'; };
+  speechSynthesis.speak(utt);
+  _ttsOn = true;
+  if (btn) btn.textContent = '⏹ 중지';
 }

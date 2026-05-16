@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}권리 상담{% endblock %}
+
+{% block before_container %}
+<section class="sub-hero">
+  <div class="sub-hero-inner">
+    <div class="sub-hero-title">권리 상담</div>
+    <div class="sub-hero-desc">상황을 설명하면 내 권리와 지금 당장 해야 할 행동을 알려드립니다.</div>
+  </div>
+</section>
+{% endblock %}
+
+{% block body %}
+<div id="rights-tool">
+  <div class="app-layout">
+
+    <div class="app-col app-col-input reveal">
+      <div class="app-col-head">
+        <span class="app-col-label">INPUT</span>
+      </div>
+
+      <div class="form-row" style="margin-bottom:16px;">
+        <label class="form-label">빠른 선택</label>
+        <div class="civil-type-options" style="flex-wrap:wrap;">
+          <button class="rights-hint-btn" onclick="applyHint('임차인')">임차인 권리</button>
+          <button class="rights-hint-btn" onclick="applyHint('근로자')">근로자 권리</button>
+          <button class="rights-hint-btn" onclick="applyHint('소비자')">소비자 권리</button>
+          <button class="rights-hint-btn" onclick="applyHint('노인·장애인')">노인·장애인 권리</button>
+          <button class="rights-hint-btn" onclick="applyHint('학생·청소년')">학생·청소년 권리</button>
+        </div>
+      </div>
+
+      <textarea id="rights-input" class="civil-textarea"
+        placeholder="어떤 상황인지 편하게 설명해주세요. 법을 몰라도 됩니다.
+
+예: 집주인이 계약이 끝났는데도 보증금 500만원을 안 돌려줍니다. 이사를 나간 지 3주가 됐는데 연락도 잘 안 됩니다."
+        maxlength="1000"></textarea>
+
+      <div class="input-footer" style="border-bottom:none; padding-bottom:0;">
+        <span class="char-count" id="rights-char-count" style="margin-left:auto;">0 / 1,000자</span>
+      </div>
+
+      <button class="btn-analyze" id="rights-btn">내 권리 알아보기</button>
+    </div>
+
+    <div class="app-col app-col-result reveal reveal-d1">
+      <div class="app-col-head">
+        <span class="app-col-label">RESULT</span>
+        <div id="rights-result-actions" style="display:none; gap:6px;">
+          <button class="app-action-btn" id="rights-tts-btn" onclick="toggleTTS()">🔊 읽기</button>
+          <button class="app-action-btn" onclick="saveRights()">저장</button>
+          <button class="app-action-btn" onclick="copyRights()">복사</button>
+          <button class="app-action-btn" onclick="printRights()">PDF</button>
+        </div>
+      </div>
+
+      <div id="rights-result">
+        <div class="result-empty">
+          <div class="empty-icon">↑</div>
+          <p>상황을 입력하고<br>내 권리 알아보기를 눌러주세요</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/rights.js"></script>
+{% endblock %}

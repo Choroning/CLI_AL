@@ -113,6 +113,12 @@
 
       <div class="app-col-head">
         <span class="app-col-label">RESULT</span>
+        <div id="welfare-result-actions" style="display:none; gap:6px;">
+          <button class="app-action-btn" id="welfare-tts-btn" onclick="toggleTTS()">🔊 읽기</button>
+          <button class="app-action-btn" onclick="saveWelfare()">저장</button>
+          <button class="app-action-btn" onclick="copyWelfare()">복사</button>
+          <button class="app-action-btn" onclick="printWelfare()">PDF</button>
+        </div>
       </div>
 
       <div id="welfare-result">

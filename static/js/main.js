@@ -23,6 +23,11 @@ textarea.addEventListener('input', () => {
   analyzeBtn.disabled = len === 0 || len > MAX_CHARS;
 });
 
+// ── Ctrl+Enter 단축키 ──────────────────────────
+textarea.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter' && !analyzeBtn.disabled) analyzeBtn.click();
+});
+
 // ── 초기화 버튼 ────────────────────────────────
 clearBtn.addEventListener('click', () => {
   textarea.value = '';
@@ -42,6 +47,13 @@ fileInput.addEventListener('change', async () => {
   const file = fileInput.files[0];
   if (!file) return;
 
+  const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
+  if (file.size > MAX_FILE_BYTES) {
+    showToast(`파일 크기가 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB). 10MB 이하 파일만 업로드할 수 있습니다.`, true);
+    fileInput.value = '';
+    return;
+  }
+
   const formData = new FormData();
   formData.append('file', file);
 
@@ -49,10 +61,11 @@ fileInput.addEventListener('change', async () => {
   try {
     const res = await fetch('/upload', { method: 'POST', body: formData });
     const data = await res.json();
-    if (data.error) { showToast(data.error, true); return; }
+    if (data.error && !data.too_long) { showToast(data.error, true); return; }
+    if (data.too_long) { showToast(data.error, true); }
     textarea.value = data.text;
     textarea.dispatchEvent(new Event('input'));
-    showToast('파일을 불러왔습니다.');
+    if (!data.too_long) showToast('파일을 불러왔습니다.');
   } catch {
     showToast('파일 업로드 중 오류가 발생했습니다.', true);
   } finally {
@@ -86,7 +99,11 @@ analyzeBtn.addEventListener('click', async () => {
     const res = await fetch('/analyze/stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ document: docText, detail_level: currentDetail }),
+      body: JSON.stringify({
+        document: docText,
+        detail_level: currentDetail,
+        output_lang: document.getElementById('output-lang')?.value || 'ko',
+      }),
     });
 
     if (!res.ok) {
@@ -219,10 +236,7 @@ function renderResult(data) {
 
     ${simplified ? `
     <div class="result-section">
-      <div class="section-title">
-        📝 쉬운말로 바꾼 내용
-        <button class="tts-btn" id="tts-btn" onclick="toggleTTS(${JSON.stringify(simplified)})" title="음성으로 듣기">🔊 듣기</button>
-      </div>
+      <div class="section-title">📝 쉬운말로 바꾼 내용</div>
       <div class="simplified-text">${buildHighlightedText(simplified, difficultWords)}</div>
     </div>` : ''}
 
@@ -524,6 +538,69 @@ function saveResult() {
   showToast('파일로 저장됐습니다.');
 }
 
+// ── TTS (음성 읽기) ────────────────────────────
+let _ttsOn = false;
+
+function toggleTTS() {
+  const btn = document.getElementById('tts-btn');
+  if (!lastResult?.simplified) return;
+
+  if (_ttsOn) {
+    speechSynthesis.cancel();
+    _ttsOn = false;
+    btn.textContent = '🔊 읽기';
+    return;
+  }
+
+  const lang = document.getElementById('output-lang')?.value || 'ko';
+  const langMap = { ko: 'ko-KR', en: 'en-US', zh: 'zh-CN', vi: 'vi-VN', ja: 'ja-JP' };
+
+  const utt = new SpeechSynthesisUtterance(lastResult.simplified);
+  utt.lang = langMap[lang] || 'ko-KR';
+  utt.rate = 0.88;
+  utt.onend = () => { _ttsOn = false; btn.textContent = '🔊 읽기'; };
+  utt.onerror = () => { _ttsOn = false; btn.textContent = '🔊 읽기'; };
+
+  speechSynthesis.speak(utt);
+  _ttsOn = true;
+  btn.textContent = '⏹ 중지';
+}
+
+// ── PDF 저장 (브라우저 인쇄) ───────────────────
+function printResult() {
+  if (!lastResult) return;
+  window.print();
+}
+
+// ── 원문 비교 (Diff View) ──────────────────────
+let _diffMode = false;
+let _lastRenderedHtml = '';
+
+function toggleDiff() {
+  if (!lastResult || !currentDocument) return;
+  const btn = document.getElementById('diff-btn');
+  _diffMode = !_diffMode;
+
+  if (_diffMode) {
+    btn.textContent = '변환 결과';
+    _lastRenderedHtml = resultArea.innerHTML;
+    resultArea.innerHTML = `
+      <div class="diff-wrap">
+        <div class="diff-col">
+          <div class="diff-col-label">원문</div>
+          <div class="diff-content">${escHtml(currentDocument)}</div>
+        </div>
+        <div class="diff-col diff-col-right">
+          <div class="diff-col-label" style="color:#1d4ed8;">쉬운 말 변환</div>
+          <div class="diff-content">${escHtml(lastResult.simplified)}</div>
+        </div>
+      </div>`;
+  } else {
+    btn.textContent = '원문 비교';
+    resultArea.innerHTML = _lastRenderedHtml;
+  }
+}
+
 // ── 글자 크기 ──────────────────────────────────
 (function initFontSize() {
   const saved = localStorage.getItem('fontSize') || 'md';
@@ -549,31 +626,6 @@ function setDetailLevel(level) {
   document.querySelectorAll('.detail-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.level === level);
   });
-}
-
-// ── TTS ───────────────────────────────────────
-function toggleTTS(text) {
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
-    ttsActive = false;
-    updateTTSBtn('🔊 듣기');
-    return;
-  }
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'ko-KR';
-  utt.rate = 0.9;
-  const voices = speechSynthesis.getVoices();
-  const koVoice = voices.find(v => v.lang.startsWith('ko'));
-  if (koVoice) utt.voice = koVoice;
-  utt.onend = utt.onerror = () => { ttsActive = false; updateTTSBtn('🔊 듣기'); };
-  speechSynthesis.speak(utt);
-  ttsActive = true;
-  updateTTSBtn('⏹ 정지');
-}
-
-function updateTTSBtn(label) {
-  const btn = document.getElementById('tts-btn');
-  if (btn) btn.textContent = label;
 }
 
 // ── 단어 하이라이트 ────────────────────────────
@@ -681,3 +733,4 @@ function escHtml(str) {
 function escAttr(str) {
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+
