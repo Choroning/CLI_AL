@@ -130,7 +130,7 @@ CLI_AL/
 ├── supabase/migrations/ 0001_init.sql (documents · rewrites · glossary_cache)
 ├── infra/               Makefile + dev.ps1 for local two-server bring-up
 ├── docs/                SETUP.md (local dev) · DEPLOY.md (production)
-├── .github/             CODEOWNERS · workflows/keepalive.yml
+├── .github/             CODEOWNERS
 └── render.yaml          Render Blueprint (backend service definition)
 ```
 
