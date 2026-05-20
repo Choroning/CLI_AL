@@ -124,15 +124,19 @@
     word-break: keep-all; /* Korean line-breaking — never split inside a word */
   }
 
-  /* Custom scrollbar — subtle, in-spec. */
+  /* Custom scrollbar — subtle but visible in both themes. Uses hairline
+   * tokens (not surface) so the thumb has real contrast against the track:
+   * surface-2 sits almost on top of canvas in both themes and the thumb
+   * vanished. */
+  * { scrollbar-color: var(--hairline-strong) transparent; scrollbar-width: thin; }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--canvas); }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: var(--surface-2);
+    background: var(--hairline-strong);
     border-radius: 9999px;
     border: 2px solid var(--canvas);
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--surface-3); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--hairline-tertiary); }
 
   /* Global focus ring — lavender at 50% opacity per DESIGN.md spec. */
   :focus-visible {
