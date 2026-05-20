@@ -34,12 +34,12 @@ export function DisclaimerModal() {
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="disclaimer-title"
     >
-      <div className="max-w-xl w-full rounded-lg bg-surface-1 ring-1 ring-hairline p-6 md:p-8">
+      <div className="max-w-xl w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg bg-surface-1 ring-1 ring-hairline p-5 sm:p-6 md:p-8">
         <p className="eyebrow mb-3">이용 약관</p>
         <h2 id="disclaimer-title" className="text-card-title text-ink">
           이용 전 꼭 확인해주세요
@@ -61,7 +61,7 @@ export function DisclaimerModal() {
             필요한 경우 해당 분야 전문가에게 문의해 주세요.
           </p>
         </div>
-        <div className="mt-7 flex justify-end">
+        <div className="mt-7 flex justify-stretch sm:justify-end">
           <button
             ref={acceptRef}
             type="button"
@@ -69,7 +69,7 @@ export function DisclaimerModal() {
               window.localStorage.setItem(STORAGE_KEY, new Date().toISOString());
               setOpen(false);
             }}
-            className="btn-primary"
+            className="btn-primary w-full sm:w-auto"
           >
             확인했습니다, 시작하기
           </button>
