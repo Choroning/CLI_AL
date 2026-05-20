@@ -4,6 +4,11 @@ End-to-end instructions to run CLI_AL on a single laptop. Backend + frontend
 are local processes; Postgres lives in Supabase cloud (free tier); LLM calls
 go to Upstage cloud.
 
+> For the live deployment (Vercel + Render) and the env vars set there,
+> see [`DEPLOY.md`](DEPLOY.md). The `.env` files described below only affect
+> local dev — never commit real keys, and never edit Render/Vercel dashboard
+> values from here.
+
 ---
 
 ## 0. Prerequisites

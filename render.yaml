@@ -1,3 +1,7 @@
+# Render Blueprint for the FastAPI backend.
+# Edits to rootDir, startCommand, healthCheckPath, or envVar names must be
+# coordinated with the corresponding Render dashboard settings. See docs/DEPLOY.md.
+
 services:
   - type: web
     name: cli-al-backend
