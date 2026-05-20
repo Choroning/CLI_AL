@@ -17,7 +17,16 @@ jobs:
             echo "BACKEND_URL secret not set — skipping. Add it under Settings → Secrets → Actions after Render deploy."
             exit 0
           fi
-          code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 30 "${BACKEND_URL%/}/health" || echo "000")
-          echo "HTTP $code"
-          cat /tmp/body || true
-          [ "$code" = "200" ]
+          url="${BACKEND_URL%/}/health"
+          for attempt in 1 2 3; do
+            code=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 90 "$url" || true)
+            echo "Attempt $attempt: HTTP ${code:-000}"
+            cat /tmp/body 2>/dev/null || true
+            echo
+            if [ "$code" = "200" ]; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Backend did not respond with 200 after 3 attempts — service may be cold-starting."
+          exit 1
