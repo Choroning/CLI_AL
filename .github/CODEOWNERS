@@ -1,0 +1,11 @@
+# Files that control the live deployment.
+# Changes here require review from @Choroning (PM) — they break production
+# if the corresponding Render / Vercel / GitHub-secret side isn't updated.
+# See docs/DEPLOY.md.
+
+/render.yaml                          @Choroning
+/.github/workflows/                   @Choroning
+/.github/CODEOWNERS                   @Choroning
+/backend/app/config.py                @Choroning
+/backend/app/routers/health.py        @Choroning
+/docs/DEPLOY.md                       @Choroning

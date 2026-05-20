@@ -66,17 +66,18 @@ This repository organizes the source code, documentation, and deliverables for T
 <br><a name="project-overview"></a>
 ## 🎯 Project Overview
 
-> _One-paragraph topic summary — TBD._
+**행정문서 쉬운말 변환기** — paste or upload an administrative document (lease clause, public notice, government form, contract, etc.) and the service returns a plain-Korean rewrite with citation markers, a glossary of difficult terms, key-info cards (obligations, rights, deadlines), and an action checklist.
 
 ### Core Features
 
-1. _TBD_
-2. _TBD_
-3. _TBD_
+1. **Plain-Korean rewriting** of administrative documents with `[1]` `[2]` citation markers tying each claim back to the source.
+2. **Structured extraction** — glossary, key-info cards, and action checklist generated alongside the rewrite.
+3. **Groundedness check** — every response is scored by Upstage's Groundedness API and surfaced as a coloured badge so users know when to double-check the original.
 
 ### Demo
 
-> _Screenshots / demo link — TBD._
+- Live: https://cli-al.vercel.app
+- API: https://cli-al-backend.onrender.com/health
 
 <br><a name="algorithm-concepts-applied"></a>
 ## 🧠 Algorithm Concepts Applied
@@ -94,28 +95,51 @@ Candidate concepts: sorting / searching, divide & conquer, greedy, dynamic progr
 <br><a name="tech-stack"></a>
 ## 🛠 Tech Stack
 
-> _Finalized stack — TBD._
-
 | Layer | Choice |
 |:------|:-------|
-| Frontend | TBD |
-| Backend | TBD |
-| LLM | Upstage Solar |
-| Auxiliary models | NVIDIA NIM |
-| Deployment | TBD (Public deployments are optional in this project.) |
+| Frontend | Next.js 15 (App Router, React 19) + Tailwind CSS |
+| Backend | FastAPI + uvicorn (Python 3.11) |
+| Database / Auth | Supabase (Postgres, free plan) |
+| LLM | Upstage Solar Pro 2 (rewrite, glossary, key-info), Document Parse, Groundedness Check |
+| Frontend hosting | Vercel (Hobby plan) |
+| Backend hosting | Render (free plan, Singapore) |
+| Cold-start mitigation | GitHub Actions cron (`*/10 * * * *`) pinging `/health` |
+
+See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the deployment topology and operational notes.
 
 
 <br><a name="repository-structure"></a>
 ## 🗂 Repository Structure
 
-> _Layout — TBD._
+```
+CLI_AL/
+├── backend/             FastAPI app (uvicorn entry: app.main:app)
+│   ├── app/
+│   │   ├── main.py      App factory + CORS
+│   │   ├── config.py    pydantic-settings (UPSTAGE_*, SUPABASE_*, CORS_*)
+│   │   ├── routers/     /health · /parse · /rewrite · /history
+│   │   └── services/    upstage_client · supabase_client · rewrite_service · …
+│   ├── tests/           pytest
+│   └── pyproject.toml
+├── frontend/            Next.js (App Router)
+│   ├── app/             page.tsx · convert/ · history/
+│   ├── components/      Dropzone · RewriteText · GroundednessBadge · …
+│   ├── lib/api.ts       FastAPI client
+│   └── package.json
+├── llm/prompts/         Versioned prompt templates (rewrite_v1, extract_*_v1)
+├── supabase/migrations/ 0001_init.sql (documents · rewrites · glossary_cache)
+├── infra/               Makefile + dev.ps1 for local two-server bring-up
+├── docs/                SETUP.md (local dev) · DEPLOY.md (production)
+├── .github/             CODEOWNERS · workflows/keepalive.yml
+└── render.yaml          Render Blueprint (backend service definition)
+```
 
 <br><a name="deliverables"></a>
 ## 📦 Deliverables
 
 | # | Deliverable | Description | Status |
 |:-:|:------------|:------------|:------:|
-| 1 | Application | Working product + full source code (this repository) | In progress |
+| 1 | Application | Working product + full source code (this repository) | MVP deployed |
 | 2 | Technical Report | System architecture, tech stack, LLM usage, key implementation details, limitations | Pending |
 | 3 | Development Process Document | Planning → scheduling → execution → retrospective; meeting notes, timelines, per-role progress, issue tracking | Pending |
 | 4 | Presentation Slides | Final presentation deck — **in English** | Pending |
@@ -127,13 +151,13 @@ Candidate concepts: sorting / searching, divide & conquer, greedy, dynamic progr
 
 - [x] Team formed
 - [x] Public GitHub repository created
-- [ ] Initial topic statement (one-paragraph summary + 3 core features)
-- [ ] Upstage Solar API approved
+- [x] Initial topic statement (one-paragraph summary + 3 core features)
+- [x] Upstage Solar API approved
 - [ ] NVIDIA NIM access (optional)
-- [ ] Claude Code 1-month license assigned to team representative
-- [ ] Proposal
-- [ ] Prototype
-- [ ] MVP
+- [x] Claude Code 1-month license assigned to team representative
+- [x] Proposal
+- [x] Prototype
+- [x] MVP — deployed to Vercel + Render
 - [ ] Feature polish
 - [ ] Technical report
 - [ ] Development process document
