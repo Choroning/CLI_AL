@@ -12,8 +12,8 @@ class MockLLMProvider(LLMProvider):
         max_tokens: int = 1200,
     ) -> LLMResponse:
         user_message = next((message.content for message in reversed(messages) if message.role == "user"), "")
-        selected_text = _extract_between(user_message, "선택한 텍스트:", "주변 문맥:").strip()
-        mode = _extract_between(user_message, "작업 모드:", "선택한 텍스트:").strip()
+        selected_text = _extract_between(user_message, "사용자가 드래그한 텍스트:\n", "\n\n주변 문맥").strip()
+        mode = _extract_between(user_message, "작업 모드: ", "\n").strip()
 
         is_word = len(selected_text.split()) <= 1
         result_text = (

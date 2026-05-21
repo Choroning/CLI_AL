@@ -61,5 +61,11 @@ class DocumentParseResponse(BaseModel):
     filename: str
     extension: str
     text: str
+    xmlSource: str | None = None
+    xmlSourceName: str | None = None
+    renderedHtml: str | None = None
     blocks: list[DocumentBlock] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+
+class PlainTextRequest(BaseModel):
+    text: str = Field(min_length=1)

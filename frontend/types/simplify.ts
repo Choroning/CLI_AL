@@ -38,6 +38,9 @@ export type DocumentParseResponse = {
   filename: string;
   extension: string;
   text: string;
+  xmlSource?: string | null;
+  xmlSourceName?: string | null;
+  renderedHtml?: string | null;
   blocks: Array<{
     type: "heading" | "paragraph" | "list" | "table" | "pageBreak";
     text: string;
@@ -49,4 +52,8 @@ export type DocumentParseResponse = {
     pageBreakBefore?: boolean;
   }>;
   warnings: string[];
+};
+
+export type PlainTextRequest = {
+  text: string;
 };

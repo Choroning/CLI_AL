@@ -42,7 +42,16 @@ if not exist "node_modules" (
   )
 )
 
-echo [4/4] Starting development servers...
+echo [4/4] Stopping any existing servers on ports 8000 and 3000...
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":8000 "') do (
+  taskkill /PID %%a /F >nul 2>&1
+)
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 "') do (
+  taskkill /PID %%a /F >nul 2>&1
+)
+timeout /t 1 /nobreak >nul
+
+echo [5/5] Starting development servers...
 start "CLI_AL Backend" cmd /k "cd /d "%ROOT_DIR%" && call .venv\Scripts\Activate.bat && python -m uvicorn app.main:app --app-dir backend --reload --port 8000"
 start "CLI_AL Frontend" cmd /k "cd /d "%ROOT_DIR%" && npm --prefix frontend run dev"
 

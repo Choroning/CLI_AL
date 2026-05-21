@@ -17,8 +17,8 @@ export default function Home() {
           <h1 id="page-title">문서를 올리고 원문에서 바로 쉬운말을 확인하세요</h1>
         </div>
         <p>
-          TXT, HWPX, DOCX 문서를 불러오고 원문에서 필요한 부분을 드래그해
-          뜻과 쉬운 표현을 확인할 수 있습니다.
+          TXT, HWPX, DOCX, PDF 문서를 불러오거나 텍스트를 직접 붙여넣고,
+          단락을 클릭해 쉬운 뜻과 표현을 확인할 수 있습니다.
         </p>
       </section>
 

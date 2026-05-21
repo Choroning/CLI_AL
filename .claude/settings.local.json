@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir C:Userskj081DesktopCLI_AL *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\kj081\\\\Desktop\\\\CLI_AL\\\\backend\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
+      "Bash(python -c \"import pdfminer; print\\('pdfminer ok'\\)\")",
+      "Bash(python -c \"import pypdf; print\\('pypdf ok'\\)\")",
+      "Bash(python -c \"import pdfplumber; print\\('pdfplumber ok'\\)\")",
+      "Bash(pip install *)",
+      "Bash(python3 *)",
+      "Bash(pip show *)",
+      "Bash(C:/Users/kj081/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0/python.exe -m pip show fastapi)",
+      "Bash(C:/Users/kj081/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0/python.exe -m pip show pdfminer.six)",
+      "Bash(pip list *)",
+      "Bash(C:/Users/kj081/AppData/Roaming/Python/Python313/Scripts/python.exe -c \"import fastapi; print\\('ok'\\)\")",
+      "Bash(python313 -c \"import fastapi; print\\('ok'\\)\")"
+    ]
+  }
+}

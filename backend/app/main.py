@@ -1,8 +1,8 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.document_parser import parse_upload
-from app.models import DocumentParseResponse, SelectionRequest, SelectionResponse, SimplifyRequest, SimplifyResponse
+from app.document_parser import parse_upload, parse_plain_text
+from app.models import DocumentParseResponse, PlainTextRequest, SelectionRequest, SelectionResponse, SimplifyRequest, SimplifyResponse
 from app.services import simplify_selection, summarize_document
 
 app = FastAPI(title="Easy Administrative Document Simplifier", version="0.1.0")
@@ -18,7 +18,14 @@ app.add_middleware(
 
 @app.get("/api/health")
 async def health() -> dict[str, str]:
-    return {"status": "ok"}
+    from app.settings import settings, _ENV_FILE
+    return {
+        "status": "ok",
+        "llm_provider": settings.llm_provider,
+        "nim_key_set": str(bool(settings.nvidia_nim_api_key)),
+        "env_file_path": str(_ENV_FILE),
+        "env_file_exists": str(_ENV_FILE.exists()),
+    }
 
 
 @app.post("/api/documents/parse", response_model=DocumentParseResponse)
@@ -34,3 +41,7 @@ async def simplify_selection_endpoint(request: SelectionRequest) -> SelectionRes
 @app.post("/api/simplify", response_model=SimplifyResponse)
 async def simplify_document_endpoint(request: SimplifyRequest) -> SimplifyResponse:
     return await summarize_document(request)
+
+@app.post("/api/documents/parse-text", response_model=DocumentParseResponse)
+async def parse_text_endpoint(request: PlainTextRequest) -> DocumentParseResponse:
+    return parse_plain_text(request.text)

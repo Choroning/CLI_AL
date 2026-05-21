@@ -8,6 +8,7 @@ from app.settings import settings
 
 @lru_cache
 def get_llm_provider() -> LLMProvider:
+    print(settings.llm_provider)
     provider = settings.llm_provider.lower()
 
     if provider == "nim":

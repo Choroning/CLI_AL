@@ -1,3 +1,4 @@
+from html import escape
 from io import BytesIO
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
@@ -8,7 +9,9 @@ from fastapi import HTTPException, UploadFile
 from app.models import DocumentBlock, DocumentParseResponse, DocumentTableCell
 
 
-SUPPORTED_EXTENSIONS = {".txt", ".md", ".hwpx", ".docx"}
+SUPPORTED_EXTENSIONS = {".txt", ".md", ".hwpx", ".docx", ".pdf"}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_TEXT_LENGTH = 200_000          # direct input max chars
 
 
 async def parse_upload(file: UploadFile) -> DocumentParseResponse:
@@ -16,10 +19,16 @@ async def parse_upload(file: UploadFile) -> DocumentParseResponse:
     extension = Path(filename).suffix.lower()
     content = await file.read()
 
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"파일 크기가 너무 큽니다. 최대 {MAX_FILE_SIZE // (1024 * 1024)}MB까지 허용됩니다.",
+        )
+
     if extension not in SUPPORTED_EXTENSIONS:
         raise HTTPException(
             status_code=415,
-            detail="지원하지 않는 파일 형식입니다. TXT, MD, HWPX, DOCX 파일을 업로드해 주세요.",
+            detail="지원하지 않는 파일 형식입니다. TXT, MD, HWPX, DOCX, PDF 파일을 업로드해 주세요.",
         )
 
     warnings: list[str] = []
@@ -28,10 +37,12 @@ async def parse_upload(file: UploadFile) -> DocumentParseResponse:
         blocks = _text_to_blocks(_decode_text(content))
     elif extension == ".hwpx":
         blocks = _extract_hwpx_blocks(content)
+    elif extension == ".pdf":
+        blocks = _extract_pdf_blocks(content)
     else:
         blocks = _extract_docx_blocks(content)
 
-    text = "\n".join(block.text for block in blocks).strip()
+    text = "\n".join(block.text for block in blocks if block.type != "pageBreak").strip()
     if not text:
         warnings.append("문서에서 읽을 수 있는 텍스트를 찾지 못했습니다.")
 
@@ -39,10 +50,38 @@ async def parse_upload(file: UploadFile) -> DocumentParseResponse:
         filename=filename,
         extension=extension.removeprefix("."),
         text=text,
+        renderedHtml=_blocks_to_rendered_html(blocks),
         blocks=blocks,
         warnings=warnings,
     )
 
+
+
+def parse_plain_text(raw_text: str) -> DocumentParseResponse:
+    """텍스트를 직접 입력받아 파싱 결과를 반환합니다."""
+    if len(raw_text) > MAX_TEXT_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"텍스트가 너무 깁니다. 최대 {MAX_TEXT_LENGTH:,}자까지 허용됩니다.",
+        )
+
+    text = raw_text.strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="입력된 텍스트가 없습니다.")
+
+    blocks = _text_to_blocks(text)
+    separator = chr(10)
+    plain = separator.join(block.text for block in blocks if block.type != "pageBreak").strip()
+
+
+    return DocumentParseResponse(
+        filename="직접 입력 텍스트",
+        extension="txt",
+        text=plain,
+        renderedHtml=_blocks_to_rendered_html(blocks),
+        blocks=blocks,
+        warnings=[],
+    )
 
 def _decode_text(content: bytes) -> str:
     for encoding in ("utf-8-sig", "utf-8", "cp949", "euc-kr"):
@@ -52,6 +91,55 @@ def _decode_text(content: bytes) -> str:
             continue
     return content.decode("utf-8", errors="ignore")
 
+
+
+def _extract_pdf_blocks(content: bytes) -> list[DocumentBlock]:
+    """pdfminer.six를 사용해 PDF에서 블록을 추출합니다."""
+    try:
+        from pdfminer.high_level import extract_pages
+        from pdfminer.layout import LTTextContainer
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="PDF 파싱 라이브러리가 설치되지 않았습니다.",
+        ) from exc
+
+    try:
+        pages_iter = extract_pages(BytesIO(content))
+        all_blocks: list[DocumentBlock] = []
+        first_page = True
+
+        for page_layout in pages_iter:
+            page_blocks: list[DocumentBlock] = []
+
+            for element in page_layout:
+                if not isinstance(element, LTTextContainer):
+                    continue
+                raw = element.get_text()
+                lines = [_normalize_inline_text(ln) for ln in raw.splitlines() if _normalize_inline_text(ln)]
+                for line in lines:
+                    if _is_page_separator(line):
+                        continue
+                    page_blocks.append(
+                        DocumentBlock(type=_guess_block_type(line), text=line)
+                    )
+
+            if page_blocks:
+                if not first_page:
+                    page_blocks[0].pageBreakBefore = True
+                all_blocks.extend(page_blocks)
+                first_page = False
+
+        if not all_blocks:
+            return []
+
+        return _dedupe_blocks(all_blocks)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=f"PDF 파일을 읽을 수 없습니다: {exc}",
+        ) from exc
 
 def _extract_hwpx_blocks(content: bytes) -> list[DocumentBlock]:
     try:
@@ -64,9 +152,9 @@ def _extract_hwpx_blocks(content: bytes) -> list[DocumentBlock]:
                 and "section" in name.lower()
             ]
             xml_names.sort()
-            xml_blocks = _mark_page_breaks(_xml_files_to_blocks(archive, xml_names))
-            if xml_blocks:
-                return xml_blocks
+            blocks = _mark_page_breaks(_xml_files_to_blocks(archive, xml_names))
+            if blocks:
+                return blocks
 
             preview_name = _find_preview_text(archive)
             if preview_name:
@@ -83,7 +171,7 @@ def _extract_docx_blocks(content: bytes) -> list[DocumentBlock]:
         with ZipFile(BytesIO(content)) as archive:
             names = [name for name in archive.namelist() if name.startswith("word/") and name.endswith(".xml")]
             priority = ["word/document.xml"] + sorted(name for name in names if name != "word/document.xml")
-            return _xml_files_to_blocks(archive, [name for name in priority if name in names])
+            return _mark_page_breaks(_xml_files_to_blocks(archive, [name for name in priority if name in names]))
     except BadZipFile as exc:
         raise HTTPException(status_code=400, detail="DOCX 파일을 열 수 없습니다.") from exc
 
@@ -102,7 +190,6 @@ def _extract_xml_blocks(content: bytes) -> list[DocumentBlock]:
         return []
 
     blocks: list[DocumentBlock] = []
-
     for node in root:
         blocks.extend(_extract_blocks_from_node(node))
 
@@ -199,8 +286,6 @@ def _find_preview_text(archive: ZipFile) -> str | None:
 
 
 def _clean_hwpx_preview_text(text: str) -> str:
-    # HWPX preview text often wraps visual table cells with angle brackets.
-    # Keep those as line breaks so forms still read like their original layout.
     cleaned = text.replace("\r\n", "\n").replace("\r", "\n")
     cleaned = cleaned.replace("><", ">\n<")
     cleaned = cleaned.replace("<", "").replace(">", "")
@@ -213,17 +298,17 @@ def _text_to_blocks(text: str) -> list[DocumentBlock]:
     chunks = [chunk.strip() for chunk in normalized.split("\n") if chunk.strip()]
     blocks: list[DocumentBlock] = []
     for chunk in chunks:
-        text = _normalize_inline_text(chunk)
-        if _is_page_separator(text):
+        line = _normalize_inline_text(chunk)
+        if _is_page_separator(line):
             blocks.append(DocumentBlock(type="pageBreak", text="", pageBreakBefore=True))
         else:
-            blocks.append(DocumentBlock(type=_guess_block_type(text), text=text))
+            blocks.append(DocumentBlock(type=_guess_block_type(line), text=line))
     return _mark_page_breaks(blocks)
 
 
 def _guess_block_type(text: str) -> str:
     stripped = text.strip()
-    if stripped.startswith(("-", "*", "•")) or stripped[:2].isdigit() and stripped[2:3] in {".", ")"}:
+    if stripped.startswith(("-", "*", "•")) or (stripped[:2].isdigit() and stripped[2:3] in {".", ")"}):
         return "list"
     if len(stripped) <= 32 and not stripped.endswith((".", "?", "!", "。", "！", "？")):
         return "heading"
@@ -246,7 +331,7 @@ def _mark_page_breaks(blocks: list[DocumentBlock]) -> list[DocumentBlock]:
     marked: list[DocumentBlock] = []
     pending_page_break = False
 
-    for index, block in enumerate(blocks):
+    for block in blocks:
         if block.type == "pageBreak":
             pending_page_break = True
             continue
@@ -269,6 +354,73 @@ def _looks_like_back_page_heading(block: DocumentBlock) -> bool:
 def _is_page_separator(text: str) -> bool:
     stripped = text.strip()
     return len(stripped) >= 20 and set(stripped) <= {"-", "─", "_"}
+
+
+def _blocks_to_rendered_html(blocks: list[DocumentBlock]) -> str:
+    pages: list[list[DocumentBlock]] = [[]]
+    for block in blocks:
+        if block.type == "pageBreak":
+            if pages[-1]:
+                pages.append([])
+            continue
+        if block.pageBreakBefore and pages[-1]:
+            pages.append([])
+        pages[-1].append(block)
+
+    html_pages = []
+    para_index = 0
+    for page_index, page in enumerate([page for page in pages if page], start=1):
+        body_parts = []
+        for block in page:
+            html, para_index = _block_to_html(block, para_index)
+            body_parts.append(html)
+        body = chr(10).join(body_parts)
+        html_pages.append(
+            f'<section class="rendered-page" data-page="{page_index}">{body}<div class="page-no">{page_index}</div></section>'
+        )
+
+    return chr(10).join(html_pages)
+
+
+def _block_to_html(block: DocumentBlock, para_index: int) -> tuple[str, int]:
+    if block.type == "heading":
+        html = (
+            f'<h2 class="para-selectable" data-para-index="{para_index}"'
+            f' tabindex="0" role="button" aria-pressed="false">{escape(block.text)}</h2>'
+        )
+        return html, para_index + 1
+    if block.type == "list":
+        html = (
+            f'<p class="list-line para-selectable" data-para-index="{para_index}"'
+            f' tabindex="0" role="button" aria-pressed="false">{escape(block.text)}</p>'
+        )
+        return html, para_index + 1
+    if block.type == "paragraph":
+        html = (
+            f'<p class="para-selectable" data-para-index="{para_index}"'
+            f' tabindex="0" role="button" aria-pressed="false">{escape(block.text)}</p>'
+        )
+        return html, para_index + 1
+    if block.type == "table":
+        rows = []
+        for row in block.rows:
+            cells = []
+            for cell in row:
+                attrs = []
+                if cell.colSpan > 1:
+                    attrs.append(f'colspan="{cell.colSpan}"')
+                if cell.rowSpan > 1:
+                    attrs.append(f'rowspan="{cell.rowSpan}"')
+                attr_text = " " + " ".join(attrs) if attrs else ""
+                cell_text = "<br />".join(escape(part) for part in cell.text.split(chr(10)))
+                cells.append(
+                    f'<td{attr_text} class="para-selectable" data-para-index="{para_index}"'
+                    f' tabindex="0" role="button" aria-pressed="false">{cell_text}</td>'
+                )
+                para_index += 1
+            rows.append(f"<tr>{''.join(cells)}</tr>")
+        return f'<div class="table-wrap"><table><tbody>{"".join(rows)}</tbody></table></div>', para_index
+    return "", para_index
 
 
 def _normalize_inline_text(text: str) -> str:
