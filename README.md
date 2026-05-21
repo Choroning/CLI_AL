@@ -82,15 +82,15 @@ This repository organizes the source code, documentation, and deliverables for T
 <br><a name="algorithm-concepts-applied"></a>
 ## 🧠 Algorithm Concepts Applied
 
-The project must apply algorithm concepts from the course. The table below will be filled in as the implementation progresses, with pointers to where each concept is used in the code.
+All five concepts are implemented in [`Backend/app/services/algorithms.py`](Backend/app/services/algorithms.py) and called from [`Backend/app/services/rewrite_service.py`](Backend/app/services/rewrite_service.py) as part of the `/rewrite` response pipeline.
 
-| Concept | Where it is used | Notes |
-|:--------|:-----------------|:------|
-| _e.g., Hashing_ | _TBD_ | _TBD_ |
-| _e.g., Dynamic Programming_ | _TBD_ | _TBD_ |
-| _e.g., Graph algorithms_ | _TBD_ | _TBD_ |
-
-Candidate concepts: sorting / searching, divide & conquer, greedy, dynamic programming, graph algorithms, hashing, trees (BST / RBT / B-Tree), and others covered in the course.
+| Concept | CLRS | Where it is used | Complexity | Notes |
+|:--------|:----:|:-----------------|:----------:|:------|
+| **Hash Table — Chaining** | Ch. 11.2 | `HashTableChaining` + `dedup_glossary` in `algorithms.py`; called in `rewrite_service.py` after glossary parsing | O(1) avg insert/lookup | Polynomial rolling hash `h = (h·131 + ord(c)) mod m`; handles arbitrary Unicode (Korean). Removes duplicate glossary terms the LLM may emit before any further processing. |
+| **Merge Sort** | Ch. 2.3 | `merge_sort_glossary` in `algorithms.py`; called in `rewrite_service.py` after dedup | Θ(n log n) | Stable sort — equal terms preserve their original relative order. Sorts the deduplicated glossary alphabetically (case-insensitive) so the UI renders a consistent dictionary-style list. |
+| **Counting Sort** | Ch. 8.2 | `counting_sort_checklist` in `algorithms.py`; called in `rewrite_service.py` after checklist parsing | Θ(n + k), k = 3 | Sorts checklist items by priority (high → medium → low). k is bounded at 3, so this runs in linear time. Stable: items with the same priority keep their LLM-output order. |
+| **Dynamic Programming — LCS** | Ch. 15.4 | `lcs_word_ratio` in `algorithms.py`; called in `rewrite_service.py` after the LLM rewrite | O(mn) time, O(n) space | Word-tokenised LCS between the original document and the plain-Korean rewrite. Normalised to [0, 1] as `LCS_length / max(|original|, |rewrite|)`. Returned as `preservation_ratio` in the API response alongside the Upstage Groundedness label, giving a purely local, deterministic measure of content fidelity. Space-optimised to two rolling rows instead of the full O(mn) table. |
+| **Graph — BFS** | Ch. 22.1–22.2 | `build_term_graph` + `bfs_related_terms` in `algorithms.py`; called in `rewrite_service.py` after glossary is finalised | O(V + E) | Builds a directed adjacency list where an edge A → B exists when term B appears in the definition of term A (i.e., understanding A requires knowing B). BFS from each term discovers all transitively related terms. Results are attached to each `GlossaryTerm` as `related_terms` in the API response. |
 
 <br><a name="tech-stack"></a>
 ## 🛠 Tech Stack
