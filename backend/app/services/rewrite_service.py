@@ -18,6 +18,14 @@ from app.models.schemas import (
     KeyInfoItem,
     RewriteResponse,
 )
+from app.services.algorithms import (
+    bfs_related_terms,
+    build_term_graph,
+    counting_sort_checklist,
+    dedup_glossary,
+    lcs_word_ratio,
+    merge_sort_glossary,
+)
 from app.services.prompt_loader import load_prompt
 from app.services.upstage_client import get_upstage
 
@@ -59,6 +67,8 @@ def run_rewrite(text: str) -> RewriteResponse:
         glossary.append(
             GlossaryTerm(term=str(term), definition=str(definition), example=g.get("example"))
         )
+    # Ch. 11.2 — remove duplicates via hash table chaining, then Ch. 2.3 — merge sort
+    glossary = merge_sort_glossary(dedup_glossary(glossary))
 
     key_info: list[KeyInfoItem] = []
     for k in _safe_list(raw, "key_info"):
@@ -89,6 +99,17 @@ def run_rewrite(text: str) -> RewriteResponse:
         if priority not in {"high", "medium", "low"}:
             priority = "medium"
         checklist.append(ChecklistItem(text=str(ct), priority=priority))
+    # Ch. 8.2 — stable sort high → medium → low in Θ(n + k)
+    checklist = counting_sort_checklist(checklist)
+
+    # Ch. 15.4 — word-level LCS preservation ratio (original vs rewrite)
+    preservation_ratio = lcs_word_ratio(text, rewrite_text)
+    logger.info("LCS preservation_ratio=%.4f", preservation_ratio)
+
+    # Ch. 22.1 + 22.2 — build term dependency graph, BFS-attach related_terms
+    term_graph = build_term_graph(glossary)
+    for gt in glossary:
+        gt.related_terms = bfs_related_terms(term_graph, gt.term)
 
     # Groundedness Check on the rewrite vs original
     try:
@@ -108,4 +129,5 @@ def run_rewrite(text: str) -> RewriteResponse:
         key_info=key_info,
         checklist=checklist,
         groundedness=groundedness,
+        preservation_ratio=preservation_ratio,
     )

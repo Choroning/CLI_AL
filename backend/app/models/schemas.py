@@ -12,6 +12,7 @@ class GlossaryTerm(BaseModel):
     term: str
     definition: str
     example: str | None = None
+    related_terms: list[str] = Field(default_factory=list, description="BFS로 찾은 연관 용어 목록")
 
 
 KeyInfoType = Literal["의무", "권리", "기한", "금액", "연락처"]
@@ -46,6 +47,10 @@ class RewriteResponse(BaseModel):
     key_info: list[KeyInfoItem] = Field(default_factory=list)
     checklist: list[ChecklistItem] = Field(default_factory=list)
     groundedness: GroundednessResult
+    preservation_ratio: float | None = Field(
+        default=None,
+        description="LCS 기반 원문 보존율 (0~1). 단어 단위 LCS / max(원문단어수, 재작성단어수)",
+    )
     document_id: str | None = Field(
         default=None, description="Supabase에 저장된 documents.id (저장 안 했으면 null)"
     )
