@@ -23,6 +23,8 @@ UPSTAGE_BASE_URL = "https://api.upstage.ai/v1"
 DOCUMENT_PARSE_ENDPOINT = f"{UPSTAGE_BASE_URL}/document-digitization"
 GROUNDEDNESS_MODEL = "groundedness-check"
 DOCUMENT_PARSE_MODEL = "document-parse"
+EMBEDDING_QUERY_MODEL = "solar-embedding-1-large-query"
+EMBEDDING_PASSAGE_MODEL = "solar-embedding-1-large-passage"
 
 
 class UpstageClient:
@@ -119,6 +121,17 @@ class UpstageClient:
         if not md:
             logger.warning("Document Parse returned empty text. Raw keys: %s", list(payload))
         return md.strip()
+
+    def embed(self, text: str, *, passage: bool = False) -> list[float]:
+        """Return an embedding vector for *text*.
+
+        Uses the query model by default (passage=False).
+        Pass passage=True when indexing corpus documents.
+        Upstage embedding endpoints are OpenAI-compatible.
+        """
+        model = EMBEDDING_PASSAGE_MODEL if passage else EMBEDDING_QUERY_MODEL
+        resp = self._oa.embeddings.create(model=model, input=text)
+        return resp.data[0].embedding
 
     def groundedness_check(self, context: str, answer: str) -> dict[str, Any]:
         """Run Upstage Groundedness Check.

@@ -8,11 +8,17 @@ Algorithm → CLRS reference:
   lcs_word_ratio          Ch. 15.4  Longest Common Subsequence
   build_term_graph        Ch. 22.1  Adjacency-list representation
   bfs_related_terms       Ch. 22.2  Breadth-First Search
+  top_n_by_score          Ch. 9.2   Randomized Selection (QuickSelect)
+  radix_sort_by_score_desc Ch. 8.3  LSD Radix Sort
 """
 
 from __future__ import annotations
 
+import random
 from collections import deque
+from typing import Any, TypeVar
+
+_T = TypeVar("_T")
 
 from app.models.schemas import ChecklistItem, GlossaryTerm
 
@@ -237,3 +243,99 @@ def bfs_related_terms(graph: dict[str, list[str]], start: str) -> list[str]:
                 queue.append(v)
 
     return related
+
+
+# ---------------------------------------------------------------------------
+# CLRS 9.2 — Randomized Selection  (vector search top-N)
+# ---------------------------------------------------------------------------
+
+def _rand_partition(arr: list[Any], lo: int, hi: int, key_fn: Any) -> int:
+    """Randomized partition (CLRS 7.3): pivot chosen uniformly at random."""
+    i = random.randint(lo, hi)
+    arr[i], arr[hi] = arr[hi], arr[i]
+    pivot = key_fn(arr[hi])
+    i = lo - 1
+    for j in range(lo, hi):
+        if key_fn(arr[j]) <= pivot:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+    arr[i + 1], arr[hi] = arr[hi], arr[i + 1]
+    return i + 1
+
+
+def _quickselect_kth(arr: list[Any], lo: int, hi: int, k: int, key_fn: Any) -> None:
+    """Iterative RandomizedSelect: rearranges arr so arr[k] is the k-th smallest.
+
+    CLRS 9.2 — O(n) expected time.
+    """
+    while lo < hi:
+        q = _rand_partition(arr, lo, hi, key_fn)
+        if q == k:
+            return
+        elif q < k:
+            lo = q + 1
+        else:
+            hi = q - 1
+
+
+def top_n_by_score(items: list[Any], n: int, key_fn: Any) -> list[Any]:
+    """Return top-N items (highest key_fn value) using the Selection Problem.
+
+    CLRS 9.2 RandomizedSelect — O(n) average, avoids a full sort.
+    The returned list is sorted descending by key_fn.
+    """
+    if n <= 0:
+        return []
+    arr = list(items)
+    m = len(arr)
+    if n >= m:
+        return sorted(arr, key=key_fn, reverse=True)
+    # k = index of the (n-th largest) element when sorted ascending
+    k = m - n
+    _quickselect_kth(arr, 0, m - 1, k, key_fn)
+    # arr[k:] are the top-N (unordered); sort only those N elements
+    top = arr[k:]
+    top.sort(key=key_fn, reverse=True)
+    return top
+
+
+# ---------------------------------------------------------------------------
+# CLRS 8.3 — LSD Radix Sort  (keyword search top-N by LCS score)
+# ---------------------------------------------------------------------------
+
+def radix_sort_by_score_desc(
+    scored: list[tuple[Any, float]],
+    *,
+    scale: int = 10_000,
+) -> list[tuple[Any, float]]:
+    """Sort (item, float_score) pairs by score descending via LSD Radix Sort.
+
+    CLRS 8.3 — Θ(d * (n + b)) where d = digits, b = base (10).
+    float scores in [0, 1] are scaled to non-negative integers [0, scale]
+    so that standard LSD radix sort applies.
+    Stable: equal scores keep their original relative order.
+    """
+    if not scored:
+        return []
+
+    # Build (item, original_float, int_key) triples
+    keyed: list[tuple[Any, float, int]] = [
+        (item, score, round(score * scale)) for item, score in scored
+    ]
+    max_key = max(k for _, _, k in keyed)
+
+    BASE = 10
+    exp = 1
+    # One counting-sort pass per digit position (CLRS 8.3, lines 1-4)
+    while exp <= max(max_key, 1):
+        buckets: list[list[tuple[Any, float, int]]] = [[] for _ in range(BASE)]
+        for entry in keyed:
+            digit = (entry[2] // exp) % BASE
+            buckets[digit].append(entry)
+        # Flatten buckets back into keyed (stable, ascending so far)
+        keyed = [e for bucket in buckets for e in bucket]
+        exp *= BASE
+
+    # keyed is now sorted ascending by int_key → reverse for descending
+    keyed.reverse()
+    return [(item, score) for item, score, _ in keyed]
