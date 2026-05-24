@@ -68,7 +68,7 @@ export function RewriteText({
       <div ref={bodyRef} className="max-h-[460px] overflow-y-auto pr-2 focus-region">
         <div className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
           {segments.map((seg, si) => (
-            <p key={si} className="mb-1 last:mb-0">
+            <p key={si} className="mb-3 last:mb-0">
               {seg.children.map((t, i) => {
                 if (t.kind === "text") {
                   return <Bionic key={i} text={t.value} />;
