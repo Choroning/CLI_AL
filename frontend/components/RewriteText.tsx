@@ -52,50 +52,16 @@ export function RewriteText({
       ? citations[previewIndex - 1]
       : null;
 
-  // 본문 스크롤에 맞춰 인용 패널 스크롤 동기화.
+  // 마커를 클릭해서 active 가 바뀔 때만 해당 list item 으로 scroll-into-view.
+  // 본문 스크롤은 list 와 분리 — 자동 sync 제거로 list 가 어색하게 따라다니지 않음.
   useEffect(() => {
-    const body = bodyRef.current;
-    if (!body || citations.length === 0) return;
-    let ticking = false;
-    let lastTop: number | null = null;
-    const sync = () => {
-      const bodyRect = body.getBoundingClientRect();
-      const markers = Array.from(
-        body.querySelectorAll<HTMLElement>("[data-citation-n]")
-      );
-      if (markers.length === 0) return;
-      const positions = markers.map((el) => ({
-        n: Number(el.dataset.citationN),
-        top: el.getBoundingClientRect().top - bodyRect.top,
-      }));
-      const below = positions.filter((p) => p.top >= 0).sort((a, b) => a.top - b.top);
-      const above = positions.filter((p) => p.top < 0).sort((a, b) => b.top - a.top);
-      const topmost = below[0] ?? above[0];
-      if (!topmost || topmost.n === lastTop) return;
-      lastTop = topmost.n;
-      const list = listRef.current;
-      if (!list) return;
-      const item = list.querySelector<HTMLElement>(`[data-citation-item="${topmost.n}"]`);
-      if (!item) return;
-      const itemRect = item.getBoundingClientRect();
-      const listRect = list.getBoundingClientRect();
-      const offset = itemRect.top - listRect.top;
-      if (Math.abs(offset) > 4) {
-        list.scrollTo({ top: list.scrollTop + offset, behavior: "smooth" });
-      }
-    };
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        sync();
-        ticking = false;
-      });
-    };
-    body.addEventListener("scroll", onScroll, { passive: true });
-    requestAnimationFrame(sync);
-    return () => body.removeEventListener("scroll", onScroll);
-  }, [tokens, citations.length]);
+    if (active === null) return;
+    const list = listRef.current;
+    if (!list) return;
+    const item = list.querySelector<HTMLElement>(`[data-citation-item="${active}"]`);
+    if (!item) return;
+    item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [active]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -175,8 +141,14 @@ export function RewriteText({
 
       {citations.length > 0 && (
         <div className="border-t border-hairline pt-4">
-          <p className="text-body-sm font-medium text-ink-muted mb-2">출처 인용</p>
-          <div ref={listRef} className="max-h-[180px] overflow-y-auto pr-2">
+          <div className="mb-2 flex items-baseline justify-between">
+            <p className="text-body-sm font-medium text-ink-muted">출처 인용</p>
+            <p className="text-caption text-ink-subtle">
+              마커를 누르면 해당 인용으로 이동합니다
+            </p>
+          </div>
+          {/* 본문과 분리된 자유 스크롤. 짧으면 자연 높이, 길면 360px 까지. */}
+          <div ref={listRef} className="max-h-[360px] overflow-y-auto pr-2">
             <ol className="rounded-md ring-1 ring-hairline divide-y divide-hairline overflow-hidden">
               {citations.map((c, idx) => {
                 const num = idx + 1;
@@ -187,7 +159,7 @@ export function RewriteText({
                     data-citation-item={num}
                     className={cn(
                       "px-4 py-3 text-body-sm transition-colors text-ink flex items-start gap-1",
-                      isActive ? "bg-surface-3" : "bg-surface-1"
+                      isActive ? "bg-surface-3 ring-1 ring-primary" : "bg-surface-1"
                     )}
                   >
                     <CitationChip n={num} active={isActive} />
