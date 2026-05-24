@@ -93,10 +93,10 @@ function SizeBtn({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center justify-center rounded-md border px-2.5 py-1 font-bold transition-colors",
+        "inline-flex items-center justify-center rounded-sm border px-2.5 py-1 font-bold transition-colors",
         active
-          ? "border-primary bg-primary-soft text-primary"
-          : "border-hairline-strong bg-canvas text-ink hover:border-primary",
+          ? "border-primary bg-primary text-primary-on"
+          : "border-hairline-strong bg-canvas text-ink hover:border-ink",
         base && "text-sm",
         bigger && "text-base",
         biggest && "text-lg"
@@ -125,16 +125,16 @@ function Toggle({
       title={title}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-medium transition-colors",
+        "inline-flex items-center gap-1.5 rounded-sm border px-3 py-1 font-medium transition-colors",
         active
-          ? "border-primary bg-primary-soft text-primary"
-          : "border-hairline-strong bg-canvas text-ink-muted hover:border-primary hover:text-ink"
+          ? "border-primary bg-primary text-primary-on"
+          : "border-hairline-strong bg-canvas text-ink-muted hover:border-ink hover:text-ink"
       )}
     >
       <span
         className={cn(
-          "h-1.5 w-1.5 rounded-full",
-          active ? "bg-primary" : "bg-ink-tertiary"
+          "h-1.5 w-1.5 rounded-sm",
+          active ? "bg-primary-on" : "bg-ink-tertiary"
         )}
         aria-hidden
       />

@@ -10,7 +10,6 @@ import { Checklist } from "@/components/Checklist";
 import { Section } from "@/components/Section";
 import { Dropzone } from "@/components/Dropzone";
 import { ResultActions } from "@/components/ResultActions";
-import { PersonaSelector, type Persona } from "@/components/PersonaSelector";
 import { ZoomSlider, type ZoomLevel } from "@/components/ZoomSlider";
 import { ResultToolbar } from "@/components/ResultToolbar";
 
@@ -80,10 +79,8 @@ export default function ConvertPage() {
       <header data-print="hide">
         <p className="eyebrow mb-3">변환</p>
         <h1 className="text-display-md text-ink">원문 입력</h1>
-        <p className="mt-3 text-body-lg text-ink max-w-2xl">
-          변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요. 변환 결과
-          화면에서는 페르소나·요약 깊이·신뢰도 색상 등 편의 기능을 자유롭게 켤 수
-          있습니다.
+        <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
+          변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
         </p>
       </header>
 
@@ -118,7 +115,7 @@ export default function ConvertPage() {
               maxLength={20000}
             />
             <p className="text-caption text-ink-subtle">
-              💡 개인정보(주민번호 · 계좌번호 등)는 사전에 가려서 입력해 주세요.
+              개인정보(주민번호 · 계좌번호 등)는 사전에 가려서 입력해 주세요.
             </p>
           </div>
         </section>
@@ -146,7 +143,7 @@ export default function ConvertPage() {
 
       {loading && (
         <div
-          className="rounded-lg bg-surface-1 ring-1 ring-hairline p-6 flex items-center gap-3 text-body text-ink"
+          className="rounded-md bg-surface-1 ring-1 ring-hairline p-6 flex items-center gap-3 text-body text-ink"
           role="status"
           aria-live="polite"
           data-print="hide"
@@ -171,12 +168,11 @@ function ResultView({
   result: RewriteResponse;
   original: string;
 }) {
-  const [persona, setPersona] = useState<Persona>("senior");
   const [zoom, setZoom] = useState<ZoomLevel>(3);
   const [conf, setConf] = useState(false);
   const [diff, setDiff] = useState(false);
 
-  // 09/05 토글은 <html> 클래스로 전역 적용 — 인쇄/공유에도 일관.
+  // 토글은 <html> 클래스로 전역 적용 — 인쇄/공유에도 일관.
   useEffect(() => {
     document.documentElement.classList.toggle("conf-on", conf);
     return () => document.documentElement.classList.remove("conf-on");
@@ -187,7 +183,6 @@ function ResultView({
   }, [diff]);
 
   const sentences = splitSentences(result.rewrite);
-  // 줌 레벨별로 어떤 본문을 보일지 결정한다.
   const zoomText =
     zoom === 1
       ? sentences.slice(0, 1).join(" ")
@@ -197,7 +192,7 @@ function ResultView({
   const showOriginalOnly = zoom === 4;
 
   return (
-    <div className="space-y-8" data-persona={persona}>
+    <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="eyebrow mb-2 !text-primary">변환 결과</p>
@@ -215,17 +210,10 @@ function ResultView({
         </div>
       </div>
 
-      {/* UX 편의기능 — 페르소나 + 요약 줌 */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-5" data-print="hide">
-        <div className="md:col-span-3">
-          <PersonaSelector value={persona} onChange={setPersona} />
-        </div>
-        <div className="md:col-span-2">
-          <ZoomSlider value={zoom} onChange={setZoom} />
-        </div>
+      <div data-print="hide">
+        <ZoomSlider value={zoom} onChange={setZoom} />
       </div>
 
-      {/* 본문 — 줌 레벨 4 면 원문만 강조, 그 외엔 좌우 비교 */}
       {showOriginalOnly ? (
         <Section title="원문 (비교용)" accent>
           <div className="max-h-[560px] overflow-y-auto pr-2 focus-region">
@@ -263,33 +251,34 @@ function ResultView({
         </div>
       )}
 
-      {/* 줌 1·2 에서도 핵심정보 / 체크리스트는 항상 보여준다 — 행동 가능한 정보는 줄이지 않는다. */}
-      <Section title="📌 꼭 알아야 할 정보">
+      <Section title="꼭 알아야 할 정보">
         <KeyInfoCards items={result.key_info} />
       </Section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Section title="📖 어려운 말 풀이">
+        <Section title="어려운 말 풀이">
           <GlossaryList items={result.glossary} />
         </Section>
-        <Section title="✅ 해야 할 일">
+        <Section title="해야 할 일">
           <Checklist items={result.checklist} />
         </Section>
       </div>
 
-      <div className="rounded-2xl bg-warning/10 ring-1 ring-warning/30 border-l-4 border-l-warning p-6">
-        <p className="font-extrabold text-lg text-ink">⚠️ 꼭 알아두세요</p>
-        <p className="mt-2 text-ink leading-relaxed">
-          본 결과는 학술 목적으로 제공되는 <strong>참고자료</strong>이며{" "}
-          <strong>법적 효력이 없습니다.</strong> 중요한 결정 전에는 반드시 원문과
-          전문가(변호사·법무사·세무사 등)의 의견을 함께 확인해 주세요.
-        </p>
-      </div>
+      {/* 면책 — 풀컬러 박스 제거, 행정 톤의 사각 안내. */}
+      <aside
+        className="rounded-md border-l-2 border-ink bg-surface-1 px-6 py-5 text-body-sm text-ink-muted leading-relaxed"
+        role="note"
+      >
+        <p className="font-bold text-ink mb-1">참고용 결과 · 법적 효력 없음</p>
+        본 결과는 2026 봄학기 알고리즘 팀프로젝트(고려대 세종 DCSS309-00)의 학술
+        결과물이며, <strong className="text-ink">법적 효력이 없습니다</strong>. 중요한
+        결정 전에는 반드시 원문과 전문가(변호사·법무사·세무사 등)의 의견을 함께
+        확인해 주세요.
+      </aside>
     </div>
   );
 }
 
-/** 한국어 문장 분리 — 간단 휴리스틱 (마침표/물음표/느낌표 + 공백). */
 function splitSentences(s: string): string[] {
   return s
     .split(/(?<=[\.!?。])\s+/)

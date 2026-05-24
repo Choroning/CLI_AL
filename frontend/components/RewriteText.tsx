@@ -108,7 +108,7 @@ export function RewriteText({
   return (
     <div className="flex flex-col gap-4">
       <div ref={bodyRef} className="max-h-[460px] overflow-y-auto pr-2 focus-region">
-        <div className="persona-body bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
+        <div className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
           {segments.map((seg, si) => {
             // 절을 한 개의 <p> 로 만들어 줄포커스(02) hover 가 자연스럽게 동작하게 한다.
             const confClass = confClassByMarker[seg.markerN ?? 0] ?? "conf-seg-high";

@@ -20,28 +20,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Hybrid 7 — Toss-friendly blue. Replaces Linear lavender.
+        // 행정 신뢰형 — 짙은 네이비. 토스 채도 낮춰 정부24 톤.
         primary: {
-          DEFAULT: "#2563eb",
-          hover: "#1d4ed8",
-          focus: "#1d4ed8",
-          soft: "#dbeafe",
+          DEFAULT: "#1e40af",
+          hover: "#1e3a8a",
+          focus: "#1e3a8a",
+          soft: "#e6edf7",
           on: "#ffffff",
         },
         success: {
-          DEFAULT: "#16a34a",
+          DEFAULT: "#15803d",
           soft: "#dcfce7",
         },
         danger: {
-          DEFAULT: "#dc2626",
+          DEFAULT: "#b91c1c",
           soft: "#fee2e2",
         },
         warning: {
-          DEFAULT: "#d97706",
+          DEFAULT: "#b45309",
           soft: "#fef3c7",
-        },
-        focus: {
-          DEFAULT: "#facc15",
         },
         // Theme-switched tokens (CSS vars defined in globals.css).
         canvas: "var(--canvas)",

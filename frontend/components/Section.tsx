@@ -22,14 +22,21 @@ export function Section({
   return (
     <section
       className={cn(
-        "rounded-lg p-6 transition-colors",
+        "rounded-md p-6",
         accent
-          ? "bg-surface-2 ring-2 ring-primary/40"
-          : "bg-surface-1 ring-1 ring-hairline"
+          ? "bg-canvas ring-1 ring-primary"
+          : "bg-canvas ring-1 ring-hairline"
       )}
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className={cn("eyebrow", accent && "!text-primary")}>{title}</h2>
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-hairline pb-3">
+        <h2
+          className={cn(
+            "text-caption font-bold tracking-wider",
+            accent ? "text-primary" : "text-ink-muted"
+          )}
+        >
+          {title}
+        </h2>
         {right}
       </div>
       {children}

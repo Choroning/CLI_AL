@@ -4,17 +4,12 @@ import { useMemo, useState } from "react";
 import type { ChecklistItem } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
-// UX 시안 08 — 체크리스트 자동 추출 + 우선순위 색바.
-// CLRS 8.2 Counting Sort로 priority 정렬 (높음 → 낮음). 발표 핵심.
-
-const PRI: Record<
-  ChecklistItem["priority"],
-  { bar: string; chip: string; label: string }
-> = {
-  high:   { bar: "bg-danger",        chip: "bg-danger/15 text-danger",   label: "높음" },
-  medium: { bar: "bg-warning",       chip: "bg-warning/15 text-warning", label: "중간" },
-  low:    { bar: "bg-ink-tertiary",  chip: "bg-surface-3 text-ink-muted", label: "낮음" },
-};
+/**
+ * 할 일 — CLRS 8.2 Counting Sort 로 priority 정렬.
+ *
+ * 색상은 우선순위(높음/중간/낮음) 의미 전달에만 최소로 사용:
+ *   - 높음만 danger 라벨, 나머지는 ink 톤 — 행정 톤 유지를 위해 단조롭게.
+ */
 
 const RANK: Record<ChecklistItem["priority"], number> = {
   high: 0,
@@ -22,10 +17,16 @@ const RANK: Record<ChecklistItem["priority"], number> = {
   low: 2,
 };
 
+const LABEL: Record<ChecklistItem["priority"], string> = {
+  high: "긴급",
+  medium: "보통",
+  low: "참고",
+};
+
 export function Checklist({ items }: { items: ChecklistItem[] }) {
   const [done, setDone] = useState<Set<number>>(new Set());
 
-  // CLRS 8.2 Counting Sort — priority bucket sort. 안정 정렬.
+  // CLRS 8.2 Counting Sort — priority bucket sort, 안정 정렬.
   const sorted = useMemo(() => {
     const buckets: ChecklistItem[][] = [[], [], []];
     items.forEach((it) => buckets[RANK[it.priority]].push(it));
@@ -57,47 +58,44 @@ export function Checklist({ items }: { items: ChecklistItem[] }) {
             {doneCount} / {total}
           </span>
         </span>
-        <span className="font-mono text-ink-subtle">
-          CLRS 8.2 우선순위 정렬
-        </span>
+        <span className="font-mono text-ink-subtle">CLRS 8.2 우선순위 정렬</span>
       </div>
-      <ul className="space-y-2">
+      <ul className="divide-y divide-hairline rounded-md ring-1 ring-hairline bg-canvas">
         {sorted.map((c, i) => {
           const isDone = done.has(i);
-          const p = PRI[c.priority];
+          const isHigh = c.priority === "high";
           return (
             <li key={i}>
               <label
                 className={cn(
-                  "group flex cursor-pointer items-stretch gap-0 overflow-hidden rounded-lg ring-1 ring-hairline transition-colors hover:ring-primary/40",
+                  "flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-surface-1",
                   isDone && "opacity-60"
                 )}
               >
-                <span className={cn("w-1 shrink-0", p.bar)} aria-hidden />
-                <span className="flex flex-1 items-start gap-3 bg-surface-1 p-3">
-                  <input
-                    type="checkbox"
-                    checked={isDone}
-                    onChange={() => toggle(i)}
-                    className="mt-1.5 h-4 w-4 rounded-xs border-hairline-strong bg-canvas text-primary focus:ring-primary-focus"
-                  />
-                  <span className="flex flex-1 flex-col gap-1">
-                    <span
-                      className={cn(
-                        "text-body leading-snug text-ink",
-                        isDone && "line-through text-ink-tertiary"
-                      )}
-                    >
-                      {c.text}
-                    </span>
-                    <span
-                      className={cn(
-                        "inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-caption font-bold",
-                        p.chip
-                      )}
-                    >
-                      우선순위 · {p.label}
-                    </span>
+                <input
+                  type="checkbox"
+                  checked={isDone}
+                  onChange={() => toggle(i)}
+                  className="mt-1.5 h-4 w-4 rounded-xs border-hairline-strong bg-canvas text-primary focus:ring-ink"
+                />
+                <span className="flex flex-1 items-baseline justify-between gap-3">
+                  <span
+                    className={cn(
+                      "text-body leading-snug text-ink",
+                      isDone && "line-through text-ink-tertiary"
+                    )}
+                  >
+                    {c.text}
+                  </span>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-sm px-1.5 py-0.5 text-caption font-bold tracking-wider",
+                      isHigh
+                        ? "bg-danger/10 text-danger ring-1 ring-danger/30"
+                        : "bg-surface-2 text-ink-muted ring-1 ring-hairline"
+                    )}
+                  >
+                    {LABEL[c.priority]}
                   </span>
                 </span>
               </label>

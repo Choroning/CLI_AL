@@ -45,15 +45,15 @@ export default function RootLayout({
 
         <AccessibilityBar />
 
-        <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/90 backdrop-blur-sm">
+        <header className="sticky top-0 z-30 border-b border-hairline-strong bg-canvas">
           <div className="mx-auto flex h-14 max-w-content items-center justify-between pl-3 pr-1 sm:px-6">
             <a
               href="/"
-              className="flex items-center gap-2 font-sans text-body-sm font-semibold tracking-tight"
+              className="flex items-center gap-2.5 font-sans text-body-sm font-semibold tracking-tight"
             >
               <span
                 aria-hidden
-                className="grid h-5 w-5 place-items-center rounded-xs bg-primary text-primary-on text-[10px] font-bold"
+                className="grid h-6 w-6 place-items-center rounded-xs bg-primary text-primary-on text-[11px] font-bold"
               >
                 쉬
               </span>
@@ -62,13 +62,13 @@ export default function RootLayout({
             <nav className="flex items-center gap-0 sm:gap-1">
               <a
                 href="/convert"
-                className="inline-flex items-center min-h-[44px] rounded-md px-2 sm:px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+                className="inline-flex items-center min-h-[44px] rounded-sm px-2 sm:px-3.5 py-2 text-body-sm font-medium text-ink-muted hover:text-ink hover:bg-surface-1 transition-colors"
               >
                 변환
               </a>
               <a
                 href="/history"
-                className="inline-flex items-center min-h-[44px] rounded-md px-2 sm:px-3.5 py-2 text-body-sm text-ink-subtle hover:text-ink hover:bg-surface-1 transition-colors"
+                className="inline-flex items-center min-h-[44px] rounded-sm px-2 sm:px-3.5 py-2 text-body-sm font-medium text-ink-muted hover:text-ink hover:bg-surface-1 transition-colors"
               >
                 이력
               </a>
@@ -77,17 +77,33 @@ export default function RootLayout({
           </div>
         </header>
 
-        {/* No max-width / padding here — pages opt in. Landing uses full-bleed
-            snap sections; /convert and /history wrap their content in the
-            standard centered container. flex-1 anchors the footer to the
-            bottom of the viewport on short pages (e.g. /convert before a
-            result is rendered). */}
         <main className="flex-1">{children}</main>
 
-        <footer className="border-t border-hairline">
-          <div className="mx-auto max-w-content px-6 py-6 text-body-sm text-ink leading-relaxed">
-            본 서비스의 결과는 참고용이며 법적 효력이 없습니다. 실제 권리·의무·기한은 반드시
-            원문 또는 발급 기관·전문가에 확인하세요.
+        <footer className="border-t border-hairline bg-surface-1">
+          <div className="mx-auto max-w-content px-6 py-8 text-body-sm text-ink-muted leading-relaxed">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div>
+                <p className="font-bold text-ink">행정문서 쉬운말 변환기</p>
+                <p className="mt-1.5">
+                  Team CLI · 박철원 · 강성욱 · 송민성 · 곽준
+                </p>
+              </div>
+              <div>
+                <p className="font-bold text-ink">발급 기관</p>
+                <p className="mt-1.5">
+                  고려대학교 세종캠퍼스 컴퓨터과학과
+                  <br />
+                  DCSS309-00 알고리즘 (2026 봄학기)
+                </p>
+              </div>
+              <div>
+                <p className="font-bold text-ink">면책</p>
+                <p className="mt-1.5">
+                  본 서비스의 결과는 학술 결과물로 <strong className="text-ink">법적 효력이 없습니다</strong>.
+                  실제 권리·의무·기한은 반드시 원문 또는 발급 기관·전문가에 확인하세요.
+                </p>
+              </div>
+            </div>
           </div>
         </footer>
       </body>
