@@ -109,23 +109,6 @@
   /* 처음 진입(호버 전)에는 모든 단락 정상 — 호버 영역 진입 후에만 흐려짐. */
   .focus-region:not(:hover) p { opacity: 1; }
 
-  /* ──────────── UX 편의 — 신뢰도 그라데이션 (09) ──────────── */
-  /* 토글 OFF 가 기본. ON 시에만 색 노출. */
-  .conf-seg-high { background: rgba(22,163,74,0.12); border-bottom: 2px solid #15803d; padding: 1px 3px; border-radius: 2px; }
-  .conf-seg-mid  { background: rgba(217,119,6,0.14); border-bottom: 2px solid #b45309; padding: 1px 3px; border-radius: 2px; }
-  .conf-seg-low  { background: rgba(220,38,38,0.12); border-bottom: 2px solid #b91c1c; padding: 1px 3px; border-radius: 2px; }
-  html:not(.conf-on) .conf-seg-high,
-  html:not(.conf-on) .conf-seg-mid,
-  html:not(.conf-on) .conf-seg-low {
-    background: transparent !important;
-    border-bottom: none !important;
-    padding: 0 !important;
-  }
-
-  /* ──────────── UX 편의 — Diff (05) ──────────── */
-  html.diff-on .diff-add    { background: rgba(22,163,74,0.16);  border-bottom: 2px solid #15803d; padding: 0 2px; border-radius: 2px; }
-  html.diff-on .diff-remove { background: rgba(220,38,38,0.12);  text-decoration: line-through; color: #7f1d1d; padding: 0 2px; border-radius: 2px; }
-  html.diff-on .diff-change { background: rgba(30,64,175,0.12); border-bottom: 2px dotted #1e40af; padding: 0 2px; border-radius: 2px; }
 }
 
 @layer components {

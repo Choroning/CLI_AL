@@ -2,33 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import type { GlossaryTerm, GroundednessBadge as GBadge } from "@/lib/api";
+import type { GlossaryTerm } from "@/lib/api";
 
 /**
  * 쉬운말 재작성 본문 렌더러.
  *
- * 기본 기능 (원래 있던 것):
  *  - [N] 인용 마커 → 클릭 가능한 모노 칩 + 호버 미리보기
  *  - 용어 매치   → 점선 밑줄 + 툴팁
  *  - 본문/인용 패널 스크롤 싱크
  *
- * v2 추가 (UX 편의기능):
- *  - 02 줄 포커스   : 부모에 .focus-region 클래스, html.line-focus 일 때 단락별 호버 강조
- *  - 05 Diff       : 용어 호버는 항상 .diff-change 도 함께 부여 → html.diff-on 일 때만 색이 보임
- *  - 06 Bionic     : 본문에 .bionic-target 부여, 각 어절을 <b class="bx">머리/꼬리</b> 로 분할
- *  - 09 신뢰도     : 마커와 마커 사이의 절(segment)을 .conf-seg-{high|mid|low} 로 감쌈
- *                    html.conf-on 일 때만 색이 보임. 점수 매핑은 groundedness badge + 마커 회전.
+ * 상시 작동 보조:
+ *  - 줄 포커스 : 부모에 .focus-region 클래스 → 호버 단락만 선명하게
+ *  - Bionic   : .bionic-target 부여, 어절 머리 글자가 굵게
  */
 export function RewriteText({
   text,
   citations,
   glossary,
-  groundedness,
 }: {
   text: string;
   citations: string[];
   glossary?: GlossaryTerm[];
-  groundedness?: GBadge;
 }) {
   const [active, setActive] = useState<number | null>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -45,13 +39,6 @@ export function RewriteText({
     return m;
   }, [glossary]);
 
-  // 09: 마커가 가리키는 절(segment) 단위로 신뢰도 클래스를 미리 계산.
-  // 전체 groundedness 가 high 면 대부분 high, 가끔 mid; low 면 그 반대.
-  const confClassByMarker = useMemo(
-    () => buildConfMap(citations.length, groundedness),
-    [citations.length, groundedness]
-  );
-
   const segments = useMemo(() => groupBySegment(tokens), [tokens]);
 
   const previewIndex = hover ?? active;
@@ -60,7 +47,7 @@ export function RewriteText({
       ? citations[previewIndex - 1]
       : null;
 
-  // Scroll sync — 그대로.
+  // 본문 스크롤에 맞춰 인용 패널 스크롤 동기화.
   useEffect(() => {
     const body = bodyRef.current;
     if (!body || citations.length === 0) return;
@@ -109,49 +96,45 @@ export function RewriteText({
     <div className="flex flex-col gap-4">
       <div ref={bodyRef} className="max-h-[460px] overflow-y-auto pr-2 focus-region">
         <div className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
-          {segments.map((seg, si) => {
-            // 절을 한 개의 <p> 로 만들어 줄포커스(02) hover 가 자연스럽게 동작하게 한다.
-            const confClass = confClassByMarker[seg.markerN ?? 0] ?? "conf-seg-high";
-            return (
-              <p key={si} className={cn("mb-3 last:mb-0", confClass)}>
-                {seg.children.map((t, i) => {
-                  if (t.kind === "text") {
-                    return <Bionic key={i} text={t.value} />;
-                  }
-                  if (t.kind === "term") {
-                    return (
-                      <span
-                        key={i}
-                        className="glossary-term diff-change"
-                        title={definitions.get(t.value) ?? t.value}
-                      >
-                        <Bionic text={t.value} />
-                      </span>
-                    );
-                  }
+          {segments.map((seg, si) => (
+            <p key={si} className="mb-3 last:mb-0">
+              {seg.children.map((t, i) => {
+                if (t.kind === "text") {
+                  return <Bionic key={i} text={t.value} />;
+                }
+                if (t.kind === "term") {
                   return (
-                    <button
+                    <span
                       key={i}
-                      type="button"
-                      data-citation-n={t.index}
-                      className={cn(
-                        "citation-marker",
-                        active === t.index && "bg-primary text-primary-on ring-primary"
-                      )}
-                      onClick={() => setActive(t.index === active ? null : t.index)}
-                      onMouseEnter={() => setHover(t.index)}
-                      onMouseLeave={() => setHover(null)}
-                      onFocus={() => setHover(t.index)}
-                      onBlur={() => setHover(null)}
-                      aria-label={`인용 ${t.index} 보기`}
+                      className="glossary-term"
+                      title={definitions.get(t.value) ?? t.value}
                     >
-                      {t.index}
-                    </button>
+                      <Bionic text={t.value} />
+                    </span>
                   );
-                })}
-              </p>
-            );
-          })}
+                }
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    data-citation-n={t.index}
+                    className={cn(
+                      "citation-marker",
+                      active === t.index && "bg-primary text-primary-on ring-primary"
+                    )}
+                    onClick={() => setActive(t.index === active ? null : t.index)}
+                    onMouseEnter={() => setHover(t.index)}
+                    onMouseLeave={() => setHover(null)}
+                    onFocus={() => setHover(t.index)}
+                    onBlur={() => setHover(null)}
+                    aria-label={`인용 ${t.index} 보기`}
+                  >
+                    {t.index}
+                  </button>
+                );
+              })}
+            </p>
+          ))}
         </div>
       </div>
 
@@ -196,11 +179,8 @@ export function RewriteText({
   );
 }
 
-/** Bionic Reading 분할 — 어절(공백 단위)마다 머리 절반을 굵게.
- * 영문은 ceil(len/2), 한글 어절은 최소 1자(2자 이상이면 1자)를 굵게.
- * html.bionic 클래스가 없으면 시각적 변화 없음. */
+/** Bionic Reading 분할 — 어절(공백 단위)마다 머리 절반을 굵게. */
 function Bionic({ text }: { text: string }) {
-  // 빈 문자열/공백은 그대로.
   const parts = useMemo(() => splitBionic(text), [text]);
   return (
     <>
@@ -221,7 +201,6 @@ function Bionic({ text }: { text: string }) {
 type BionicPart = { head: string; tail: string };
 function splitBionic(s: string): BionicPart[] {
   const out: BionicPart[] = [];
-  // 공백·구두점은 통째로, 나머지는 어절 단위.
   const re = /(\s+|[.,;:!?·…—()\[\]"'·]+)|([^\s.,;:!?·…—()\[\]"'·]+)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(s)) !== null) {
@@ -229,7 +208,6 @@ function splitBionic(s: string): BionicPart[] {
       out.push({ head: "", tail: m[1] });
     } else if (m[2]) {
       const w = m[2];
-      // 한글: 한 글자만 굵게. 영문/숫자: 절반.
       const isHangul = /[가-힣]/.test(w[0]!);
       const headLen = isHangul ? Math.min(1, w.length) : Math.ceil(w.length / 2);
       out.push({ head: w.slice(0, headLen), tail: w.slice(headLen) });
@@ -237,36 +215,6 @@ function splitBionic(s: string): BionicPart[] {
   }
   if (out.length === 0) out.push({ head: "", tail: s });
   return out;
-}
-
-/** 09 신뢰도 그라데이션 — 마커 1..N 까지 신뢰도 클래스를 결정. */
-function buildConfMap(n: number, badge?: GBadge): Record<number, string> {
-  const map: Record<number, string> = {};
-  for (let i = 0; i <= n; i++) {
-    map[i] = pickConf(i, badge);
-  }
-  return map;
-}
-function pickConf(i: number, badge?: GBadge): string {
-  // 전체 신뢰도에 가중치를 둔 결정적 분포. 발표용 데모에서 일관적으로 보이게.
-  if (badge === "low") {
-    // low/mid 위주, high 약간.
-    const r = i % 5;
-    if (r === 0) return "conf-seg-high";
-    if (r === 1 || r === 3) return "conf-seg-mid";
-    return "conf-seg-low";
-  }
-  if (badge === "medium") {
-    const r = i % 4;
-    if (r === 0 || r === 2) return "conf-seg-high";
-    if (r === 3) return "conf-seg-low";
-    return "conf-seg-mid";
-  }
-  // high (기본)
-  const r = i % 6;
-  if (r === 5) return "conf-seg-mid";
-  if (r === 3) return "conf-seg-low";
-  return "conf-seg-high";
 }
 
 function CitationChip({ n, active }: { n: number; active?: boolean }) {
@@ -314,16 +262,10 @@ function tokenize(text: string, terms: string[]): Token[] {
   return out;
 }
 
-/** 토큰을 마커 기준 절(segment)로 묶는다 — 한 절 = 한 단락 = 한 신뢰도 그룹.
- * 단락 구분은 텍스트 내 빈 줄 또는 마커 직후로 본다. */
-function groupBySegment(
-  tokens: Token[]
-): { markerN: number | null; children: Token[] }[] {
-  const segs: { markerN: number | null; children: Token[] }[] = [];
-  let cur: { markerN: number | null; children: Token[] } = {
-    markerN: null,
-    children: [],
-  };
+/** 토큰을 단락(빈 줄 기준) 으로 묶는다 — 줄 포커스 호버가 단락 단위로 동작. */
+function groupBySegment(tokens: Token[]): { children: Token[] }[] {
+  const segs: { children: Token[] }[] = [];
+  let cur: { children: Token[] } = { children: [] };
   for (const t of tokens) {
     if (t.kind === "text" && /\n\s*\n/.test(t.value)) {
       const parts = t.value.split(/\n\s*\n/);
@@ -331,15 +273,14 @@ function groupBySegment(
         if (parts[i]) cur.children.push({ kind: "text", value: parts[i] });
         if (i < parts.length - 1) {
           segs.push(cur);
-          cur = { markerN: null, children: [] };
+          cur = { children: [] };
         }
       }
     } else {
       cur.children.push(t);
-      if (t.kind === "marker" && cur.markerN === null) cur.markerN = t.index;
     }
   }
   if (cur.children.length > 0) segs.push(cur);
-  if (segs.length === 0) segs.push({ markerN: null, children: [] });
+  if (segs.length === 0) segs.push({ children: [] });
   return segs;
 }

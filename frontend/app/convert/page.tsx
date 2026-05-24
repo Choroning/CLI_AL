@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { postParse, postRewrite, type RewriteResponse } from "@/lib/api";
 import { GroundednessBadge } from "@/components/GroundednessBadge";
 import { RewriteText } from "@/components/RewriteText";
@@ -11,7 +11,6 @@ import { Section } from "@/components/Section";
 import { Dropzone } from "@/components/Dropzone";
 import { ResultActions } from "@/components/ResultActions";
 import { ZoomSlider, type ZoomLevel } from "@/components/ZoomSlider";
-import { ResultToolbar } from "@/components/ResultToolbar";
 
 const SAMPLE = `주택임대차계약서
 
@@ -168,28 +167,11 @@ function ResultView({
   result: RewriteResponse;
   original: string;
 }) {
-  const [zoom, setZoom] = useState<ZoomLevel>(3);
-  const [conf, setConf] = useState(false);
-  const [diff, setDiff] = useState(false);
-
-  // 토글은 <html> 클래스로 전역 적용 — 인쇄/공유에도 일관.
-  useEffect(() => {
-    document.documentElement.classList.toggle("conf-on", conf);
-    return () => document.documentElement.classList.remove("conf-on");
-  }, [conf]);
-  useEffect(() => {
-    document.documentElement.classList.toggle("diff-on", diff);
-    return () => document.documentElement.classList.remove("diff-on");
-  }, [diff]);
+  const [zoom, setZoom] = useState<ZoomLevel>("full");
 
   const sentences = splitSentences(result.rewrite);
   const zoomText =
-    zoom === 1
-      ? sentences.slice(0, 1).join(" ")
-      : zoom === 2
-      ? sentences.slice(0, 5).join(" ")
-      : result.rewrite;
-  const showOriginalOnly = zoom === 4;
+    zoom === "summary" ? sentences.slice(0, 5).join(" ") : result.rewrite;
 
   return (
     <div className="space-y-8">
@@ -200,12 +182,6 @@ function ResultView({
         </div>
         <div className="flex flex-wrap items-center gap-3" data-print="hide">
           <GroundednessBadge level={result.groundedness.badge} raw={result.groundedness.label} />
-          <ResultToolbar
-            conf={conf}
-            diff={diff}
-            onConf={() => setConf((v) => !v)}
-            onDiff={() => setDiff((v) => !v)}
-          />
           <ResultActions result={result} />
         </div>
       </div>
@@ -214,42 +190,25 @@ function ResultView({
         <ZoomSlider value={zoom} onChange={setZoom} />
       </div>
 
-      {showOriginalOnly ? (
-        <Section title="원문 (비교용)" accent>
-          <div className="max-h-[560px] overflow-y-auto pr-2 focus-region">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Section title="원문">
+          <div className="max-h-[480px] overflow-y-auto pr-2">
             <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
               {original}
             </p>
           </div>
         </Section>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Section title="원문">
-            <div className="max-h-[480px] overflow-y-auto pr-2">
-              <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
-                {original}
-              </p>
-            </div>
-          </Section>
-          <Section
-            title={
-              zoom === 1
-                ? "쉬운말 · 한 줄 요약"
-                : zoom === 2
-                ? "쉬운말 · 핵심 5문장"
-                : "쉬운말 재작성"
-            }
-            accent
-          >
-            <RewriteText
-              text={zoomText}
-              citations={result.citations}
-              glossary={result.glossary}
-              groundedness={result.groundedness.badge}
-            />
-          </Section>
-        </div>
-      )}
+        <Section
+          title={zoom === "summary" ? "쉬운말 · 핵심 5문장" : "쉬운말 재작성"}
+          accent
+        >
+          <RewriteText
+            text={zoomText}
+            citations={result.citations}
+            glossary={result.glossary}
+          />
+        </Section>
+      </div>
 
       <Section title="꼭 알아야 할 정보">
         <KeyInfoCards items={result.key_info} />
@@ -264,7 +223,6 @@ function ResultView({
         </Section>
       </div>
 
-      {/* 면책 — 풀컬러 박스 제거, 행정 톤의 사각 안내. */}
       <aside
         className="rounded-md border-l-2 border-ink bg-surface-1 px-6 py-5 text-body-sm text-ink-muted leading-relaxed"
         role="note"

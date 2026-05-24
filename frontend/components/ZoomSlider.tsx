@@ -2,16 +2,17 @@
 
 import { cn } from "@/lib/cn";
 
-// 요약 줌 — 4단계로 본문 깊이 조절.
-//   1. 한 줄 / 2. 핵심 5문장 / 3. 전체 쉬운말 / 4. 원문 참고
+/**
+ * 요약 깊이 선택 — 2단계.
+ *   "full"    : 전체 쉬운말 (기본)
+ *   "summary" : 핵심 5문장 만
+ */
 
-export type ZoomLevel = 1 | 2 | 3 | 4;
+export type ZoomLevel = "summary" | "full";
 
 const STEPS: { level: ZoomLevel; label: string }[] = [
-  { level: 1, label: "한 줄" },
-  { level: 2, label: "핵심 5문장" },
-  { level: 3, label: "전체 쉬운말" },
-  { level: 4, label: "원문 참고" },
+  { level: "full", label: "전체 쉬운말" },
+  { level: "summary", label: "핵심 5문장" },
 ];
 
 export function ZoomSlider({
