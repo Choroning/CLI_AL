@@ -3,8 +3,13 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 
-// UX 시안 06 — 사용자 ★ 확정. 글자 크기 3단계 + Bionic Reading + 줄 포커스.
-// 모든 페이지 상단에 노출되어 노안·난독증·외국인 가독성 동시 해결.
+/**
+ * 접근성 도구 — 우측 하단 fixed 플로팅 패널.
+ *
+ * 글자 크기 3단계 + Bionic Reading + 줄 포커스.
+ * 스크롤·페이지 이동과 무관하게 항상 같은 위치(우측 하단)에 떠 있다.
+ * 본문을 가리지 않도록 compact + 살짝 투명 hover 패턴.
+ */
 
 type Size = "" | "size-l" | "size-xl";
 const SIZE_KEY = "cli_al_font_size";
@@ -48,16 +53,26 @@ export function AccessibilityBar() {
   }, [size, bionic, lineFocus, ready]);
 
   return (
-    <div className="border-b border-hairline bg-surface-1">
-      <div className="mx-auto flex max-w-content flex-wrap items-center justify-end gap-2 px-4 py-1.5 text-caption text-ink-muted">
-        <span className="font-medium mr-1">글자 크기</span>
-        <SizeBtn label="가" active={size === ""}     base onClick={() => setSize("")} />
-        <SizeBtn label="가" active={size === "size-l"}     onClick={() => setSize("size-l")} bigger />
-        <SizeBtn label="가" active={size === "size-xl"}    onClick={() => setSize("size-xl")} biggest />
-        <span className="mx-2 h-3.5 w-px bg-hairline" aria-hidden />
+    <div
+      // fixed: 화면 스크롤·페이지 이동과 무관하게 같은 자리. 인쇄 시 숨김.
+      data-print="hide"
+      className="fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)] rounded-md border border-hairline-strong bg-canvas shadow-lg"
+      role="region"
+      aria-label="접근성 도구"
+    >
+      <div className="border-b border-hairline px-3 py-1.5 text-caption font-bold tracking-wider text-ink-muted">
+        접근성
+      </div>
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2 text-caption text-ink-muted">
+        <span className="font-medium">글자 크기</span>
+        <SizeBtn label="가" active={size === ""}        onClick={() => setSize("")} base />
+        <SizeBtn label="가" active={size === "size-l"}  onClick={() => setSize("size-l")} bigger />
+        <SizeBtn label="가" active={size === "size-xl"} onClick={() => setSize("size-xl")} biggest />
+      </div>
+      <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-3 py-2 text-caption">
         <Toggle
           label="Bionic"
-          title="단어 앞부분 굵게 — 노안·난독증 가독성 향상"
+          title="단어 앞부분 굵게 — 가독성 향상"
           active={bionic}
           onClick={() => setBionic((v) => !v)}
         />
@@ -93,13 +108,13 @@ function SizeBtn({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center justify-center rounded-sm border px-2.5 py-1 font-bold transition-colors",
+        "inline-flex h-7 w-7 items-center justify-center rounded-sm border font-bold transition-colors",
         active
           ? "border-primary bg-primary text-primary-on"
           : "border-hairline-strong bg-canvas text-ink hover:border-ink",
-        base && "text-sm",
-        bigger && "text-base",
-        biggest && "text-lg"
+        base && "text-xs",
+        bigger && "text-sm",
+        biggest && "text-base"
       )}
     >
       {label}
@@ -125,7 +140,7 @@ function Toggle({
       title={title}
       aria-pressed={active}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-sm border px-3 py-1 font-medium transition-colors",
+        "inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-medium transition-colors",
         active
           ? "border-primary bg-primary text-primary-on"
           : "border-hairline-strong bg-canvas text-ink-muted hover:border-ink hover:text-ink"

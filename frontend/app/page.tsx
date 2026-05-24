@@ -86,11 +86,10 @@ export default function LandingPage() {
 
 function Hero() {
   return (
-    <section className="border-b border-hairline">
-      <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-20 md:py-24 lg:grid-cols-12 lg:items-center">
+    <section className="border-b border-hairline min-h-[calc(100vh-3.5rem)] flex items-center">
+      <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:items-center w-full">
         {/* 좌: 카피 + CTA */}
         <div className="lg:col-span-7">
-          {/* 행정 사이트 톤의 사각 배지 */}
           <p className="inline-flex items-center gap-2 border-l-2 border-primary pl-3 text-caption font-bold tracking-wider text-primary">
             행정문서 쉬운말 변환기
           </p>
@@ -112,32 +111,14 @@ function Hero() {
               변환 이력 보기
             </Link>
           </div>
-
-          {/* 신뢰 라벨 — stat 카드 대신 1줄 텍스트 */}
-          <dl className="mt-10 grid grid-cols-1 gap-3 border-t border-hairline pt-6 text-body-sm sm:grid-cols-3">
-            <TrustLabel term="출처" detail="모든 문장에 원문 인용 마커 표시" />
-            <TrustLabel term="검증" detail="Upstage Groundedness Check 자동 평가" />
-            <TrustLabel term="면책" detail="참고용 결과 — 법적 효력 없음" />
-          </dl>
         </div>
 
-        {/* 우: 변환 전후 미리보기 — 카드 1쌍, 단색 톤 */}
+        {/* 우: 변환 전후 미리보기 */}
         <div className="lg:col-span-5">
           <HeroPreview />
         </div>
       </div>
     </section>
-  );
-}
-
-function TrustLabel({ term, detail }: { term: string; detail: string }) {
-  return (
-    <div className="flex items-baseline gap-3">
-      <dt className="text-caption font-bold tracking-wider text-ink-muted shrink-0">
-        {term}
-      </dt>
-      <dd className="text-ink-muted leading-snug">{detail}</dd>
-    </div>
   );
 }
 
