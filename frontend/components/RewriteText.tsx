@@ -26,6 +26,11 @@ export function RewriteText({
 }) {
   const [active, setActive] = useState<number | null>(null);
   const [hover, setHover] = useState<number | null>(null);
+  const [termHover, setTermHover] = useState<{
+    term: string;
+    top: number;
+    left: number;
+  } | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -33,9 +38,9 @@ export function RewriteText({
     () => tokenize(text, (glossary ?? []).map((g) => g.term)),
     [text, glossary]
   );
-  const definitions = useMemo(() => {
-    const m = new Map<string, string>();
-    (glossary ?? []).forEach((g) => m.set(g.term, g.definition));
+  const glossaryByTerm = useMemo(() => {
+    const m = new Map<string, GlossaryTerm>();
+    (glossary ?? []).forEach((g) => m.set(g.term, g));
     return m;
   }, [glossary]);
 
@@ -107,7 +112,17 @@ export function RewriteText({
                     <span
                       key={i}
                       className="glossary-term"
-                      title={definitions.get(t.value) ?? t.value}
+                      tabIndex={0}
+                      onMouseEnter={(e) => {
+                        const r = e.currentTarget.getBoundingClientRect();
+                        setTermHover({ term: t.value, top: r.bottom + 6, left: r.left });
+                      }}
+                      onMouseLeave={() => setTermHover(null)}
+                      onFocus={(e) => {
+                        const r = e.currentTarget.getBoundingClientRect();
+                        setTermHover({ term: t.value, top: r.bottom + 6, left: r.left });
+                      }}
+                      onBlur={() => setTermHover(null)}
                     >
                       <Bionic text={t.value} />
                     </span>
@@ -147,6 +162,15 @@ export function RewriteText({
           <CitationChip n={previewIndex!} active />
           <span>{preview}</span>
         </div>
+      )}
+
+      {/* 용어 호버 카드 — fixed 위치, viewport 가장자리 단순 처리 */}
+      {termHover && glossaryByTerm.get(termHover.term) && (
+        <GlossaryHoverCard
+          term={glossaryByTerm.get(termHover.term)!}
+          top={termHover.top}
+          left={termHover.left}
+        />
       )}
 
       {citations.length > 0 && (
@@ -215,6 +239,40 @@ function splitBionic(s: string): BionicPart[] {
   }
   if (out.length === 0) out.push({ head: "", tail: s });
   return out;
+}
+
+/** 단어 호버 카드 — 어려운 용어 위에 마우스 올리면 정의·예시가 뜬다.
+ * 위치는 anchor span의 bottom + 6px. viewport 우측 가장자리 단순 처리. */
+function GlossaryHoverCard({
+  term,
+  top,
+  left,
+}: {
+  term: GlossaryTerm;
+  top: number;
+  left: number;
+}) {
+  const CARD_W = 320;
+  const max = typeof window !== "undefined" ? window.innerWidth - 16 : Infinity;
+  const adjustedLeft = Math.min(left, max - CARD_W);
+
+  return (
+    <aside
+      role="tooltip"
+      className="fixed z-50 rounded-md bg-canvas ring-1 ring-hairline-strong shadow-lg p-4 pointer-events-none"
+      style={{ top, left: Math.max(8, adjustedLeft), width: CARD_W }}
+    >
+      <p className="text-caption font-bold tracking-wider text-primary">어려운 말 풀이</p>
+      <p className="mt-1.5 text-card-title text-ink leading-tight">{term.term}</p>
+      <p className="mt-2 text-body-sm text-ink leading-relaxed">{term.definition}</p>
+      {term.example && (
+        <p className="mt-3 border-t border-hairline pt-2.5 text-body-sm text-ink-muted leading-relaxed">
+          <span className="font-bold text-ink">예시 </span>
+          {term.example}
+        </p>
+      )}
+    </aside>
+  );
 }
 
 function CitationChip({ n, active }: { n: number; active?: boolean }) {
