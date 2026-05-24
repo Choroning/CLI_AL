@@ -366,5 +366,41 @@ function groupBySegment(tokens: Token[]): { children: Token[] }[] {
   }
   pushSeg();
   if (segs.length === 0) segs.push({ children: [] });
-  return segs;
+  return normalizeSegments(segs);
+}
+
+/** segment 후처리:
+ *  1) i번째 segment의 첫 토큰이 ". " 또는 "." 으로 시작하면 그 마침표를 i-1번째 끝으로 옮긴다.
+ *     → marker 뒤 break 시 다음 chunk 머리에 남던 마침표가 직전 segment 종결자로 자연스럽게 들어간다.
+ *  2) 빈 segment 또는 마침표·공백만 있는 segment는 제거 — "한 줄에 마침표만" 보이는 현상 방지.
+ */
+function normalizeSegments(
+  segs: { children: Token[] }[]
+): { children: Token[] }[] {
+  const out = segs.map((s) => ({ children: [...s.children] }));
+  for (let i = 1; i < out.length; i++) {
+    const seg = out[i];
+    const first = seg.children[0];
+    if (first && first.kind === "text") {
+      const m = first.value.match(/^([.!?。]+)\s*/);
+      if (m) {
+        const prev = out[i - 1];
+        prev.children.push({ kind: "text", value: m[1] });
+        const rest = first.value.slice(m[0].length);
+        if (rest === "") {
+          seg.children.shift();
+        } else {
+          seg.children[0] = { kind: "text", value: rest };
+        }
+      }
+    }
+  }
+  return out.filter((s) => {
+    if (s.children.length === 0) return false;
+    // 내용이 빈 공백·마침표뿐이면 의미 없는 segment.
+    const onlyTrivia = s.children.every(
+      (c) => c.kind === "text" && /^[.!?。\s]*$/.test(c.value)
+    );
+    return !onlyTrivia;
+  });
 }
