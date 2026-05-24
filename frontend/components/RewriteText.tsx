@@ -378,6 +378,8 @@ function normalizeSegments(
   segs: { children: Token[] }[]
 ): { children: Token[] }[] {
   const out = segs.map((s) => ({ children: [...s.children] }));
+
+  // 1) i번째 머리의 마침표를 i-1번째 끝으로 이동.
   for (let i = 1; i < out.length; i++) {
     const seg = out[i];
     const first = seg.children[0];
@@ -395,9 +397,26 @@ function normalizeSegments(
       }
     }
   }
+
+  // 2) 학술 인용 컨벤션: 각 segment 안에서, 끝이 [..text "...단어 ", marker, marker, text "."]
+  //    형태면 "."를 마커 *앞* text 의 trailing 공백 자리로 이동. 결과: "...단어." + 마커 chip.
+  for (const seg of out) {
+    const ch = seg.children;
+    if (ch.length < 2) continue;
+    const last = ch[ch.length - 1];
+    if (last.kind !== "text" || !/^[.!?。]+\s*$/.test(last.value)) continue;
+    const period = last.value.match(/[.!?。]+/)![0];
+    // 끝에서부터 marker chain 건너뛰기
+    let i = ch.length - 2;
+    while (i >= 0 && ch[i].kind === "marker") i--;
+    if (i < 0 || ch[i].kind !== "text") continue;
+    const before = ch[i] as { kind: "text"; value: string };
+    ch[i] = { kind: "text", value: before.value.replace(/\s*$/, "") + period };
+    ch.splice(ch.length - 1, 1);
+  }
+
   return out.filter((s) => {
     if (s.children.length === 0) return false;
-    // 내용이 빈 공백·마침표뿐이면 의미 없는 segment.
     const onlyTrivia = s.children.every(
       (c) => c.kind === "text" && /^[.!?。\s]*$/.test(c.value)
     );
