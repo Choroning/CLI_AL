@@ -343,9 +343,10 @@ function groupBySegment(tokens: Token[]): { children: Token[] }[] {
   for (let ti = 0; ti < tokens.length; ti++) {
     const t = tokens[ti];
     if (t.kind === "text") {
-      // 텍스트 내부를 문장 종결 또는 빈 줄 기준으로 잘게 split.
-      // (?<=...) lookbehind 로 종결 부호를 직전 chunk에 남긴다.
-      const parts = t.value.split(/(?<=[.!?。])\s+|\n\s*\n/);
+      // 문장 종결 후 break — 공백 유무·약자 오작동 모두 회피.
+      // 한국어 도메인 한정: "[가-힣].\s*" 또는 빈 줄.
+      // \s* 로 공백 0개도 허용 → "실시했습니다.주요" 같이 붙은 케이스도 split.
+      const parts = t.value.split(/(?<=[가-힣][.!?。])\s*|\n\s*\n/);
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i];
         if (p) cur.children.push({ kind: "text", value: p });
@@ -353,10 +354,11 @@ function groupBySegment(tokens: Token[]): { children: Token[] }[] {
       }
     } else {
       cur.children.push(t);
-      // 인용 마커 뒤에 공백이 오면 그 마커까지 한 문장으로 잘라낸다.
+      // 인용 마커 직후 텍스트가 마침표·공백·줄바꿈으로 시작하면 그 시점에서 break.
+      // 패턴: "...실시했습니다 [3][4]. 주요" → marker [4] 뒤에서 끊는다.
       if (t.kind === "marker") {
         const next = tokens[ti + 1];
-        if (next && next.kind === "text" && /^[\s\n]/.test(next.value)) {
+        if (next && next.kind === "text" && /^[.!?。\s\n]/.test(next.value)) {
           pushSeg();
         }
       }
