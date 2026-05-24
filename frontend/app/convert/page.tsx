@@ -9,7 +9,6 @@ import { Checklist } from "@/components/Checklist";
 import { Section } from "@/components/Section";
 import { Dropzone } from "@/components/Dropzone";
 import { ResultActions } from "@/components/ResultActions";
-import { ZoomSlider, type ZoomLevel } from "@/components/ZoomSlider";
 
 const SAMPLE = `주택임대차계약서
 
@@ -166,12 +165,6 @@ function ResultView({
   result: RewriteResponse;
   original: string;
 }) {
-  const [zoom, setZoom] = useState<ZoomLevel>("full");
-
-  const sentences = splitSentences(result.rewrite);
-  const zoomText =
-    zoom === "summary" ? sentences.slice(0, 5).join(" ") : result.rewrite;
-
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -184,10 +177,6 @@ function ResultView({
         </div>
       </div>
 
-      <div data-print="hide">
-        <ZoomSlider value={zoom} onChange={setZoom} />
-      </div>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Section title="원문">
           <div className="max-h-[480px] overflow-y-auto pr-2">
@@ -196,12 +185,9 @@ function ResultView({
             </p>
           </div>
         </Section>
-        <Section
-          title={zoom === "summary" ? "쉬운말 · 핵심 5문장" : "쉬운말 재작성"}
-          accent
-        >
+        <Section title="쉬운말 재작성" accent>
           <RewriteText
-            text={zoomText}
+            text={result.rewrite}
             citations={result.citations}
             glossary={result.glossary}
           />
@@ -233,11 +219,4 @@ function ResultView({
       </aside>
     </div>
   );
-}
-
-function splitSentences(s: string): string[] {
-  return s
-    .split(/(?<=[\.!?。])\s+/)
-    .map((t) => t.trim())
-    .filter(Boolean);
 }
