@@ -26,10 +26,14 @@ from app.services.algorithms import (
     lcs_word_ratio,
     merge_sort_glossary,
 )
+from app.services.cache_service import HashTableCache
 from app.services.prompt_loader import load_prompt
 from app.services.upstage_client import get_upstage
 
 logger = logging.getLogger(__name__)
+
+# CLRS 11.2 / 11.3.1 — hash table with chaining, division method
+_cache = HashTableCache(table_size=256, max_entries=128, ttl_seconds=3600.0)
 
 
 def _label_to_badge(label: str, threshold: float) -> str:
@@ -47,6 +51,10 @@ def _safe_list(raw: Any, key: str) -> list[Any]:
 
 
 def run_rewrite(text: str) -> RewriteResponse:
+    cached = _cache.get(text)
+    if cached is not None:
+        return cached
+
     settings = get_settings()
     upstage = get_upstage()
 
@@ -122,7 +130,7 @@ def run_rewrite(text: str) -> RewriteResponse:
     badge = _label_to_badge(label, settings.groundedness_threshold)
     groundedness = GroundednessResult(label=label, score=None, badge=badge)  # type: ignore[arg-type]
 
-    return RewriteResponse(
+    result = RewriteResponse(
         rewrite=rewrite_text,
         citations=citations,
         glossary=glossary,
@@ -131,3 +139,5 @@ def run_rewrite(text: str) -> RewriteResponse:
         groundedness=groundedness,
         preservation_ratio=preservation_ratio,
     )
+    _cache.put(text, result)
+    return result
