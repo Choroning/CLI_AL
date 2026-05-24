@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { postParse, postRewrite, type RewriteResponse } from "@/lib/api";
-import { GroundednessBadge } from "@/components/GroundednessBadge";
 import { RewriteText } from "@/components/RewriteText";
 import { GlossaryList } from "@/components/GlossaryList";
 import { KeyInfoCards } from "@/components/KeyInfoCards";
@@ -181,7 +180,6 @@ function ResultView({
           <h2 className="text-headline text-ink">읽기 쉬운 버전</h2>
         </div>
         <div className="flex flex-wrap items-center gap-3" data-print="hide">
-          <GroundednessBadge level={result.groundedness.badge} raw={result.groundedness.label} />
           <ResultActions result={result} />
         </div>
       </div>

@@ -33,18 +33,20 @@
 }
 
 .dark {
-  --canvas: #0b1220;
-  --surface-1: #111a2e;
-  --surface-2: #16223a;
-  --surface-3: #1c2a44;
-  --surface-4: #243353;
-  --hairline: #1f2a44;
-  --hairline-strong: #2d3a5a;
-  --hairline-tertiary: #475569;
-  --ink: #f8fafc;
-  --ink-muted: #cbd5e1;
-  --ink-subtle: #94a3b8;
-  --ink-tertiary: #64748b;
+  /* 중립 무채색(neutral) 스케일 — 푸른빛 제거.
+   * primary 액센트만 deep navy 유지하고, 나머지는 검정·회색으로. */
+  --canvas: #0a0a0a;
+  --surface-1: #161616;
+  --surface-2: #1c1c1c;
+  --surface-3: #232323;
+  --surface-4: #2a2a2a;
+  --hairline: #2a2a2a;
+  --hairline-strong: #3f3f3f;
+  --hairline-tertiary: #555555;
+  --ink: #fafafa;
+  --ink-muted: #d4d4d4;
+  --ink-subtle: #a3a3a3;
+  --ink-tertiary: #737373;
   --primary-soft: rgba(30, 64, 175, 0.22);
 }
 

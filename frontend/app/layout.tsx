@@ -63,12 +63,6 @@ export default function RootLayout({
               >
                 변환
               </a>
-              <a
-                href="/history"
-                className="inline-flex items-center min-h-[44px] rounded-sm px-2 sm:px-3.5 py-2 text-body-sm font-medium text-ink-muted hover:text-ink hover:bg-surface-1 transition-colors"
-              >
-                이력
-              </a>
             </nav>
           </div>
         </header>

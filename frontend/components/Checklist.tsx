@@ -51,14 +51,11 @@ export function Checklist({ items }: { items: ChecklistItem[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between text-caption text-ink-muted">
-        <span>
-          진행률{" "}
-          <span className="font-mono font-bold text-ink">
-            {doneCount} / {total}
-          </span>
+      <div className="text-caption text-ink-muted">
+        진행률{" "}
+        <span className="font-mono font-bold text-ink">
+          {doneCount} / {total}
         </span>
-        <span className="font-mono text-ink-subtle">CLRS 8.2 우선순위 정렬</span>
       </div>
       <ul className="divide-y divide-hairline rounded-md ring-1 ring-hairline bg-canvas">
         {sorted.map((c, i) => {
