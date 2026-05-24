@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { DisclaimerModal } from "@/components/DisclaimerModal";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { AccessibilityBar } from "@/components/AccessibilityBar";
 
 export const metadata: Metadata = {
@@ -24,8 +23,6 @@ const themeBootstrap = `
     if (dark) root.classList.add('dark');
     var size = localStorage.getItem('cli_al_font_size');
     if (size === 'size-l' || size === 'size-xl') root.classList.add(size);
-    if (localStorage.getItem('cli_al_bionic') === '1') root.classList.add('bionic');
-    if (localStorage.getItem('cli_al_line_focus') === '1') root.classList.add('line-focus');
   } catch (e) {}
 })();
 `;
@@ -72,7 +69,6 @@ export default function RootLayout({
               >
                 이력
               </a>
-              <ThemeToggle />
             </nav>
           </div>
         </header>

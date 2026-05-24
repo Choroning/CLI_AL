@@ -99,12 +99,15 @@
   html.size-xl { font-size: 21px; }
 
   /* ──────────── UX 편의 — Bionic Reading (06) ──────────── */
-  html.bionic .bionic-target b.bx { font-weight: 800; color: var(--ink); }
-  .bionic-target b.bx { font-weight: inherit; }
+  /* 상시 작동. .bionic-target 안의 어절 머리 글자가 굵게 보인다. */
+  .bionic-target b.bx { font-weight: 800; color: var(--ink); }
 
   /* ──────────── UX 편의 — 줄 포커스 (02) ──────────── */
-  html.line-focus .focus-region p:not(:hover) { opacity: 0.45; transition: opacity 200ms ease; }
-  html.line-focus .focus-region p:hover { opacity: 1; }
+  /* 상시 작동. .focus-region 안에서 호버한 단락만 선명하게. */
+  .focus-region p:not(:hover) { opacity: 0.5; transition: opacity 200ms ease; }
+  .focus-region:hover p:hover { opacity: 1; }
+  /* 처음 진입(호버 전)에는 모든 단락 정상 — 호버 영역 진입 후에만 흐려짐. */
+  .focus-region:not(:hover) p { opacity: 1; }
 
   /* ──────────── UX 편의 — 신뢰도 그라데이션 (09) ──────────── */
   /* 토글 OFF 가 기본. ON 시에만 색 노출. */
