@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { DisclaimerModal } from "@/components/DisclaimerModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { AccessibilityBar } from "@/components/AccessibilityBar";
 
 export const metadata: Metadata = {
   title: "행정문서 쉬운말 변환기",
@@ -16,10 +17,15 @@ export const metadata: Metadata = {
 const themeBootstrap = `
 (function () {
   try {
+    var root = document.documentElement;
     var savedTheme = localStorage.getItem('cli_al_theme');
     var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     var dark = savedTheme ? savedTheme === 'dark' : prefersDark;
-    if (dark) document.documentElement.classList.add('dark');
+    if (dark) root.classList.add('dark');
+    var size = localStorage.getItem('cli_al_font_size');
+    if (size === 'size-l' || size === 'size-xl') root.classList.add(size);
+    if (localStorage.getItem('cli_al_bionic') === '1') root.classList.add('bionic');
+    if (localStorage.getItem('cli_al_line_focus') === '1') root.classList.add('line-focus');
   } catch (e) {}
 })();
 `;
@@ -36,6 +42,8 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <DisclaimerModal />
+
+        <AccessibilityBar />
 
         <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/90 backdrop-blur-sm">
           <div className="mx-auto flex h-14 max-w-content items-center justify-between pl-3 pr-1 sm:px-6">

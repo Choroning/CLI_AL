@@ -20,15 +20,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Linear lavender — single chromatic accent. Identical in both themes.
+        // Hybrid 7 — Toss-friendly blue. Replaces Linear lavender.
         primary: {
-          DEFAULT: "#5e6ad2",
-          hover: "#828fff",
-          focus: "#5e69d1",
+          DEFAULT: "#2563eb",
+          hover: "#1d4ed8",
+          focus: "#1d4ed8",
+          soft: "#dbeafe",
           on: "#ffffff",
         },
         success: {
-          DEFAULT: "#27a644",
+          DEFAULT: "#16a34a",
+          soft: "#dcfce7",
+        },
+        danger: {
+          DEFAULT: "#dc2626",
+          soft: "#fee2e2",
+        },
+        warning: {
+          DEFAULT: "#d97706",
+          soft: "#fef3c7",
+        },
+        focus: {
+          DEFAULT: "#facc15",
         },
         // Theme-switched tokens (CSS vars defined in globals.css).
         canvas: "var(--canvas)",
