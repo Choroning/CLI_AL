@@ -102,7 +102,7 @@ export function RewriteText({
       <div ref={bodyRef} className="max-h-[460px] overflow-y-auto pr-2 focus-region">
         <div className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
           {segments.map((seg, si) => (
-            <p key={si} className="mb-3 last:mb-0">
+            <p key={si} className="mb-1 last:mb-0">
               {seg.children.map((t, i) => {
                 if (t.kind === "text") {
                   return <Bionic key={i} text={t.value} />;
@@ -320,25 +320,49 @@ function tokenize(text: string, terms: string[]): Token[] {
   return out;
 }
 
-/** 토큰을 단락(빈 줄 기준) 으로 묶는다 — 줄 포커스 호버가 단락 단위로 동작. */
+/** 토큰을 문장 단위로 묶는다 — 줄 포커스가 한 단락 전체 대신 한 문장만 강조.
+ *
+ * 분할 경계:
+ *   - 마침표·물음표·느낌표 뒤 공백 또는 줄바꿈
+ *   - 빈 줄 (단락 구분)
+ *
+ * 인용 마커 [N] 은 보통 문장 끝에 붙으므로, 마커가 직전 segment에 자연스럽게
+ * 포함되도록 처리. 다음 토큰이 직후 공백/줄바꿈이면 그 시점에서 break.
+ */
 function groupBySegment(tokens: Token[]): { children: Token[] }[] {
   const segs: { children: Token[] }[] = [];
   let cur: { children: Token[] } = { children: [] };
-  for (const t of tokens) {
-    if (t.kind === "text" && /\n\s*\n/.test(t.value)) {
-      const parts = t.value.split(/\n\s*\n/);
+
+  const pushSeg = () => {
+    if (cur.children.length > 0) {
+      segs.push(cur);
+      cur = { children: [] };
+    }
+  };
+
+  for (let ti = 0; ti < tokens.length; ti++) {
+    const t = tokens[ti];
+    if (t.kind === "text") {
+      // 텍스트 내부를 문장 종결 또는 빈 줄 기준으로 잘게 split.
+      // (?<=...) lookbehind 로 종결 부호를 직전 chunk에 남긴다.
+      const parts = t.value.split(/(?<=[.!?。])\s+|\n\s*\n/);
       for (let i = 0; i < parts.length; i++) {
-        if (parts[i]) cur.children.push({ kind: "text", value: parts[i] });
-        if (i < parts.length - 1) {
-          segs.push(cur);
-          cur = { children: [] };
-        }
+        const p = parts[i];
+        if (p) cur.children.push({ kind: "text", value: p });
+        if (i < parts.length - 1) pushSeg();
       }
     } else {
       cur.children.push(t);
+      // 인용 마커 뒤에 공백이 오면 그 마커까지 한 문장으로 잘라낸다.
+      if (t.kind === "marker") {
+        const next = tokens[ti + 1];
+        if (next && next.kind === "text" && /^[\s\n]/.test(next.value)) {
+          pushSeg();
+        }
+      }
     }
   }
-  if (cur.children.length > 0) segs.push(cur);
+  pushSeg();
   if (segs.length === 0) segs.push({ children: [] });
   return segs;
 }
