@@ -79,10 +79,12 @@
   .snap-section {
     scroll-snap-align: start;
     scroll-snap-stop: normal;
-    /* dvh excludes mobile UI chrome (collapsing address bar), preventing
-     * snap jumpiness on iOS/Android. vh kept as fallback for older browsers. */
-    min-height: 100vh;
-    min-height: 100dvh;
+    /* 콘텐츠가 적은 섹션이 100vh로 강제되어 휑해 보이는 문제 해결.
+     * 기본은 자연 높이, hero 만 .snap-section-tall 로 큰 높이 유지. */
+  }
+  .snap-section-tall {
+    min-height: 88vh;
+    min-height: 88dvh;
   }
 
   /* Scroll cue — fade in (held at top), then move top→bottom while fading
