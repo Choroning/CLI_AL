@@ -327,16 +327,6 @@ function ResultView({
         </Section>
       </div>
 
-      <aside
-        className="rounded-md border-l-2 border-ink bg-surface-1 px-6 py-5 text-body-sm text-ink-muted leading-relaxed"
-        role="note"
-      >
-        <p className="font-bold text-ink mb-1">참고용 결과 · 법적 효력 없음</p>
-        본 결과는 2026 봄학기 알고리즘 팀프로젝트(고려대 세종 DCSS309-00)의 학술
-        결과물이며, <strong className="text-ink">법적 효력이 없습니다</strong>. 중요한
-        결정 전에는 반드시 원문과 전문가(변호사·법무사·세무사 등)의 의견을 함께
-        확인해 주세요.
-      </aside>
     </div>
   );
 }
