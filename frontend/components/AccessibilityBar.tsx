@@ -74,8 +74,10 @@ export function AccessibilityBar() {
   }, [open]);
 
   return (
-    <div data-print="hide" className="fixed bottom-4 right-4 z-40">
-      {/* 모바일 토글 아이콘 — 닫혔을 때 보임. sm 이상에서는 영구 hidden. */}
+    <div data-print="hide" className="fixed bottom-[16px] right-[16px] z-40">
+      {/* 모바일 토글 아이콘 — 닫혔을 때 보임. sm 이상에서는 영구 hidden.
+       *   글자 크기 옵션(size-l/size-xl)에 영향받지 않도록 모든 치수를 px arbitrary
+       *   값으로 고정 — root font-size 변화에도 패널이 부풀지 않음. */}
       <button
         ref={triggerRef}
         type="button"
@@ -83,7 +85,7 @@ export function AccessibilityBar() {
         aria-label="화면 표시 옵션 열기"
         aria-expanded={open}
         className={cn(
-          "sm:hidden inline-flex h-11 w-11 items-center justify-center",
+          "sm:hidden inline-flex h-[44px] w-[44px] items-center justify-center",
           "rounded-md border border-hairline-strong bg-canvas text-ink shadow-lg",
           "transition-all duration-200 ease-out origin-bottom-right",
           "hover:bg-surface-1 hover:border-ink",
@@ -114,13 +116,13 @@ export function AccessibilityBar() {
         aria-label="화면 표시 옵션"
         aria-hidden={!open ? true : undefined}
       >
-        <div className="flex flex-nowrap items-center gap-2 px-3 py-2 text-caption text-ink-muted whitespace-nowrap">
+        <div className="flex flex-nowrap items-center gap-[8px] px-[12px] py-[8px] text-[14px] text-ink-muted whitespace-nowrap">
           {/* 모바일 전용 닫기 — sm 이상에서는 hidden */}
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="옵션 닫기"
-            className="sm:hidden inline-flex h-7 w-7 items-center justify-center rounded-sm border border-hairline-strong bg-canvas text-ink hover:border-ink transition-colors"
+            className="sm:hidden inline-flex h-[28px] w-[28px] items-center justify-center rounded-sm border border-hairline-strong bg-canvas text-ink hover:border-ink transition-colors"
           >
             <CloseIcon />
           </button>
@@ -130,7 +132,7 @@ export function AccessibilityBar() {
           <SizeBtn label="가" active={size === "size-l"}  onClick={() => setSize("size-l")} bigger />
           <SizeBtn label="가" active={size === "size-xl"} onClick={() => setSize("size-xl")} biggest />
 
-          <span className="mx-1 h-5 w-px bg-hairline" aria-hidden />
+          <span className="mx-[4px] h-[20px] w-px bg-hairline" aria-hidden />
 
           {dark !== null && (
             <button
@@ -139,7 +141,7 @@ export function AccessibilityBar() {
               aria-pressed={dark}
               title={dark ? "라이트 모드로" : "다크 모드로"}
               className={cn(
-                "inline-flex h-7 w-7 items-center justify-center rounded-sm border transition-colors",
+                "inline-flex h-[28px] w-[28px] items-center justify-center rounded-sm border transition-colors",
                 dark
                   ? "border-primary bg-primary text-primary-on"
                   : "border-hairline-strong bg-canvas text-ink hover:border-ink"
@@ -175,13 +177,13 @@ function SizeBtn({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "inline-flex h-7 w-7 items-center justify-center rounded-sm border font-bold transition-colors",
+        "inline-flex h-[28px] w-[28px] items-center justify-center rounded-sm border font-bold transition-colors",
         active
           ? "border-primary bg-primary text-primary-on"
           : "border-hairline-strong bg-canvas text-ink hover:border-ink",
-        base && "text-xs",
-        bigger && "text-sm",
-        biggest && "text-base"
+        base && "text-[12px]",
+        bigger && "text-[14px]",
+        biggest && "text-[16px]"
       )}
     >
       {label}
