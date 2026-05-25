@@ -47,13 +47,39 @@ export default function RootLayout({
           <div className="mx-auto flex h-14 max-w-content items-center justify-between pl-3 pr-1 sm:px-6">
             <a
               href="/"
-              className="flex items-center gap-2.5 font-sans text-body-sm font-semibold tracking-tight"
+              className="group flex items-center gap-2.5 font-sans text-body-sm font-semibold tracking-tight"
             >
+              {/* 로고 배지: 사각 primary 배경 + 변환 메타포 글리프
+               *   - 위 zig-zag = 어려운 원문(난잡한 흐름)
+               *   - 아래 직선 = 쉬운말 결과(정돈된 한 줄)
+               *   호버 시 살짝 확대 + zig-zag 페이드해서 변환되는 느낌을 표현. */}
               <span
                 aria-hidden
-                className="grid h-6 w-6 place-items-center rounded-xs bg-primary text-primary-on text-[11px] font-bold"
+                className="grid h-7 w-7 place-items-center rounded-xs bg-primary text-primary-on transition-transform duration-300 ease-out group-hover:scale-110"
               >
-                쉬
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="overflow-visible"
+                >
+                  <path
+                    d="M5 8 L9 6 L13 8 L17 6 L19 8"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="opacity-60 transition-opacity duration-300 group-hover:opacity-25"
+                  />
+                  <path
+                    d="M5 16 L19 16"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    className="origin-left transition-transform duration-300 group-hover:scale-x-110"
+                  />
+                </svg>
               </span>
               <span>행정문서 쉬운말 변환기</span>
             </a>
