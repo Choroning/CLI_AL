@@ -22,14 +22,13 @@ export default function HistoryPage() {
   const listRef = useRef<HTMLUListElement>(null);
   const isFirstPageRender = useRef(true);
 
-  // 페이지 이동 시 리스트 상단으로 부드럽게 스크롤 — 사용자가 다시 스크롤
-  // 내려가서 첫 항목을 찾을 필요 없도록. 첫 마운트에서는 동작 안 함.
+  // 페이지 이동 시 페이지 최상단으로 부드럽게 스크롤. 첫 마운트에서는 동작 안 함.
   useEffect(() => {
     if (isFirstPageRender.current) {
       isFirstPageRender.current = false;
       return;
     }
-    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
   useEffect(() => {
@@ -156,7 +155,7 @@ export default function HistoryPage() {
         </p>
       )}
 
-      <ul ref={listRef} className="space-y-3 scroll-mt-20">
+      <ul ref={listRef} className="space-y-3">
         {pageItems.map((item) => {
           const labelKo = LABEL_KO[item.groundedness_label];
           const stamp = formatStamp(item.created_at);
