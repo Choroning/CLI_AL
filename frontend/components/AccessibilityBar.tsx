@@ -114,7 +114,7 @@ export function AccessibilityBar() {
         aria-label="화면 표시 옵션"
         aria-hidden={!open ? true : undefined}
       >
-        <div className="flex flex-wrap items-center gap-2 px-3 py-2 text-caption text-ink-muted">
+        <div className="flex flex-nowrap items-center gap-2 px-3 py-2 text-caption text-ink-muted whitespace-nowrap">
           {/* 모바일 전용 닫기 — sm 이상에서는 hidden */}
           <button
             type="button"
