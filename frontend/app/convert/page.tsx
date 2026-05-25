@@ -126,7 +126,7 @@ function ConvertPageInner() {
   }
 
   return (
-    <div className="mx-auto max-w-content px-6 py-12 pb-32 space-y-12">
+    <div className="mx-auto max-w-content px-6 py-12 space-y-12">
       <header data-print="hide" className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow mb-3">변환</p>
@@ -135,9 +135,27 @@ function ConvertPageInner() {
             변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
           </p>
         </div>
-        <Link href="/history" className="btn-secondary" data-print="hide">
-          변환 이력
-        </Link>
+        {/* 페이지 상단에 항상 보이는 액션 — 예시 / 이력 / 변환 */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setText(SAMPLE)}
+            className="btn-secondary"
+          >
+            예시 입력 채우기
+          </button>
+          <Link href="/history" className="btn-secondary">
+            변환 이력
+          </Link>
+          <button
+            type="submit"
+            form="convert-form"
+            disabled={loading || !text.trim()}
+            className="btn-primary"
+          >
+            {loading ? "변환 중…" : "쉬운말로 변환하기"}
+          </button>
+        </div>
       </header>
 
       {restoring && (
@@ -156,11 +174,11 @@ function ConvertPageInner() {
         >
           <span className="font-bold text-ink mr-2">이력 복원</span>
           {formatStamp(restoredAt)} 변환 결과를 불러왔습니다. 새로 변환하려면 원문을
-          수정 후 아래 “쉬운말로 변환하기”를 눌러 주세요.
+          수정 후 상단 “쉬운말로 변환하기”를 눌러 주세요.
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-5" data-print="hide">
+      <form id="convert-form" onSubmit={onSubmit} className="space-y-5" data-print="hide">
         <section className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-stretch">
           <div className="lg:col-span-3 flex flex-col gap-3">
             <h2 className="text-body font-medium text-ink-muted">① 파일에서 가져오기</h2>
@@ -196,33 +214,6 @@ function ConvertPageInner() {
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <button type="button" onClick={() => setText(SAMPLE)} className="btn-secondary">
-            예시 입력 채우기
-          </button>
-          <span className="text-caption text-ink-subtle">
-            주요 작업 버튼은 화면 하단에 항상 표시됩니다.
-          </span>
-        </div>
-
-        {/* 항상 보이는 하단 액션 바 — 변환 + 이력 */}
-        <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-strong bg-canvas/95 backdrop-blur"
-          data-print="hide"
-        >
-          <div className="mx-auto flex max-w-content items-center justify-end gap-2 px-6 py-3">
-            <Link href="/history" className="btn-secondary">
-              변환 이력
-            </Link>
-            <button
-              type="submit"
-              disabled={loading || !text.trim()}
-              className="btn-primary"
-            >
-              {loading ? "변환 중…" : "쉬운말로 변환하기"}
-            </button>
-          </div>
-        </div>
       </form>
 
       {error && (
@@ -283,9 +274,10 @@ function ResultView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
         <Section title="원문">
-          <div className="max-h-[480px] overflow-y-auto pr-2">
+          {/* 재작성 쪽 카드 높이에 맞춰 행 높이만큼 늘어남 → 카드 안에서 길게 스크롤 가능 */}
+          <div className="h-full overflow-y-auto pr-2">
             <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
               {original}
             </p>
