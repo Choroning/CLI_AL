@@ -267,10 +267,10 @@ function ResultView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
         <Section title="원문">
-          {/* 재작성 쪽 본문 스크롤(max-h-[460px])과 동일하게 맞춰 두 카드 톤 일치 */}
-          <div className="max-h-[460px] overflow-y-auto pr-2">
+          {/* 옆 재작성 카드(본문 + 출처 인용) 전체 높이만큼 늘어남 → 카드 안에서 스크롤 */}
+          <div className="h-full overflow-y-auto pr-2">
             <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
               {original}
             </p>

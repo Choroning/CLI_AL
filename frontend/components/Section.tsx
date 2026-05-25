@@ -22,7 +22,7 @@ export function Section({
   return (
     <section
       className={cn(
-        "rounded-md p-6",
+        "rounded-md p-6 flex flex-col",
         accent
           ? "bg-canvas ring-1 ring-primary"
           : "bg-canvas ring-1 ring-hairline"
@@ -39,7 +39,8 @@ export function Section({
         </h2>
         {right}
       </div>
-      {children}
+      {/* min-h-0 → flex 자식이 h-full 로 부모 높이를 정확히 받게 함 */}
+      <div className="flex-1 min-h-0">{children}</div>
     </section>
   );
 }
