@@ -15,9 +15,9 @@ export function KeyInfoCards({ items }: { items: KeyInfoItem[] }) {
       {items.map((k, i) => (
         <li
           key={i}
-          className="grid grid-cols-[5.5rem_1fr] gap-4 px-5 py-4 sm:grid-cols-[7rem_1fr] sm:gap-6 sm:px-6"
+          className="grid grid-cols-1 gap-1.5 px-5 py-4 sm:grid-cols-[7rem_1fr] sm:gap-6 sm:px-6"
         >
-          <div className="text-caption font-bold tracking-wider text-ink-muted">
+          <div className="text-caption font-bold tracking-wider text-ink-muted sm:pt-0.5">
             {k.type}
           </div>
           <div className="space-y-2">

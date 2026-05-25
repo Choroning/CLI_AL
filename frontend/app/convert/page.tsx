@@ -296,9 +296,10 @@ function ResultView({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
         <Section title="원문">
-          {/* absolute inset-0 → 자식이 부모 (재작성 카드와 stretch 된 행) 높이를 그대로 채우면서
-           *   자기 자연 높이로 부모를 다시 늘리지 않음. 카드는 옆 재작성과 정확히 같은 높이로 고정. */}
-          <div className="absolute inset-0 overflow-y-auto pr-2">
+          {/* lg 이상: 옆 재작성 카드와 같은 행 높이로 stretch 되어야 하므로 absolute inset-0.
+           *   lg 미만(stack): 부모 행이 0 높이로 무너져 원문이 안 보이는 이슈 → 자연 block 으로
+           *   자기 높이만큼 차지하고, 너무 길어지면 max-h 로만 제한. */}
+          <div className="lg:absolute lg:inset-0 max-h-[60vh] lg:max-h-none overflow-y-auto pr-2">
             <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
               {original}
             </p>

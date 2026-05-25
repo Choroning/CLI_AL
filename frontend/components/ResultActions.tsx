@@ -103,9 +103,7 @@ export function ResultActions({ result }: { result: RewriteResponse }) {
               : "bg-canvas text-ink ring-hairline-strong hover:bg-surface-1 hover:ring-ink"
           )}
         >
-          <span>
-            <b style={{ fontWeight: 800 }}>난</b>독
-          </span>
+          <span>난독</span>
         </button>
       )}
       <button type="button" onClick={copy} className="btn-secondary" aria-live="polite">
