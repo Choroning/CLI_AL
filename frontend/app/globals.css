@@ -113,14 +113,16 @@
 
   /* ──────────── 랜딩 — 섹션 스냅 스크롤 ──────────── */
   /* .snap-section 이 있는 페이지(랜딩)만 스냅 동작.
-   * proximity 라 강제하지 않고 자연 스크롤 + 근접 시 흡착. */
+   * mandatory + always → 살짝만 스크롤해도 다음 섹션으로 강제 흡착.
+   * 부드러운 전환을 위해 scroll-behavior smooth 까지 함께 적용. */
   html:has(.snap-section) {
-    scroll-snap-type: y proximity;
+    scroll-snap-type: y mandatory;
     scroll-padding-top: 3.5rem;
+    scroll-behavior: smooth;
   }
-  .snap-section { scroll-snap-align: start; scroll-snap-stop: normal; }
+  .snap-section { scroll-snap-align: start; scroll-snap-stop: always; }
   @media (prefers-reduced-motion: reduce) {
-    html:has(.snap-section) { scroll-snap-type: none; }
+    html:has(.snap-section) { scroll-snap-type: none; scroll-behavior: auto; }
   }
 
 }

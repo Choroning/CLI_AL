@@ -103,6 +103,9 @@ function Hero() {
             검증 신뢰도를 함께 표시합니다.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
+            <Link href="/convert" className="btn-primary">
+              지금 변환하기
+            </Link>
             <Link href="/history" className="btn-secondary">
               변환 이력 보기
             </Link>
@@ -214,10 +217,12 @@ function HowItWorks() {
 }
 
 function FinalCTA() {
+  // FinalCTA + footer 가 한 viewport 안에 같이 보이도록 높이 제한.
+  // 데스크톱 푸터 ≈ 14rem, 모바일 푸터 ≈ 22rem (3열 → 1열로 적층).
   return (
-    <section className="snap-section">
-      <div className="mx-auto max-w-content px-6 py-20 md:py-24">
-        <div className="rounded-md border border-ink bg-canvas p-10 md:p-14">
+    <section className="snap-section flex items-center min-h-[calc(100vh-3.5rem-22rem)] md:min-h-[calc(100vh-3.5rem-14rem)]">
+      <div className="mx-auto max-w-content w-full px-6 py-10 md:py-12">
+        <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">
           <p className="text-caption font-bold tracking-wider text-primary">
             시작하기
           </p>
@@ -228,7 +233,10 @@ function FinalCTA() {
             임대차 계약 특약, 건강보험공단 안내문, 청년 정책 신청 공고 등 어떤
             행정문서든 붙여넣어 보세요.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Link href="/convert" className="btn-primary">
+              지금 변환하기
+            </Link>
             <Link href="/history" className="btn-secondary">
               변환 이력 보기
             </Link>
