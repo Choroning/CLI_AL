@@ -29,6 +29,8 @@ export interface GlossaryTerm {
   term: string;
   definition: string;
   example?: string | null;
+  /** BFS(CLRS 22.2) 로 찾은 정의 의존도 그래프 상의 관련 용어 */
+  related_terms?: string[];
 }
 
 export interface KeyInfoItem {

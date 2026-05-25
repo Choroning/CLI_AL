@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Footer } from "@/components/Footer";
 
 /**
  * 랜딩 페이지 — 행정 신뢰형 톤 (정부24·복지로·GOV.UK 참고).
@@ -217,33 +218,38 @@ function HowItWorks() {
 }
 
 function FinalCTA() {
-  // 스냅 대상에서 제외 — 마지막 섹션은 자연 스크롤로 흐른다.
-  // 동시에 (viewport - 헤더 - 푸터) 높이로 잡아서 푸터까지 한 화면에 같이 보임.
-  // 푸터 실측: 데스크톱 ≈ 10rem, 모바일(3열 적층) ≈ 22rem.
+  // 한 스냅 섹션 안에 시작하기 카드(canvas) + 푸터(surface-1)를 같이 묶어
+  // 한 viewport 에 통째로 보이게 한다. 색·시각적 구분은 그대로 유지.
+  //   - 외곽 section: viewport 높이로 스냅 정착
+  //   - 상단 영역: flex-1 로 푸터 위 남은 공간을 채워 카드를 세로 중앙 배치
+  //   - 하단 영역: 푸터 컴포넌트(surface-1 + border-t)
   return (
-    <section className="flex items-center min-h-[calc(100vh-3.5rem-22rem)] md:min-h-[calc(100vh-3.5rem-10rem)]">
-      <div className="mx-auto max-w-content w-full px-6 py-10 md:py-12">
-        <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">
-          <p className="text-caption font-bold tracking-wider text-primary">
-            시작하기
-          </p>
-          <h2 className="mt-3 text-headline md:text-display-md text-ink max-w-2xl">
-            어떤 문서부터 변환해볼까요?
-          </h2>
-          <p className="mt-4 text-body-lg text-ink-muted max-w-xl leading-relaxed">
-            임대차 계약 특약, 건강보험공단 안내문, 청년 정책 신청 공고 등 어떤
-            행정문서든 붙여넣어 보세요.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link href="/convert" className="btn-primary">
-              지금 변환하기
-            </Link>
-            <Link href="/history" className="btn-secondary">
-              변환 이력 보기
-            </Link>
+    <section className="snap-section min-h-[calc(100vh-3.5rem)] flex flex-col">
+      <div className="flex-1 flex items-center">
+        <div className="mx-auto max-w-content w-full px-6 py-10 md:py-12">
+          <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">
+            <p className="text-caption font-bold tracking-wider text-primary">
+              시작하기
+            </p>
+            <h2 className="mt-3 text-headline md:text-display-md text-ink max-w-2xl">
+              어떤 문서부터 변환해볼까요?
+            </h2>
+            <p className="mt-4 text-body-lg text-ink-muted max-w-xl leading-relaxed">
+              임대차 계약 특약, 건강보험공단 안내문, 청년 정책 신청 공고 등 어떤
+              행정문서든 붙여넣어 보세요.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link href="/convert" className="btn-primary">
+                지금 변환하기
+              </Link>
+              <Link href="/history" className="btn-secondary">
+                변환 이력 보기
+              </Link>
+            </div>
           </div>
         </div>
       </div>
+      <Footer />
     </section>
   );
 }
