@@ -141,3 +141,18 @@ export async function getHistoryDetail(id: string): Promise<HistoryDetail> {
   if (!res.ok) throw new Error(friendlyError(res.status, await res.text()));
   return (await res.json()) as HistoryDetail;
 }
+
+export async function deleteHistory(id: string): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/history/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(friendlyError(0, ""));
+  }
+  if (!res.ok && res.status !== 204) {
+    throw new Error(friendlyError(res.status, await res.text()));
+  }
+}

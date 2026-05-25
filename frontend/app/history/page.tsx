@@ -2,23 +2,28 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { getHistory, type HistoryItem } from "@/lib/api";
+import { deleteHistory, getHistory, type HistoryItem } from "@/lib/api";
 
 const LABEL_KO: Record<string, string> = {
   grounded: "원문과 일치",
   notGrounded: "원문과 불일치",
 };
 
+const PAGE_SIZE = 8;
+
 export default function HistoryPage() {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getHistory(50)
+    getHistory(100)
       .then((rows) => {
         if (!cancelled) setItems(rows);
       })
@@ -43,6 +48,36 @@ export default function HistoryPage() {
     });
   }, [items, query]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+  // 필터 결과로 페이지가 줄어들면 마지막 유효 페이지로 보정
+  useEffect(() => {
+    setPage((p) => Math.min(Math.max(p, 1), totalPages));
+  }, [totalPages]);
+
+  // 검색어 바뀌면 항상 1페이지로
+  useEffect(() => {
+    setPage(1);
+    setConfirmingId(null);
+  }, [query]);
+
+  const start = (page - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    setError(null);
+    try {
+      await deleteHistory(id);
+      setItems((prev) => prev.filter((it) => it.id !== id));
+      setConfirmingId(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "삭제하지 못했습니다.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-content px-6 py-12 space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -59,7 +94,6 @@ export default function HistoryPage() {
         </Link>
       </header>
 
-      {/* 검색 */}
       <div className="relative">
         <label htmlFor="history-search" className="sr-only">
           이력 검색
@@ -110,14 +144,16 @@ export default function HistoryPage() {
       )}
 
       <ul className="space-y-3">
-        {filtered.map((item) => {
+        {pageItems.map((item) => {
           const labelKo = LABEL_KO[item.groundedness_label];
           const stamp = formatStamp(item.created_at);
+          const isConfirming = confirmingId === item.id;
+          const isDeleting = deletingId === item.id;
           return (
-            <li key={item.id}>
+            <li key={item.id} className="relative">
               <Link
                 href={`/convert?id=${encodeURIComponent(item.id)}`}
-                className="block rounded-lg bg-surface-1 ring-1 ring-hairline p-5 transition-colors hover:bg-surface-2 hover:ring-hairline-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                className="block rounded-lg bg-surface-1 ring-1 ring-hairline p-5 pb-14 transition-colors hover:bg-surface-2 hover:ring-hairline-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-caption text-ink-subtle">
@@ -136,15 +172,76 @@ export default function HistoryPage() {
                   {item.rewrite_preview}
                 </p>
               </Link>
+
+              {/* 삭제 영역 — Link 바깥 absolute. 카드 클릭과 분리됨 */}
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                {isConfirming ? (
+                  <>
+                    <span className="text-caption text-ink-muted">정말 삭제할까요?</span>
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={() => handleDelete(item.id)}
+                      className="inline-flex items-center min-h-[32px] rounded-sm px-3 py-1 text-caption font-medium bg-primary text-primary-on hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDeleting ? "삭제 중…" : "삭제"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingId(null)}
+                      disabled={isDeleting}
+                      className="inline-flex items-center min-h-[32px] rounded-sm px-3 py-1 text-caption font-medium text-ink-muted hover:text-ink hover:bg-canvas ring-1 ring-hairline transition-colors disabled:opacity-50"
+                    >
+                      취소
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingId(item.id)}
+                    className="inline-flex items-center min-h-[32px] rounded-sm px-3 py-1 text-caption font-medium text-ink-subtle hover:text-ink hover:bg-canvas ring-1 ring-transparent hover:ring-hairline transition-colors"
+                    aria-label={`${stamp.date} ${stamp.time} 이력 삭제`}
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
             </li>
           );
         })}
       </ul>
+
+      {/* 페이지네이션 — 결과가 PAGE_SIZE 보다 많을 때만 노출 */}
+      {!loading && filtered.length > PAGE_SIZE && (
+        <nav
+          aria-label="이력 페이지 이동"
+          className="flex items-center justify-center gap-3 border-t border-hairline pt-6"
+        >
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="inline-flex items-center min-h-[40px] rounded-sm px-4 py-2 text-body-sm font-medium text-ink ring-1 ring-hairline-strong bg-canvas hover:bg-surface-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            이전
+          </button>
+          <span className="text-body-sm text-ink-muted font-mono tabular-nums">
+            {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="inline-flex items-center min-h-[40px] rounded-sm px-4 py-2 text-body-sm font-medium text-ink ring-1 ring-hairline-strong bg-canvas hover:bg-surface-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            다음
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
 
-/** "2026.05.25", "14:32" 두 토막으로 분리해 한 줄에 깔끔히 배치. */
 function formatStamp(iso: string): { date: string; time: string } {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return { date: iso, time: "" };

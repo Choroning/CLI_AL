@@ -3,7 +3,11 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query
 
 from app.models.schemas import HistoryDetail, HistoryResponse
-from app.services.history_service import get_history_detail, list_history
+from app.services.history_service import (
+    delete_history,
+    get_history_detail,
+    list_history,
+)
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -19,3 +23,11 @@ def get_one(rewrite_id: str) -> HistoryDetail:
     if detail is None:
         raise HTTPException(status_code=404, detail="이력을 찾을 수 없습니다.")
     return detail
+
+
+@router.delete("/{rewrite_id}", status_code=204)
+def delete_one(rewrite_id: str) -> None:
+    ok = delete_history(rewrite_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="이력을 찾을 수 없습니다.")
+    return None

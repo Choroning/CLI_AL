@@ -88,6 +88,38 @@ def list_history(limit: int = 20) -> HistoryResponse:
         return HistoryResponse(items=[])
 
 
+def delete_history(rewrite_id: str) -> bool:
+    """이력(rewrite + 연결된 document) 삭제.
+
+    documents → rewrites 는 ON DELETE CASCADE 라 document 한 번 삭제로 양쪽 모두 정리됨.
+    rewrite_id 가 존재하지 않으면 False.
+    """
+    sb = get_supabase()
+    if sb is None:
+        return False
+    try:
+        r = (
+            sb.table("rewrites")
+            .select("document_id")
+            .eq("id", rewrite_id)
+            .limit(1)
+            .execute()
+        )
+        rows = r.data or []
+        if not rows:
+            return False
+        doc_id = rows[0].get("document_id")
+        if not doc_id:
+            # 안전망: document_id 가 비어 있으면 rewrite 만이라도 지움
+            sb.table("rewrites").delete().eq("id", rewrite_id).execute()
+            return True
+        sb.table("documents").delete().eq("id", doc_id).execute()
+        return True
+    except Exception as e:  # noqa: BLE001
+        logger.warning("delete_history failed: %s", e)
+        return False
+
+
 def get_history_detail(rewrite_id: str) -> HistoryDetail | None:
     sb = get_supabase()
     if sb is None:
