@@ -269,8 +269,9 @@ function ResultView({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
         <Section title="원문">
-          {/* 옆 재작성 카드(본문 + 출처 인용) 전체 높이만큼 늘어남 → 카드 안에서 스크롤 */}
-          <div className="h-full overflow-y-auto pr-2">
+          {/* absolute inset-0 → 자식이 부모 (재작성 카드와 stretch 된 행) 높이를 그대로 채우면서
+           *   자기 자연 높이로 부모를 다시 늘리지 않음. 카드는 옆 재작성과 정확히 같은 높이로 고정. */}
+          <div className="absolute inset-0 overflow-y-auto pr-2">
             <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
               {original}
             </p>

@@ -39,8 +39,9 @@ export function Section({
         </h2>
         {right}
       </div>
-      {/* min-h-0 → flex 자식이 h-full 로 부모 높이를 정확히 받게 함 */}
-      <div className="flex-1 min-h-0">{children}</div>
+      {/* min-h-0 + relative → 자식이 absolute inset-0 으로 들어와도 부모 height 계산이
+       *   자식 자연 높이를 따라 무한 팽창하지 않도록 막아 준다. block 자식은 평소처럼 동작. */}
+      <div className="flex-1 min-h-0 relative">{children}</div>
     </section>
   );
 }

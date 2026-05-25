@@ -217,10 +217,11 @@ function HowItWorks() {
 }
 
 function FinalCTA() {
-  // FinalCTA + footer 가 한 viewport 안에 같이 보이도록 높이 제한.
-  // 데스크톱 푸터 ≈ 14rem, 모바일 푸터 ≈ 22rem (3열 → 1열로 적층).
+  // FinalCTA + footer 가 한 viewport 에 함께 보이도록 vh 단위로 사이즈.
+  // - 데스크톱(md+): 80vh → 나머지 20vh 가 푸터(실측 ≈ 9rem) 자리에 맞음.
+  // - 모바일: 55vh → 나머지 45vh 가 푸터(3열 적층 ≈ 20rem) 자리에 맞음.
   return (
-    <section className="snap-section flex items-center min-h-[calc(100vh-3.5rem-22rem)] md:min-h-[calc(100vh-3.5rem-14rem)]">
+    <section className="snap-section flex items-center min-h-[55vh] md:min-h-[80vh]">
       <div className="mx-auto max-w-content w-full px-6 py-10 md:py-12">
         <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">
           <p className="text-caption font-bold tracking-wider text-primary">
