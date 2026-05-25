@@ -51,6 +51,10 @@ class RewriteResponse(BaseModel):
         default=None,
         description="LCS 기반 원문 보존율 (0~1). 단어 단위 LCS / max(원문단어수, 재작성단어수)",
     )
+    summary: str | None = Field(
+        default=None,
+        description="결과 본문을 30자 안팎 한 문장으로 요약한 헤드라인 (chat_text 보조 호출)",
+    )
     document_id: str | None = Field(
         default=None, description="Supabase에 저장된 documents.id (저장 안 했으면 null)"
     )

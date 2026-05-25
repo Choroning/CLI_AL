@@ -79,6 +79,7 @@ function ConvertPageInner() {
           checklist: d.checklist,
           groundedness: d.groundedness,
           preservation_ratio: null,
+          summary: null,
           document_id: null,
         });
         setRestoredAt(d.created_at);
@@ -280,6 +281,18 @@ function ResultView({
           <ResultActions result={result} />
         </div>
       </div>
+
+      {result.summary && (
+        <aside
+          className="rounded-md border-l-2 border-primary bg-surface-1 px-5 py-4"
+          aria-label="한 줄 요약"
+        >
+          <p className="text-caption font-bold tracking-wider text-primary mb-1.5">
+            한 줄 요약
+          </p>
+          <p className="text-body-lg text-ink leading-relaxed">{result.summary}</p>
+        </aside>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
         <Section title="원문">

@@ -50,6 +50,30 @@ def _safe_list(raw: Any, key: str) -> list[Any]:
     return val if isinstance(val, list) else []
 
 
+_SUMMARY_SYSTEM = (
+    "다음 문장을 30자 안팎 한 문장으로 요약하세요. "
+    "핵심 의무·기한·금액을 우선 살리고, 인용 마커([1] 등)와 따옴표·괄호 메모는 빼세요. "
+    "결과는 한 문장만, 추가 설명 없이 본문 텍스트만 출력하세요."
+)
+
+
+def _generate_summary(rewrite_text: str) -> str | None:
+    """chat_text 보조 호출 — 본문을 한 줄로 요약. 실패 시 None."""
+    text = rewrite_text.strip()
+    if not text:
+        return None
+    try:
+        upstage = get_upstage()
+        out = upstage.chat_text(system=_SUMMARY_SYSTEM, user=text, temperature=0.2)
+        # 첫 줄만, 좌우 공백/따옴표 제거, 60자 캡 (UI safety)
+        first = out.strip().splitlines()[0] if out.strip() else ""
+        first = first.strip().strip('"').strip("'")
+        return first[:60] if first else None
+    except Exception as e:  # noqa: BLE001 — 요약 실패는 결과 차단 사유 아님
+        logger.warning("summary generation failed: %s", e)
+        return None
+
+
 def run_rewrite(text: str) -> RewriteResponse:
     cached = _cache.get(text)
     if cached is not None:
@@ -130,6 +154,9 @@ def run_rewrite(text: str) -> RewriteResponse:
     badge = _label_to_badge(label, settings.groundedness_threshold)
     groundedness = GroundednessResult(label=label, score=None, badge=badge)  # type: ignore[arg-type]
 
+    # 보조 호출 — 한 줄 요약. 실패해도 결과 자체는 그대로 반환.
+    summary = _generate_summary(rewrite_text)
+
     result = RewriteResponse(
         rewrite=rewrite_text,
         citations=citations,
@@ -138,6 +165,7 @@ def run_rewrite(text: str) -> RewriteResponse:
         checklist=checklist,
         groundedness=groundedness,
         preservation_ratio=preservation_ratio,
+        summary=summary,
     )
     _cache.put(text, result)
     return result

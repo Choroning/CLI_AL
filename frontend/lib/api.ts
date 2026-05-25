@@ -59,6 +59,8 @@ export interface RewriteResponse {
   };
   /** LCS 기반 원문 단어 보존율 (0~1). null 이면 미산출 또는 이력 복원 시. */
   preservation_ratio: number | null;
+  /** 본문을 30자 안팎 한 문장으로 줄인 헤드라인. null 이면 미생성. */
+  summary: string | null;
   document_id: string | null;
 }
 
