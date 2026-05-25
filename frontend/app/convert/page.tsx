@@ -78,6 +78,7 @@ function ConvertPageInner() {
           key_info: d.key_info,
           checklist: d.checklist,
           groundedness: d.groundedness,
+          preservation_ratio: null,
           document_id: null,
         });
         setRestoredAt(d.created_at);
@@ -261,6 +262,17 @@ function ResultView({
         <div>
           <p className="eyebrow mb-2 !text-primary">변환 결과</p>
           <h2 className="text-headline text-ink">읽기 쉬운 버전</h2>
+          {typeof result.preservation_ratio === "number" && (
+            <p
+              className="mt-2 text-caption text-ink-subtle"
+              title="LCS(Longest Common Subsequence) 기반 단어 일치율"
+            >
+              원문 보존율{" "}
+              <span className="font-mono tabular-nums text-ink-muted">
+                {Math.round(result.preservation_ratio * 100)}%
+              </span>
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3" data-print="hide">
           <ResultActions result={result} />

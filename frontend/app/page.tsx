@@ -217,11 +217,11 @@ function HowItWorks() {
 }
 
 function FinalCTA() {
-  // 다른 snap-section 과 동일하게 viewport 높이로 통일.
-  // 혼합 높이(80vh + 55vh)는 proximity 흡착 시 정착 거리 계산을 흔들어
-  // 멈칫 거리는 원인이 된다. 푸터는 자연 스크롤로 아래에서 노출.
+  // 스냅 대상에서 제외 — 마지막 섹션은 자연 스크롤로 흐른다.
+  // 동시에 (viewport - 헤더 - 푸터) 높이로 잡아서 푸터까지 한 화면에 같이 보임.
+  // 푸터 실측: 데스크톱 ≈ 10rem, 모바일(3열 적층) ≈ 22rem.
   return (
-    <section className="snap-section flex items-center min-h-[calc(100vh-3.5rem)]">
+    <section className="flex items-center min-h-[calc(100vh-3.5rem-22rem)] md:min-h-[calc(100vh-3.5rem-10rem)]">
       <div className="mx-auto max-w-content w-full px-6 py-10 md:py-12">
         <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">
           <p className="text-caption font-bold tracking-wider text-primary">
