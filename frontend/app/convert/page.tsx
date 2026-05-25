@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { postParse, postRewrite, type RewriteResponse } from "@/lib/api";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import {
+  getHistoryDetail,
+  postParse,
+  postRewrite,
+  type RewriteResponse,
+} from "@/lib/api";
 import { RewriteText } from "@/components/RewriteText";
 import { GlossaryList } from "@/components/GlossaryList";
 import { KeyInfoCards } from "@/components/KeyInfoCards";
@@ -36,11 +43,57 @@ const SAMPLE = `주택임대차계약서
 특약사항: 반려동물의 사육은 사전 서면 동의 없이는 불가하며, 무단 사육 적발 시 임대인은 30일의 시정 기간을 부여한 후에도 시정되지 아니하면 본 계약을 해지할 수 있다.`;
 
 export default function ConvertPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConvertPageInner />
+    </Suspense>
+  );
+}
+
+function ConvertPageInner() {
+  const searchParams = useSearchParams();
+  const restoreId = searchParams.get("id");
+
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RewriteResponse | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoredAt, setRestoredAt] = useState<string | null>(null);
+
+  // 이력에서 진입(?id=) — 해당 변환 결과를 그대로 복원한다.
+  useEffect(() => {
+    if (!restoreId) return;
+    let cancelled = false;
+    setRestoring(true);
+    setError(null);
+    getHistoryDetail(restoreId)
+      .then((d) => {
+        if (cancelled) return;
+        setText(d.original_text);
+        setResult({
+          rewrite: d.rewrite,
+          citations: d.citations,
+          glossary: d.glossary,
+          key_info: d.key_info,
+          checklist: d.checklist,
+          groundedness: d.groundedness,
+          document_id: null,
+        });
+        setRestoredAt(d.created_at);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e instanceof Error ? e.message : "이력을 불러오지 못했습니다.");
+      })
+      .finally(() => {
+        if (!cancelled) setRestoring(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [restoreId]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,6 +101,7 @@ export default function ConvertPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setRestoredAt(null);
     try {
       const r = await postRewrite(text);
       setResult(r);
@@ -72,14 +126,39 @@ export default function ConvertPage() {
   }
 
   return (
-    <div className="mx-auto max-w-content px-6 py-12 space-y-12">
-      <header data-print="hide">
-        <p className="eyebrow mb-3">변환</p>
-        <h1 className="text-display-md text-ink">원문 입력</h1>
-        <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
-          변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
-        </p>
+    <div className="mx-auto max-w-content px-6 py-12 pb-32 space-y-12">
+      <header data-print="hide" className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="eyebrow mb-3">변환</p>
+          <h1 className="text-display-md text-ink">원문 입력</h1>
+          <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
+            변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
+          </p>
+        </div>
+        <Link href="/history" className="btn-secondary" data-print="hide">
+          변환 이력
+        </Link>
       </header>
+
+      {restoring && (
+        <div
+          className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse"
+          data-print="hide"
+        >
+          이력에서 결과를 불러오는 중…
+        </div>
+      )}
+
+      {restoredAt && !restoring && (
+        <div
+          className="rounded-md border-l-2 border-primary bg-surface-1 px-4 py-3 text-body-sm text-ink-muted"
+          data-print="hide"
+        >
+          <span className="font-bold text-ink mr-2">이력 복원</span>
+          {formatStamp(restoredAt)} 변환 결과를 불러왔습니다. 새로 변환하려면 원문을
+          수정 후 아래 “쉬운말로 변환하기”를 눌러 주세요.
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="space-y-5" data-print="hide">
         <section className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-stretch">
@@ -117,13 +196,32 @@ export default function ConvertPage() {
           </div>
         </section>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <button type="button" onClick={() => setText(SAMPLE)} className="btn-secondary">
             예시 입력 채우기
           </button>
-          <button type="submit" disabled={loading || !text.trim()} className="btn-primary">
-            {loading ? "변환 중…" : "쉬운말로 변환하기"}
-          </button>
+          <span className="text-caption text-ink-subtle">
+            주요 작업 버튼은 화면 하단에 항상 표시됩니다.
+          </span>
+        </div>
+
+        {/* 항상 보이는 하단 액션 바 — 변환 + 이력 */}
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-strong bg-canvas/95 backdrop-blur"
+          data-print="hide"
+        >
+          <div className="mx-auto flex max-w-content items-center justify-end gap-2 px-6 py-3">
+            <Link href="/history" className="btn-secondary">
+              변환 이력
+            </Link>
+            <button
+              type="submit"
+              disabled={loading || !text.trim()}
+              className="btn-primary"
+            >
+              {loading ? "변환 중…" : "쉬운말로 변환하기"}
+            </button>
+          </div>
         </div>
       </form>
 
@@ -156,6 +254,14 @@ export default function ConvertPage() {
       {result && <ResultView result={result} original={text} />}
     </div>
   );
+}
+
+/** YYYY.MM.DD HH:mm 형태로 사람이 읽기 좋게. */
+function formatStamp(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function ResultView({

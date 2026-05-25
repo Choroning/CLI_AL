@@ -111,6 +111,18 @@
   /* 처음 진입(호버 전)에는 모든 단락 정상 — 호버 영역 진입 후에만 흐려짐. */
   .focus-region:not(:hover) p { opacity: 1; }
 
+  /* ──────────── 랜딩 — 섹션 스냅 스크롤 ──────────── */
+  /* .snap-section 이 있는 페이지(랜딩)만 스냅 동작.
+   * proximity 라 강제하지 않고 자연 스크롤 + 근접 시 흡착. */
+  html:has(.snap-section) {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 3.5rem;
+  }
+  .snap-section { scroll-snap-align: start; scroll-snap-stop: normal; }
+  @media (prefers-reduced-motion: reduce) {
+    html:has(.snap-section) { scroll-snap-type: none; }
+  }
+
 }
 
 @layer components {

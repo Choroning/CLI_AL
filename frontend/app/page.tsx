@@ -78,7 +78,6 @@ export default function LandingPage() {
     <>
       <Hero />
       <HowItWorks />
-      <Trust />
       <FinalCTA />
     </>
   );
@@ -86,7 +85,7 @@ export default function LandingPage() {
 
 function Hero() {
   return (
-    <section className="border-b border-hairline min-h-[calc(100vh-3.5rem)] flex items-center">
+    <section className="snap-section border-b border-hairline min-h-[calc(100vh-3.5rem)] flex items-center">
       <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:items-center w-full">
         {/* 좌: 카피 + CTA */}
         <div className="lg:col-span-7">
@@ -104,9 +103,6 @@ function Hero() {
             검증 신뢰도를 함께 표시합니다.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link href="/convert" className="btn-primary">
-              지금 변환하기
-            </Link>
             <Link href="/history" className="btn-secondary">
               변환 이력 보기
             </Link>
@@ -152,7 +148,6 @@ function HeroPreview() {
           <span className="text-caption font-bold tracking-wider text-primary">
             쉬운말
           </span>
-          <span className="text-caption text-ink-subtle">신뢰도 높음</span>
         </div>
         <p className="text-body leading-relaxed text-ink">
           계약을 맺고 <strong>7일 안에</strong> 보증금{" "}
@@ -201,12 +196,12 @@ function HowItWorks() {
     },
   ];
   return (
-    <section className="border-b border-hairline bg-surface-1">
-      <div className="mx-auto max-w-content px-6 py-20 md:py-24">
+    <section className="snap-section border-b border-hairline bg-surface-1 min-h-[calc(100vh-3.5rem)] flex items-center">
+      <div className="mx-auto max-w-content w-full px-6 py-16 md:py-20">
         <SectionHeading eyebrow="사용 방법" title="세 단계로 끝납니다" />
-        <ol className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-md bg-hairline ring-1 ring-hairline md:grid-cols-3">
+        <ol className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-md bg-hairline ring-1 ring-hairline md:grid-cols-3">
           {steps.map((s) => (
-            <li key={s.n} className="bg-canvas p-7">
+            <li key={s.n} className="bg-canvas p-8 md:p-10">
               <p className="font-mono text-caption font-bold text-primary">{s.n}</p>
               <h3 className="mt-3 text-card-title text-ink">{s.title}</h3>
               <p className="mt-3 text-body leading-relaxed text-ink-muted">{s.body}</p>
@@ -218,39 +213,9 @@ function HowItWorks() {
   );
 }
 
-function Trust() {
-  const items = [
-    {
-      title: "근거 있는 재작성",
-      body:
-        "모델이 원문에 없는 정보를 추가하지 못하도록 시스템 프롬프트가 강제합니다. 모든 재작성 문장에는 근거가 된 원문 부분을 가리키는 인용 마커가 따라붙어 클릭으로 확인할 수 있습니다.",
-    },
-    {
-      title: "자동 검증 + 면책",
-      body:
-        "Upstage Groundedness Check가 재작성이 원문에 충실한지 자동 평가하고, 결과 화면 상단에 신뢰도를 표시합니다. 모든 결과 하단에는 학술 결과물로 법적 효력이 없다는 면책이 고정됩니다.",
-    },
-  ];
-  return (
-    <section className="border-b border-hairline">
-      <div className="mx-auto max-w-content px-6 py-20 md:py-24">
-        <SectionHeading eyebrow="신뢰 가이드" title="왜 결과를 믿어도 되는가" />
-        <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-md bg-hairline ring-1 ring-hairline md:grid-cols-2">
-          {items.map((it) => (
-            <article key={it.title} className="bg-canvas p-7">
-              <h3 className="text-card-title text-ink">{it.title}</h3>
-              <p className="mt-3 text-body leading-relaxed text-ink-muted">{it.body}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FinalCTA() {
   return (
-    <section>
+    <section className="snap-section">
       <div className="mx-auto max-w-content px-6 py-20 md:py-24">
         <div className="rounded-md border border-ink bg-canvas p-10 md:p-14">
           <p className="text-caption font-bold tracking-wider text-primary">
@@ -264,9 +229,6 @@ function FinalCTA() {
             행정문서든 붙여넣어 보세요.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/convert" className="btn-primary">
-              지금 변환하기
-            </Link>
             <Link href="/history" className="btn-secondary">
               변환 이력 보기
             </Link>

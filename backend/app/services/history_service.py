@@ -5,7 +5,16 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from app.models.schemas import HistoryItem, HistoryResponse, RewriteResponse
+from app.models.schemas import (
+    ChecklistItem,
+    GlossaryTerm,
+    GroundednessResult,
+    HistoryDetail,
+    HistoryItem,
+    HistoryResponse,
+    KeyInfoItem,
+    RewriteResponse,
+)
 from app.services.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
@@ -77,3 +86,42 @@ def list_history(limit: int = 20) -> HistoryResponse:
     except Exception as e:  # noqa: BLE001
         logger.warning("list_history failed: %s", e)
         return HistoryResponse(items=[])
+
+
+def get_history_detail(rewrite_id: str) -> HistoryDetail | None:
+    sb = get_supabase()
+    if sb is None:
+        return None
+    try:
+        result = (
+            sb.table("rewrites")
+            .select(
+                "id, created_at, rewrite_text, citations, glossary, key_info, "
+                "checklist, groundedness_label, groundedness_badge, "
+                "documents(original_text)"
+            )
+            .eq("id", rewrite_id)
+            .limit(1)
+            .execute()
+        )
+        rows = result.data or []
+        if not rows:
+            return None
+        row = rows[0]
+        doc: dict[str, Any] = row.get("documents") or {}
+        label = row.get("groundedness_label") or "notSure"
+        badge = row.get("groundedness_badge") or "medium"
+        return HistoryDetail(
+            id=str(row["id"]),
+            created_at=str(row["created_at"]),
+            original_text=doc.get("original_text") or "",
+            rewrite=row.get("rewrite_text") or "",
+            citations=list(row.get("citations") or []),
+            glossary=[GlossaryTerm(**g) for g in (row.get("glossary") or [])],
+            key_info=[KeyInfoItem(**k) for k in (row.get("key_info") or [])],
+            checklist=[ChecklistItem(**c) for c in (row.get("checklist") or [])],
+            groundedness=GroundednessResult(label=label, badge=badge, score=None),
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("get_history_detail failed: %s", e)
+        return None

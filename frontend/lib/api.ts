@@ -114,3 +114,30 @@ export async function getHistory(limit = 20): Promise<HistoryItem[]> {
   const data = (await res.json()) as { items: HistoryItem[] };
   return data.items;
 }
+
+export interface HistoryDetail {
+  id: string;
+  created_at: string;
+  original_text: string;
+  rewrite: string;
+  citations: string[];
+  glossary: GlossaryTerm[];
+  key_info: KeyInfoItem[];
+  checklist: ChecklistItem[];
+  groundedness: {
+    label: GroundednessLabel;
+    score: number | null;
+    badge: GroundednessBadge;
+  };
+}
+
+export async function getHistoryDetail(id: string): Promise<HistoryDetail> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/history/${encodeURIComponent(id)}`, { cache: "no-store" });
+  } catch {
+    throw new Error(friendlyError(0, ""));
+  }
+  if (!res.ok) throw new Error(friendlyError(res.status, await res.text()));
+  return (await res.json()) as HistoryDetail;
+}

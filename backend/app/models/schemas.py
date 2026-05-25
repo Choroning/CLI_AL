@@ -68,6 +68,20 @@ class HistoryResponse(BaseModel):
     items: list[HistoryItem]
 
 
+class HistoryDetail(BaseModel):
+    """단일 이력 전체 — 변환 페이지에서 결과를 복원할 때 사용."""
+
+    id: str
+    created_at: str
+    original_text: str
+    rewrite: str
+    citations: list[str] = Field(default_factory=list)
+    glossary: list[GlossaryTerm] = Field(default_factory=list)
+    key_info: list[KeyInfoItem] = Field(default_factory=list)
+    checklist: list[ChecklistItem] = Field(default_factory=list)
+    groundedness: GroundednessResult
+
+
 class ParseResponse(BaseModel):
     text: str = Field(description="Document Parse가 추출한 Markdown 본문")
     char_count: int
