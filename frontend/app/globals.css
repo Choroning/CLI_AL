@@ -112,24 +112,17 @@
   .focus-region:not(:hover) p { opacity: 1; }
 
   /* ──────────── 랜딩 — 섹션 스냅 스크롤 ──────────── */
-  /* proximity 채택. mandatory 는 위→아래→위 빠른 방향 전환 시 모멘텀과 충돌해
-   * 스크롤이 멈추는 현상이 있었음 (Apple 제품 페이지·Stripe·Linear 도 부드러운
-   * 스냅을 위해 proximity 계열로 처리). 끝단에서 막히는 현상도 함께 해소.
-   *
-   * 강도 보강:
-   *   - scroll-snap-stop normal: 빠른 스와이프 시 자유 통과
-   *   - overscroll-behavior contain: 스크롤 전파 차단으로 흔들림 감소
-   *   - smooth: 휠 한 번에도 자연스럽게 정착
-   */
+  /* 최소 구성. scroll-behavior smooth 와 proximity 흡착 애니메이션이 함께
+   * 돌면 정착 지점이 계속 재계산되며 "멈칫" 거리는 현상이 생긴다.
+   * 브라우저 네이티브 스냅 애니메이션은 이미 부드러우므로 별도 smooth 와
+   * overscroll-behavior 는 두지 않는다. */
   html:has(.snap-section) {
     scroll-snap-type: y proximity;
     scroll-padding-top: 3.5rem;
-    scroll-behavior: smooth;
-    overscroll-behavior-y: contain;
   }
-  .snap-section { scroll-snap-align: start; scroll-snap-stop: normal; }
+  .snap-section { scroll-snap-align: start; }
   @media (prefers-reduced-motion: reduce) {
-    html:has(.snap-section) { scroll-snap-type: none; scroll-behavior: auto; }
+    html:has(.snap-section) { scroll-snap-type: none; }
   }
 
 }

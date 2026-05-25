@@ -217,11 +217,11 @@ function HowItWorks() {
 }
 
 function FinalCTA() {
-  // FinalCTA + footer 가 한 viewport 에 함께 보이도록 vh 단위로 사이즈.
-  // - 데스크톱(md+): 80vh → 나머지 20vh 가 푸터(실측 ≈ 9rem) 자리에 맞음.
-  // - 모바일: 55vh → 나머지 45vh 가 푸터(3열 적층 ≈ 20rem) 자리에 맞음.
+  // 다른 snap-section 과 동일하게 viewport 높이로 통일.
+  // 혼합 높이(80vh + 55vh)는 proximity 흡착 시 정착 거리 계산을 흔들어
+  // 멈칫 거리는 원인이 된다. 푸터는 자연 스크롤로 아래에서 노출.
   return (
-    <section className="snap-section flex items-center min-h-[55vh] md:min-h-[80vh]">
+    <section className="snap-section flex items-center min-h-[calc(100vh-3.5rem)]">
       <div className="mx-auto max-w-content w-full px-6 py-10 md:py-12">
         <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">
           <p className="text-caption font-bold tracking-wider text-primary">
