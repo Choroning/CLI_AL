@@ -111,19 +111,11 @@
   /* 처음 진입(호버 전)에는 모든 단락 정상 — 호버 영역 진입 후에만 흐려짐. */
   .focus-region:not(:hover) p { opacity: 1; }
 
-  /* ──────────── 랜딩 — 섹션 스냅 스크롤 ──────────── */
-  /* 최소 구성. scroll-behavior smooth 와 proximity 흡착 애니메이션이 함께
-   * 돌면 정착 지점이 계속 재계산되며 "멈칫" 거리는 현상이 생긴다.
-   * 브라우저 네이티브 스냅 애니메이션은 이미 부드러우므로 별도 smooth 와
-   * overscroll-behavior 는 두지 않는다. */
-  html:has(.snap-section) {
-    scroll-snap-type: y proximity;
-    scroll-padding-top: 3.5rem;
-  }
-  .snap-section { scroll-snap-align: start; }
-  @media (prefers-reduced-motion: reduce) {
-    html:has(.snap-section) { scroll-snap-type: none; }
-  }
+  /* ──────────── 랜딩 — 풀-뷰포트 섹션 (스냅 없음) ──────────── */
+  /* CSS 스냅은 흡착 애니메이션 끝날 때까지 추가 휠 입력을 흡수해 잠긴 느낌을
+   * 준다. 정착 시간 자체는 브라우저 종속이라 끄지 못함 → 스냅 자체를 빼고,
+   * 섹션은 min-h 로 viewport 를 채워 "한 페이지 한 섹션" 감만 유지. */
+  .snap-section { scroll-margin-top: 3.5rem; }
 
 }
 

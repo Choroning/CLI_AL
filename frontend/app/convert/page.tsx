@@ -264,11 +264,13 @@ function ResultView({
           <h2 className="text-headline text-ink">읽기 쉬운 버전</h2>
           {typeof result.preservation_ratio === "number" && (
             <p
-              className="mt-2 text-caption text-ink-subtle"
+              className="mt-3 inline-flex items-baseline gap-2 border-l-2 border-primary pl-3 text-body-sm text-ink-muted"
               title="LCS(Longest Common Subsequence) 기반 단어 일치율"
             >
-              원문 보존율{" "}
-              <span className="font-mono tabular-nums text-ink-muted">
+              <span className="text-caption font-bold tracking-wider text-primary">
+                원문 보존율
+              </span>
+              <span className="font-mono tabular-nums text-ink text-base">
                 {Math.round(result.preservation_ratio * 100)}%
               </span>
             </p>
