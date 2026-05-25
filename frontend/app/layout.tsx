@@ -25,6 +25,7 @@ const themeBootstrap = `
     if (dark) root.classList.add('dark');
     var size = localStorage.getItem('cli_al_font_size');
     if (size === 'size-l' || size === 'size-xl') root.classList.add(size);
+    if (localStorage.getItem('cli_al_dyslexia') === '1') root.classList.add('dyslexia-mode');
   } catch (e) {}
 })();
 `;

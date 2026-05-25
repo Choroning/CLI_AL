@@ -13,10 +13,12 @@ import { cn } from "@/lib/cn";
 type Size = "" | "size-l" | "size-xl";
 const SIZE_KEY = "cli_al_font_size";
 const THEME_KEY = "cli_al_theme";
+const DYSLEXIA_KEY = "cli_al_dyslexia";
 
 export function AccessibilityBar() {
   const [size, setSize] = useState<Size>("");
   const [dark, setDark] = useState<boolean | null>(null);
+  const [dyslexia, setDyslexia] = useState<boolean | null>(null);
 
   useEffect(() => {
     try {
@@ -26,6 +28,7 @@ export function AccessibilityBar() {
       /* private mode */
     }
     setDark(document.documentElement.classList.contains("dark"));
+    setDyslexia(document.documentElement.classList.contains("dyslexia-mode"));
   }, []);
 
   useEffect(() => {
@@ -52,6 +55,18 @@ export function AccessibilityBar() {
     }
   }
 
+  function toggleDyslexia() {
+    if (dyslexia === null) return;
+    const next = !dyslexia;
+    setDyslexia(next);
+    document.documentElement.classList.toggle("dyslexia-mode", next);
+    try {
+      localStorage.setItem(DYSLEXIA_KEY, next ? "1" : "0");
+    } catch {
+      /* private mode */
+    }
+  }
+
   return (
     <div
       data-print="hide"
@@ -64,6 +79,32 @@ export function AccessibilityBar() {
         <SizeBtn label="가" active={size === ""}        onClick={() => setSize("")} base />
         <SizeBtn label="가" active={size === "size-l"}  onClick={() => setSize("size-l")} bigger />
         <SizeBtn label="가" active={size === "size-xl"} onClick={() => setSize("size-xl")} biggest />
+
+        <span className="mx-1 h-5 w-px bg-hairline" aria-hidden />
+
+        {dyslexia !== null && (
+          <button
+            type="button"
+            onClick={toggleDyslexia}
+            aria-pressed={dyslexia}
+            title={
+              dyslexia
+                ? "난독증 모드 끄기"
+                : "난독증 모드 — 어절 머리 글자 강조"
+            }
+            className={cn(
+              "inline-flex h-7 items-center justify-center rounded-sm border px-2 text-caption transition-colors",
+              dyslexia
+                ? "border-primary bg-primary text-primary-on"
+                : "border-hairline-strong bg-canvas text-ink hover:border-ink"
+            )}
+          >
+            {/* 자기시연: "난" 글자만 굵게 — 토글 효과를 그대로 보여 줌 */}
+            <span>
+              <b style={{ fontWeight: 800 }}>난</b>독
+            </span>
+          </button>
+        )}
 
         <span className="mx-1 h-5 w-px bg-hairline" aria-hidden />
 

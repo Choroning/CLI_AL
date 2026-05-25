@@ -100,9 +100,12 @@
   html.size-l  { font-size: 19px; }
   html.size-xl { font-size: 21px; }
 
-  /* ──────────── UX 편의 — Bionic Reading (06) ──────────── */
-  /* 상시 작동. .bionic-target 안의 어절 머리 글자가 굵게 보인다. */
-  .bionic-target b.bx { font-weight: 800; color: var(--ink); }
+  /* ──────────── UX 편의 — Bionic Reading (난독증 모드) ──────────── */
+  /* 기본: 어절 머리 강조 꺼짐 — 굵게 처리 안 함.
+   *   html.dyslexia-mode 가 켜졌을 때만 .bionic-target 안의 어절 머리 글자를
+   *   굵게/진하게 표시한다. AccessibilityBar 의 "난독" 토글로 on/off. */
+  .bionic-target b.bx { font-weight: inherit; color: inherit; }
+  html.dyslexia-mode .bionic-target b.bx { font-weight: 800; color: var(--ink); }
 
   /* ──────────── UX 편의 — 줄 포커스 (02) ──────────── */
   /* 상시 작동. .focus-region 안에서 호버한 단락만 선명하게. */

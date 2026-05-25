@@ -96,7 +96,11 @@ function Hero() {
           <h1 className="mt-5 text-display-lg md:text-display-xl text-ink">
             공문이 어렵다고
             <br />
-            <Typewriter />
+            {/* 두 줄 분량의 고정 높이를 미리 잡아둬서 phrase 가 1→2줄로 wrap 될 때
+             *  hero 가 통째로 늘었다 줄었다 하는 jitter 차단. */}
+            <span className="block min-h-[2.4em]">
+              <Typewriter />
+            </span>
           </h1>
           <p className="mt-7 text-body-lg text-ink leading-relaxed max-w-2xl">
             어려운 행정문서·공문·약관을 붙여넣으면 <strong>누구나 한 번에
