@@ -112,15 +112,15 @@
   .focus-region:not(:hover) p { opacity: 1; }
 
   /* ──────────── 랜딩 — 섹션 스냅 스크롤 ──────────── */
-  /* .snap-section 이 있는 페이지(랜딩)만 스냅 동작.
-   * mandatory + always → 살짝만 스크롤해도 다음 섹션으로 강제 흡착.
-   * 부드러운 전환을 위해 scroll-behavior smooth 까지 함께 적용. */
+  /* mandatory: 살짝만 스크롤해도 다음 섹션으로 흡착.
+   * snap-stop normal: 빠른 휠/터치 시 중간 섹션 건너뛰기 허용 — always 로 두면
+   *   문서 끝단(맨 위/아래)에서 스크롤이 막히는 현상이 생긴다. */
   html:has(.snap-section) {
     scroll-snap-type: y mandatory;
     scroll-padding-top: 3.5rem;
     scroll-behavior: smooth;
   }
-  .snap-section { scroll-snap-align: start; scroll-snap-stop: always; }
+  .snap-section { scroll-snap-align: start; scroll-snap-stop: normal; }
   @media (prefers-reduced-motion: reduce) {
     html:has(.snap-section) { scroll-snap-type: none; scroll-behavior: auto; }
   }

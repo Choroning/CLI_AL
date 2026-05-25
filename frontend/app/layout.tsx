@@ -56,7 +56,20 @@ export default function RootLayout({
               </span>
               <span>행정문서 쉬운말 변환기</span>
             </a>
-            <nav className="flex items-center gap-0 sm:gap-1" aria-hidden />
+            <nav className="flex items-center gap-0 sm:gap-1">
+              <a
+                href="/convert"
+                className="inline-flex items-center min-h-[44px] rounded-sm px-2 sm:px-3.5 py-2 text-body-sm font-medium text-ink-muted hover:text-ink hover:bg-surface-1 transition-colors"
+              >
+                변환
+              </a>
+              <a
+                href="/history"
+                className="inline-flex items-center min-h-[44px] rounded-sm px-2 sm:px-3.5 py-2 text-body-sm font-medium text-ink-muted hover:text-ink hover:bg-surface-1 transition-colors"
+              >
+                변환 이력
+              </a>
+            </nav>
 
           </div>
         </header>
