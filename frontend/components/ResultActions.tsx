@@ -95,15 +95,15 @@ export function ResultActions({ result }: { result: RewriteResponse }) {
               ? "난독증 모드 끄기"
               : "난독증 모드 — 어절 머리 글자 강조"
           }
+          /* btn-secondary 를 그대로 사용해 결과 복사·인쇄 버튼과 박스 사이즈 완전 일치.
+           *   활성(켜짐) 상태에서만 primary 색으로 override — !important 로 hover ring 도 함께. */
           className={cn(
-            /* btn-secondary 와 동일한 사이징 토큰 — px-5 py-2.5, min-h-[44px], rounded-sm */
-            "inline-flex items-center justify-center min-h-[44px] rounded-sm px-5 py-2.5 text-button ring-1 transition-colors",
-            dyslexia
-              ? "bg-primary text-primary-on ring-primary hover:bg-primary-hover"
-              : "bg-canvas text-ink ring-hairline-strong hover:bg-surface-1 hover:ring-ink"
+            "btn-secondary",
+            dyslexia &&
+              "!bg-primary !text-primary-on !ring-primary hover:!bg-primary-hover hover:!ring-primary"
           )}
         >
-          <span>난독</span>
+          난독
         </button>
       )}
       <button type="button" onClick={copy} className="btn-secondary" aria-live="polite">
