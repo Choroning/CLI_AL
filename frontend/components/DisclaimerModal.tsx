@@ -63,6 +63,7 @@ export function DisclaimerModal() {
           <p>
             세부 자문(예: "이 계약을 해야 할까요?")은 제공하지 않습니다.
           </p>
+          <p>서비스를 이용하면 본 약관에 동의한 것으로 간주합니다.</p>
         </div>
         <div className="mt-7 flex justify-stretch sm:justify-end">
           <button
@@ -74,7 +75,7 @@ export function DisclaimerModal() {
             }}
             className="btn-primary w-full sm:w-auto"
           >
-            확인했습니다, 시작하기
+            시작하기
           </button>
         </div>
       </div>
