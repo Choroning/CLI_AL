@@ -178,13 +178,25 @@ function HeroPreview() {
           <sup className="citation-marker !static !align-baseline ml-1">2</sup>
         </p>
 
-        {/* 미니 핵심정보 — 글자 크기 토글(size-l/size-xl) 영향 차단:
-            inline style 로 px 고정해 본문이 커져도 메타 위계는 그대로 유지. */}
+        {/* 미니 핵심정보 — 글자 크기 토글(size-l/size-xl) 영향 완전 차단:
+            font-size · spacing(margin/gap/padding) 모두 px 로 고정.
+            rem 기반 spacing 이 남아있으면 박스가 같이 커지면서 텍스트도
+            확대된 것처럼 보임 → 모든 치수를 px 로 박아둠. */}
         <dl
-          className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-hairline pt-3"
-          style={{ fontSize: "15px", lineHeight: 1.5 }}
+          className="grid grid-cols-2 border-t border-hairline"
+          style={{
+            fontSize: "15px",
+            lineHeight: 1.5,
+            marginTop: "16px",
+            paddingTop: "12px",
+            columnGap: "16px",
+            rowGap: "8px",
+          }}
         >
-          <div className="flex items-baseline gap-2">
+          <div
+            className="flex items-baseline"
+            style={{ gap: "8px" }}
+          >
             <dt
               className="font-bold tracking-wider text-ink-muted"
               style={{ fontSize: "13px" }}
@@ -195,7 +207,10 @@ function HeroPreview() {
               계약 + 7일
             </dd>
           </div>
-          <div className="flex items-baseline gap-2">
+          <div
+            className="flex items-baseline"
+            style={{ gap: "8px" }}
+          >
             <dt
               className="font-bold tracking-wider text-ink-muted"
               style={{ fontSize: "13px" }}
