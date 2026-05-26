@@ -281,14 +281,19 @@ function formatStamp(iso: string): string {
 }
 
 /**
- * 쉬운말 재작성 ↔ 출처 인용 두 패널의 스크롤을 progress 비율로 동기화.
+ * 쉬운말 재작성 ↔ 출처 인용 패널 스크롤 동기화.
  *
- * 동기화 규칙:
- *   - 한쪽 컨테이너의 scrollTop / (scrollHeight - clientHeight) 비율을 그대로
- *     반대편 컨테이너의 scrollTop 으로 매핑. 양쪽 길이가 달라도 처음(0%)과 끝
- *     (100%)이 항상 일치 — 첫 인용/끝 인용에서 스크롤이 멈춰버리는 문제 없음.
- *   - 무한 루프 방지를 위해 lock flag 사용. setScrollTop 으로 발생하는 반대편
- *     scroll 이벤트는 무시되고 다음 프레임에 lock 해제.
+ * 방식: 본문(왼쪽) 스크롤 시, 컨테이너 상단을 통과한 *가장 마지막* 인용 마커
+ * `[N]` 을 찾아 오른쪽 패널의 해당 항목 [N] 이 컨테이너 상단에 오도록 부드럽게
+ * 스크롤. 즉, 본문에 마커가 등장할 때마다 한 칸씩 인용 항목이 따라 움직임.
+ *
+ * 경계 처리:
+ *   - 본문 최상단(아직 마커 미통과) → 오른쪽 top 정렬
+ *   - 본문 마지막 마커 이후 / 본문 끝 → 오른쪽도 마지막 항목 정렬(브라우저
+ *     scrollTop clamp 로 자연 처리)
+ *
+ * 단방향(왼쪽 → 오른쪽) 동기화 — 오른쪽에서 사용자가 자유 스크롤해도 본문은
+ * 그대로 두고, 다음 본문 스크롤에서 다시 정합됨.
  */
 function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
   const leftRef = useRef<HTMLDivElement>(null);
@@ -298,26 +303,50 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
     const L = leftRef.current;
     const R = rightRef.current;
     if (!L || !R) return;
-    let lock = false;
-    function syncFrom(src: HTMLDivElement, dst: HTMLDivElement) {
-      if (lock) return;
-      const maxSrc = src.scrollHeight - src.clientHeight;
-      const maxDst = dst.scrollHeight - dst.clientHeight;
-      if (maxSrc <= 0 || maxDst <= 0) return;
-      const t = src.scrollTop / maxSrc;
-      lock = true;
-      dst.scrollTop = t * maxDst;
-      requestAnimationFrame(() => {
-        lock = false;
+
+    let raf: number | null = null;
+    let lastCurrent = -1;
+    function update() {
+      raf = null;
+      if (!L || !R) return;
+      const markers = L.querySelectorAll<HTMLElement>("[data-citation-n]");
+      if (markers.length === 0) return;
+      const lTop = L.getBoundingClientRect().top;
+      // 상단을 통과한 마지막 마커를 찾음 — 마커는 문서 순서대로 가정.
+      // 8px 여유로 막 등장한 마커 직전에 살짝 미리 움직이도록 함.
+      let current: number | null = null;
+      markers.forEach((m) => {
+        if (m.getBoundingClientRect().top <= lTop + 8) {
+          current = Number(m.dataset.citationN);
+        }
       });
+      if (current === lastCurrent) return;
+      lastCurrent = current ?? -1;
+      if (current === null) {
+        // 아직 어떤 마커도 상단 위로 올라가지 않음 → 오른쪽 최상단
+        R.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      const item = R.querySelector<HTMLElement>(
+        `[data-citation-item="${current}"]`
+      );
+      if (!item) return;
+      // rect-based 계산 — offsetParent 가 어디든 정확. 오른쪽 컨테이너 top 과
+      // 항목 top 차이만큼 현재 scrollTop 에 가산. 끝/처음 위치도 브라우저가
+      // 자동으로 clamp 하므로 추가 처리 불필요.
+      const rRect = R.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const target = R.scrollTop + (itemRect.top - rRect.top);
+      R.scrollTo({ top: target, behavior: "smooth" });
     }
-    const onL = () => syncFrom(L, R);
-    const onR = () => syncFrom(R, L);
-    L.addEventListener("scroll", onL, { passive: true });
-    R.addEventListener("scroll", onR, { passive: true });
+    function onScroll() {
+      if (raf != null) return;
+      raf = requestAnimationFrame(update);
+    }
+    L.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      L.removeEventListener("scroll", onL);
-      R.removeEventListener("scroll", onR);
+      L.removeEventListener("scroll", onScroll);
+      if (raf != null) cancelAnimationFrame(raf);
     };
   }, [result]);
 

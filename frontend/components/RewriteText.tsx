@@ -205,6 +205,7 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
           return (
             <li
               key={num}
+              data-citation-item={num}
               className="px-4 py-3 text-body-sm text-ink bg-surface-1 flex items-start gap-1"
             >
               <CitationChip n={num} />
