@@ -56,12 +56,12 @@ This repository organizes the source code, documentation, and deliverables for T
 
 **Team name:** CLI
 
-| Role | Name | Student ID |
-|:-----|:-----|:----------:|
-| Project Manager | Park Cheolwon | 2024270616 |
-| Backend | Kang Seonguk | 2022270628 |
-| Frontend | Song Minseong | 2024270601 |
-| LLM / Prompt Engineering | Kwak Jun | 2023270636 |
+| Role | Name |
+|:-----|:-----|
+| Project Manager | Park Cheolwon |
+| Backend | Kang Seonguk |
+| Frontend | Song Minseong |
+| LLM / Prompt Engineering | Kwak Jun |
 
 <br><a name="project-overview"></a>
 ## 🎯 Project Overview
