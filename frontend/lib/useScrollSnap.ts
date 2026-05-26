@@ -41,8 +41,9 @@ export function useScrollSnap(
     if (reduceMotion) return;
 
     const SNAP_DELAY = 150;
-    // 가까운 섹션이 viewport 의 35% 이내일 때만 흡착. 너무 멀면 자유 스크롤.
-    const THRESHOLD_RATIO = 0.35;
+    // 가까운 섹션이 viewport 의 50% 이내일 때만 흡착. 너무 멀면 자유 스크롤.
+    // 0.35 → 0.5 (2026-05): 흡착 범위 확장 — 거의 절반 영역에서 스냅 발동.
+    const THRESHOLD_RATIO = 0.5;
 
     let snapping = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
