@@ -41,34 +41,53 @@ export function useScrollSnap(
     if (reduceMotion) return;
 
     const SNAP_DELAY = 150;
-    // 가까운 섹션이 viewport 의 50% 이내일 때만 흡착. 너무 멀면 자유 스크롤.
-    // 0.35 → 0.5 (2026-05): 흡착 범위 확장 — 거의 절반 영역에서 스냅 발동.
-    const THRESHOLD_RATIO = 0.5;
+    // 흡착 범위 — 후보 섹션 거리가 viewport 의 이 비율 이내여야 snap 발동.
+    // 0.35 → 0.5 → 0.7 (2026-05): 살짝만 굴려도 진행 방향 섹션이 후보로 잡히도록.
+    const THRESHOLD_RATIO = 0.7;
+    // 휠 deltaY 임계 — 노이즈 무시. 이보다 큰 입력만 방향으로 인정.
+    const DIRECTION_DELTA_MIN = 2;
 
     let snapping = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    // 1 = 아래, -1 = 위, 0 = 없음. 휠 종료 후 어느 쪽 섹션을 우선할지 결정.
+    let lastDirection = 0;
 
-    function pickClosestSection(): HTMLElement | null {
+    function pickTargetSection(): HTMLElement | null {
       const targetY = window.scrollY + headerOffsetPx;
-      let closest: HTMLElement | null = null;
-      let minDist = Infinity;
-      for (const s of sections) {
-        const dist = Math.abs(s.offsetTop - targetY);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = s;
+      const threshold = window.innerHeight * THRESHOLD_RATIO;
+
+      // 임계 거리 안에 들어오는 모든 섹션을 부호 거리(signed)와 함께 수집.
+      // signed > 0: 섹션이 현재 위치보다 아래 / < 0: 위.
+      const candidates = sections
+        .map((s) => ({ s, signed: s.offsetTop - targetY }))
+        .filter((c) => Math.abs(c.signed) <= threshold);
+      if (candidates.length === 0) return null;
+
+      // 방향 일치 후보 우선 — 살짝만 굴려도 진행 방향 섹션이 채택됨.
+      if (lastDirection > 0) {
+        const downs = candidates.filter((c) => c.signed > 0);
+        if (downs.length > 0) {
+          downs.sort((a, b) => a.signed - b.signed);
+          return downs[0].s;
+        }
+      } else if (lastDirection < 0) {
+        const ups = candidates.filter((c) => c.signed < 0);
+        if (ups.length > 0) {
+          ups.sort((a, b) => b.signed - a.signed);
+          return ups[0].s;
         }
       }
-      const threshold = window.innerHeight * THRESHOLD_RATIO;
-      if (minDist > threshold) return null;
-      return closest;
+
+      // 방향 후보가 없거나 방향 자체가 없으면 절대 거리 기준 최근접.
+      candidates.sort((a, b) => Math.abs(a.signed) - Math.abs(b.signed));
+      return candidates[0].s;
     }
 
     function scheduleSnap() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
         if (snapping) return;
-        const target = pickClosestSection();
+        const target = pickTargetSection();
         if (!target) return;
         const destY = Math.max(0, target.offsetTop - headerOffsetPx);
         if (Math.abs(window.scrollY - destY) < 2) return;
@@ -79,6 +98,7 @@ export function useScrollSnap(
           ease: "power2.out",
           onComplete: () => {
             snapping = false;
+            lastDirection = 0; // 완료 후 방향 리셋
           },
           onInterrupt: () => {
             snapping = false;
@@ -87,9 +107,12 @@ export function useScrollSnap(
       }, SNAP_DELAY);
     }
 
-    function onWheel() {
+    function onWheel(e: WheelEvent) {
       // 휠 입력은 진행 중인 snap 을 autoKill 로 끊고 새 타이머 시작.
       if (timer) clearTimeout(timer);
+      if (Math.abs(e.deltaY) >= DIRECTION_DELTA_MIN) {
+        lastDirection = e.deltaY > 0 ? 1 : -1;
+      }
       scheduleSnap();
     }
 
@@ -98,17 +121,13 @@ export function useScrollSnap(
     }
 
     function onKeyDown(e: KeyboardEvent) {
-      // 키보드 페이지 이동 키엔 즉시 다음/이전 섹션 snap.
-      const navKeys = [
-        "PageDown",
-        "PageUp",
-        "ArrowDown",
-        "ArrowUp",
-        "Home",
-        "End",
-      ];
-      if (!navKeys.includes(e.key)) return;
-      // 타이머 기반 자연 흐름에 맡김 (브라우저 기본 동작 → wheel 처럼 작용).
+      // 키보드 페이지 이동 — 방향까지 같이 추적해 살짝만 눌러도 다음 섹션으로.
+      const downs = ["PageDown", "ArrowDown", "End", " "];
+      const ups = ["PageUp", "ArrowUp", "Home"];
+      if (downs.includes(e.key)) lastDirection = 1;
+      else if (ups.includes(e.key)) lastDirection = -1;
+      else return;
+      // 브라우저 native scroll 후 타이머가 가장 가까운 방향 섹션을 잡음.
       scheduleSnap();
     }
 
