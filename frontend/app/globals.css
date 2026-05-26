@@ -105,11 +105,13 @@
 
   /* ──────────── UX 편의 — Bionic Reading + 난독증 서체 (난독증 모드) ──────────── */
   /* 기본: 어절 머리 강조 꺼짐 — 굵게 처리 안 함.
-   *   html.dyslexia-mode 가 켜졌을 때만 .bionic-target 안의 어절 머리 글자를
-   *   굵게/진하게 표시하고, body 의 라틴 글꼴을 OpenDyslexic 으로 swap.
-   *   한글은 fallback(Pretendard) 가 그대로 렌더링되므로 한국어 가독성에는 영향 없음. */
-  .bionic-target b.bx { font-weight: inherit; color: inherit; }
-  html.dyslexia-mode .bionic-target b.bx { font-weight: 800; color: var(--ink); }
+   *   html.dyslexia-mode 가 켜졌을 때 사이트 전체의 어절 머리 글자(b.bx) 를
+   *   굵게 강조하고, body 의 라틴 글꼴을 OpenDyslexic 으로 swap.
+   *   본문(쉬운말 재작성) 외 출처 인용·어려운 말 풀이·해야 할 일·핵심정보 등
+   *   모든 콘텐츠 컴포넌트가 <Bionic> 으로 분할 렌더되므로 동시에 적용됨.
+   *   한글은 fallback(Pretendard) 가 그대로 렌더링되므로 한국어 가독성 영향 없음. */
+  b.bx { font-weight: inherit; color: inherit; }
+  html.dyslexia-mode b.bx { font-weight: 800; color: var(--ink); }
   html.dyslexia-mode body {
     font-family: "OpenDyslexic", "Open Dyslexic", "Pretendard Variable", "Pretendard",
                  "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display",

@@ -1,4 +1,5 @@
 import type { KeyInfoItem } from "@/lib/api";
+import { Bionic } from "@/lib/Bionic";
 
 /**
  * 핵심정보 — 행정 신뢰형 톤.
@@ -21,7 +22,9 @@ export function KeyInfoCards({ items }: { items: KeyInfoItem[] }) {
             {k.type}
           </div>
           <div className="space-y-2">
-            <p className="text-body text-ink leading-relaxed">{k.content}</p>
+            <p className="text-body text-ink leading-relaxed">
+              <Bionic text={k.content} />
+            </p>
             {(k.deadline || k.amount || k.contact) && (
               // 글자 크기 토글(size-l/size-xl) 영향에서 분리 — inline style 로
               // 강제 고정해서 클래스 override / rem 상속 경로 모두 차단.

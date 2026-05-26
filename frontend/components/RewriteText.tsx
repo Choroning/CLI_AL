@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { Bionic } from "@/lib/Bionic";
 import type { GlossaryTerm } from "@/lib/api";
 
 /**
@@ -396,7 +397,7 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
             >
               <CitationChip n={num} />
               <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-                {c}
+                <Bionic text={c} />
               </span>
             </li>
           );
@@ -404,44 +405,6 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
       </ol>
     </div>
   );
-}
-
-/** Bionic Reading 분할 — 어절(공백 단위)마다 머리 절반을 굵게. */
-function Bionic({ text }: { text: string }) {
-  const parts = useMemo(() => splitBionic(text), [text]);
-  return (
-    <>
-      {parts.map((p, i) =>
-        p.head ? (
-          <span key={i}>
-            <b className="bx">{p.head}</b>
-            {p.tail}
-          </span>
-        ) : (
-          <span key={i}>{p.tail}</span>
-        )
-      )}
-    </>
-  );
-}
-
-type BionicPart = { head: string; tail: string };
-function splitBionic(s: string): BionicPart[] {
-  const out: BionicPart[] = [];
-  const re = /(\s+|[.,;:!?·…—()\[\]"'·]+)|([^\s.,;:!?·…—()\[\]"'·]+)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(s)) !== null) {
-    if (m[1]) {
-      out.push({ head: "", tail: m[1] });
-    } else if (m[2]) {
-      const w = m[2];
-      const isHangul = /[가-힣]/.test(w[0]!);
-      const headLen = isHangul ? Math.min(1, w.length) : Math.ceil(w.length / 2);
-      out.push({ head: w.slice(0, headLen), tail: w.slice(headLen) });
-    }
-  }
-  if (out.length === 0) out.push({ head: "", tail: s });
-  return out;
 }
 
 /** 단어 호버 카드 — 어려운 용어 위에 마우스 올리면 정의·예시가 뜬다.

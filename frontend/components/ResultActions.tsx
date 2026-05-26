@@ -1,30 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/cn";
+import { useState } from "react";
 import type { RewriteResponse } from "@/lib/api";
-
-const DYSLEXIA_KEY = "cli_al_dyslexia";
 
 export function ResultActions({ result }: { result: RewriteResponse }) {
   const [copied, setCopied] = useState(false);
-  const [dyslexia, setDyslexia] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    setDyslexia(document.documentElement.classList.contains("dyslexia-mode"));
-  }, []);
-
-  function toggleDyslexia() {
-    if (dyslexia === null) return;
-    const next = !dyslexia;
-    setDyslexia(next);
-    document.documentElement.classList.toggle("dyslexia-mode", next);
-    try {
-      localStorage.setItem(DYSLEXIA_KEY, next ? "1" : "0");
-    } catch {
-      /* private mode */
-    }
-  }
 
   function buildPlain(): string {
     const lines: string[] = [];
@@ -85,27 +65,6 @@ export function ResultActions({ result }: { result: RewriteResponse }) {
       className="flex flex-wrap items-center gap-2 text-body-sm"
       aria-label="결과 작업"
     >
-      {dyslexia !== null && (
-        <button
-          type="button"
-          onClick={toggleDyslexia}
-          aria-pressed={dyslexia}
-          title={
-            dyslexia
-              ? "난독증 모드 끄기"
-              : "난독증 모드 — 어절 머리 글자 강조"
-          }
-          /* btn-secondary 를 그대로 사용해 결과 복사·인쇄 버튼과 박스 사이즈 완전 일치.
-           *   활성(켜짐) 상태에서만 primary 색으로 override — !important 로 hover ring 도 함께. */
-          className={cn(
-            "btn-secondary",
-            dyslexia &&
-              "!bg-primary !text-primary-on !ring-primary hover:!bg-primary-hover hover:!ring-primary"
-          )}
-        >
-          난독
-        </button>
-      )}
       <button type="button" onClick={copy} className="btn-secondary" aria-live="polite">
         {copied ? "복사됨 ✓" : "결과 복사"}
       </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import { Bionic } from "@/lib/Bionic";
 import type { GlossaryTerm } from "@/lib/api";
 
 export function GlossaryList({ items }: { items: GlossaryTerm[] }) {
@@ -22,15 +23,17 @@ export function GlossaryList({ items }: { items: GlossaryTerm[] }) {
           id={termAnchorId(g.term)}
           className="scroll-mt-20 rounded-md bg-surface-2 ring-1 ring-hairline p-4"
         >
-          <dt className="text-card-title text-ink">{g.term}</dt>
+          <dt className="text-card-title text-ink">
+            <Bionic text={g.term} />
+          </dt>
           <dd className="mt-2 text-body leading-relaxed text-ink">
-            {g.definition}
+            <Bionic text={g.definition} />
             {g.example && (
               <div className="mt-3 text-body text-ink leading-relaxed">
                 <span className="inline-flex items-center rounded-sm bg-primary/15 text-primary ring-1 ring-primary/30 px-2 py-0.5 mr-2 text-caption font-semibold align-middle">
                   예
                 </span>
-                {g.example}
+                <Bionic text={g.example} />
               </div>
             )}
           </dd>

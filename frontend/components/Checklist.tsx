@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ChecklistItem } from "@/lib/api";
 import { cn } from "@/lib/cn";
+import { Bionic } from "@/lib/Bionic";
 
 /**
  * 할 일 — CLRS 8.2 Counting Sort 로 priority 정렬.
@@ -82,7 +83,7 @@ export function Checklist({ items }: { items: ChecklistItem[] }) {
                       isDone && "line-through text-ink-tertiary"
                     )}
                   >
-                    {c.text}
+                    <Bionic text={c.text} />
                   </span>
                   <span
                     className={cn(
