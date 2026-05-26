@@ -178,10 +178,10 @@ function ConvertPageInner() {
           )}
 
           <form id="convert-form" onSubmit={onSubmit} className="space-y-5" data-print="hide">
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-stretch">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-start">
               <div className="lg:col-span-3 flex flex-col gap-3">
                 <h2 className="text-body font-medium text-ink-muted">① 파일에서 가져오기</h2>
-                <Dropzone onFile={onFile} disabled={parsing || loading} className="flex-1" />
+                <Dropzone onFile={onFile} disabled={parsing || loading} />
                 {parsing && (
                   <div className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse">
                     문서를 분석하고 있습니다…
@@ -204,11 +204,11 @@ function ConvertPageInner() {
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
-                  className="input flex-1 min-h-[320px] resize-none text-body leading-relaxed text-ink"
+                  className="input min-h-[320px] resize-none text-body leading-relaxed text-ink"
                   maxLength={20000}
                 />
-                <p className="text-caption text-ink-subtle">
-                  개인정보(주민번호, 계좌번호 등)는 사전에 가려서 입력해 주세요.
+                <p className="text-caption text-ink-subtle text-right">
+                  개인정보는 삭제 후 입력해주세요.
                 </p>
                 <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
                   <button
