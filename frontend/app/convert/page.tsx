@@ -384,22 +384,28 @@ function ResultView({
   /* snap-section 한 viewport(=100dvh-3.5rem) 안에 컨텐츠를 모두 들이는 컴팩트
    * 레이아웃. 텍스트가 길어질 수 있는 패널(원문, 쉬운말, 어려운 말 풀이, 해야
    * 할 일)에는 max-h + overflow-y-auto 로 자체 스크롤바가 보이도록 함. */
-  const shorten =
+  /* 길이 비교용 — 쉬운말 본문에 박힌 인용 마커 [1] [2] 등은 사용자가 읽는
+   * 실제 본문이 아니므로 길이에서 제외해야 정확한 "원문 대비 단축률" 이 나옴.
+   *   delta > 0 → rewrite 가 더 짧음 (= 짧아진 비율)
+   *   delta < 0 → rewrite 가 더 길어짐
+   *   delta = 0 (또는 originalLength 0) → 미표시 */
+  const rewriteCleanLen = result.rewrite.replace(/\[\d+\]/g, "").length;
+  const delta =
     original.length > 0
-      ? Math.round((1 - result.rewrite.length / original.length) * 100)
+      ? Math.round((1 - rewriteCleanLen / original.length) * 100)
       : 0;
   return (
     <div className="flex flex-col gap-5 flex-1 min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h2 className="text-headline text-ink">변환 결과</h2>
-          {shorten > 0 && (
+          {delta !== 0 && (
             <p className="text-body-sm text-ink-muted">
               원문 대비{" "}
               <span className="font-mono tabular-nums text-ink font-semibold">
-                {shorten}%
+                {Math.abs(delta)}%
               </span>{" "}
-              짧아졌어요.
+              {delta > 0 ? "짧아졌어요." : "길어졌어요."}
             </p>
           )}
         </div>
