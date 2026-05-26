@@ -31,7 +31,7 @@ const HERO_PHRASES = [
   "기한을 놓치지 마세요.",
   "혼자 고민하지 마세요.",
   "당황하지 마세요.",
-  "불필요한 지출 하지 마세요.",
+  "불필요한 지출하지 마세요.",
 ];
 const TYPE_MS = 140;
 const DELETE_MS = 75;
@@ -102,7 +102,9 @@ function Hero() {
       <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:items-center w-full">
         {/* 좌: 카피 + CTA */}
         <div className="lg:col-span-8">
-          <h1 className="text-display-lg md:text-display-xl text-ink">
+          {/* md+ 에서 살짝만 축소(80→72px) — 가장 긴 phrase 끝에서 cursor 가
+           *  다음 줄로 떨어지는 빈도 완화. mobile(display-lg 56px) 은 유지. */}
+          <h1 className="text-display-lg md:text-[72px] md:leading-[1.05] md:tracking-[-0.0375em] font-semibold text-ink">
             공문이 어렵다고
             <br />
             {/* 줄바꿈이 실제로 일어날 가능성이 있는 너비(< xl)에서는 두 줄 분량의 고정 높이로
