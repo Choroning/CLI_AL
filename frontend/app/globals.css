@@ -127,7 +127,9 @@
   /* ──────────── 랜딩 — 풀-뷰포트 snap scroll ──────────── */
   /* sticky header(3.5rem) 만큼 scroll-padding-top 으로 viewport snap area 를
    * 아래로 내림. scroll-margin-top 은 일부러 두지 않는다 — 함께 쓰면 offset 이
-   * 더해져(7rem) 헤더 아래로 이전 섹션의 끝부분이 노출되는 버그가 발생함. */
+   * 더해져(7rem) 헤더 아래로 이전 섹션의 끝부분이 노출되는 버그가 발생함.
+   * 헤더 / scroll-padding / section min-h 모두 rem 기반이라 글자 크기 토글
+   * (size-l/size-xl) 변경 시에도 동일한 비율로 함께 스케일됨. */
   html.landing-snap,
   html.landing-snap body {
     scroll-snap-type: y mandatory;
@@ -136,6 +138,25 @@
   html.landing-snap .snap-section {
     scroll-snap-align: start;
     scroll-snap-stop: always;
+  }
+
+  /* 섹션 내부 컨텐츠 컨테이너 — viewport 높이/글자 크기에 따라 패딩을 자동
+   * 축소해 컨텐츠가 (100dvh - 3.5rem) 안에 들어가도록 유지. snap 이 mandatory
+   * 일 때 섹션이 viewport 보다 길어지면 내부 스크롤이 잠겨버리는 문제를 방지.
+   *
+   * clamp(min, preferred, max):
+   *   - min 2rem: 매우 좁아도 최소 여백 확보
+   *   - preferred 6vh: viewport 높이의 6% — 800px → 48px, 1000px → 60px
+   *   - max 5rem: 보통 화면(>=900px)에서 이전 py-20 과 동일 수준 */
+  .section-pad {
+    padding-top: clamp(2rem, 6vh, 5rem);
+    padding-bottom: clamp(2rem, 6vh, 5rem);
+  }
+  /* 극단적으로 짧은 viewport(가로 모바일 등) 에서는 mandatory 가 섹션 내 스크롤을
+   * 잠그므로 proximity 로 전환해 자연 스크롤 우선. snap 자체는 유지. */
+  @media (max-height: 560px) {
+    html.landing-snap, html.landing-snap body { scroll-snap-type: y proximity; }
+    .section-pad { padding-top: 1rem; padding-bottom: 1rem; }
   }
 
 }
