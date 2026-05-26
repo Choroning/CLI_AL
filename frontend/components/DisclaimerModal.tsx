@@ -44,7 +44,11 @@ export function DisclaimerModal() {
         <h2 id="disclaimer-title" className="text-card-title text-ink">
           이용 전 꼭 확인해주세요
         </h2>
-        <div className="mt-5 space-y-4 text-body leading-relaxed text-ink text-justify">
+        {/* 전역으로 word-break: keep-all 이 걸려 있어 한글이 띄어쓰기에서만
+         *  끊긴다. justify 와 만나면 공백이 과하게 늘어나 보기 어색하므로 모달
+         *  본문에서만 word-break 를 normal 로 풀어 자모/글자 사이 자연스러운
+         *  줄바꿈을 허용. */}
+        <div className="mt-5 space-y-4 text-body leading-relaxed text-ink text-justify [word-break:normal]">
           <p>
             본 서비스는 행정문서, 공문, 약관을 더 쉽게 읽도록 돕는{" "}
             <strong className="font-semibold">참고용 도구</strong>입니다. 변환 결과는
