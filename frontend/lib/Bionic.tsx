@@ -47,7 +47,14 @@ export function splitBionic(s: string): BionicPart[] {
     } else if (m[2]) {
       const w = m[2];
       const isHangul = /[가-힣]/.test(w[0]!);
-      const headLen = isHangul ? Math.min(1, w.length) : Math.ceil(w.length / 2);
+      // 짧은 어절은 wrap 생략 — 한 글자 한글, 1~2글자 라틴은 강조하면 문장
+      // 전체가 강조된 것처럼 보여 가독성 오히려 떨어짐.
+      const tooShort = isHangul ? w.length < 2 : w.length < 4;
+      if (tooShort) {
+        out.push({ head: "", tail: w });
+        continue;
+      }
+      const headLen = isHangul ? 1 : Math.ceil(w.length / 2);
       out.push({ head: w.slice(0, headLen), tail: w.slice(headLen) });
     }
   }
