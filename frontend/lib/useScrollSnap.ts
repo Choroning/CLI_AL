@@ -64,21 +64,25 @@ export function useScrollSnap(
       if (candidates.length === 0) return null;
 
       // 방향 일치 후보 우선 — 살짝만 굴려도 진행 방향 섹션이 채택됨.
+      // 방향 의도가 있는데 그 방향 후보가 없으면(=이미 그 방향 끝 섹션에
+      // 진입함) snap 자체를 생략. 그렇지 않으면 이미 도달한 섹션 top 으로
+      // 다시 잡아당겨 사용자가 그 섹션 안 down 스크롤로 아래 콘텐츠를
+      // 보지 못함.
       if (lastDirection > 0) {
         const downs = candidates.filter((c) => c.signed > 0);
-        if (downs.length > 0) {
-          downs.sort((a, b) => a.signed - b.signed);
-          return downs[0].s;
-        }
-      } else if (lastDirection < 0) {
+        if (downs.length === 0) return null;
+        downs.sort((a, b) => a.signed - b.signed);
+        return downs[0].s;
+      }
+      if (lastDirection < 0) {
         const ups = candidates.filter((c) => c.signed < 0);
-        if (ups.length > 0) {
-          ups.sort((a, b) => b.signed - a.signed);
-          return ups[0].s;
-        }
+        if (ups.length === 0) return null;
+        ups.sort((a, b) => b.signed - a.signed);
+        return ups[0].s;
       }
 
-      // 방향 후보가 없거나 방향 자체가 없으면 절대 거리 기준 최근접.
+      // 방향 의도 자체가 없을 때만 절대 거리 기준 최근접 (예: 키보드 입력
+      // 후 lastDirection 리셋 직후, 초기 진입 등).
       candidates.sort((a, b) => Math.abs(a.signed) - Math.abs(b.signed));
       return candidates[0].s;
     }

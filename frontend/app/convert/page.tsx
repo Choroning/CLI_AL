@@ -194,13 +194,17 @@ function ConvertPageInner() {
                   disabled={parsing || loading}
                   className="flex-1 min-h-0"
                 />
-                {/* text column 의 [개인정보 안내문] 줄과 높이를 맞추는 invisible
-                 *  spacer — 박스 하단이 같은 라인에서 끝나도록.
-                 *  parsing 중에는 그 자리를 안내문구가 차지. */}
+                {/* text column 의 [개인정보 안내문] 줄과 같은 라인에 끝나도록
+                 *  한 줄 caption 형식으로 통일. parsing 중에는 같은 자리에
+                 *  primary 톤 + pulse 로 진행을 표시 — 박스 ring/padding 빼서
+                 *  높이 차로 인한 어긋남 제거. */}
                 {parsing ? (
-                  <div className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-2 text-body-sm text-ink animate-pulse">
+                  <p
+                    className="text-caption text-primary animate-pulse"
+                    aria-live="polite"
+                  >
                     문서를 분석하고 있습니다…
-                  </div>
+                  </p>
                 ) : (
                   <p className="text-caption text-ink-subtle invisible select-none" aria-hidden>
                     spacer
@@ -299,14 +303,13 @@ function ConvertPageInner() {
       </section>
 
       {result && (
-        // 결과 섹션은 snap-section 에서 의도적으로 제외 + min-h 제거 —
-        // 내부에 ResultView (재작성/인용/꼭알아야할정보/어려운말풀이/해야할일 등)
-        // 가 길어 한 viewport 에 다 안 들어가므로 snap 이 위로 잡아당기면
-        // 아래 내용을 못 봄. 결과 영역 안에선 자유 스크롤, 결과 ↔ 입력 사이는
-        // 입력 섹션의 snap-section 클래스만으로 충분히 부드럽게 작동.
+        // 결과 섹션은 snap-section 으로 다시 표시(입력→결과 진입 시 snap 보존).
+        // min-h 는 의도적으로 빼서 ResultView 내용이 viewport 보다 길어도 OK —
+        // useScrollSnap 이 "이미 도달한 섹션은 down snap 생략" 로직을 갖고
+        // 있어 결과 안에서 아래로 스크롤할 때는 잡아당기지 않음.
         <section
           ref={resultRef}
-          className="flex flex-col bg-surface-1"
+          className="snap-section flex flex-col bg-surface-1"
         >
           <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col">
             <ResultView result={result} original={text} />
