@@ -193,10 +193,9 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
     );
   }
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-caption text-ink-subtle">
-        본문에서 [숫자]로 표시된 마커가 가리키는 원문 인용입니다.
-      </p>
+    <div className="flex flex-col">
+      {/* 컨테이너 상단에 항목 1 이 바로 와닿도록 안내 캡션은 제외 — 본문 ↔ 인용
+       *  스크롤 sync 가 항목 정렬을 시도할 때 캡션이 가려지는 점프를 방지. */}
       <ol className="rounded-md ring-1 ring-hairline divide-y divide-hairline overflow-hidden">
         {citations.map((c, idx) => {
           const num = idx + 1;

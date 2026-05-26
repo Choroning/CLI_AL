@@ -283,16 +283,17 @@ function formatStamp(iso: string): string {
 /**
  * 쉬운말 재작성 ↔ 출처 인용 패널 스크롤 동기화.
  *
- * 방식: 본문(왼쪽) 스크롤 시, 컨테이너 상단을 통과한 *가장 마지막* 인용 마커
- * `[N]` 을 찾아 오른쪽 패널의 해당 항목 [N] 이 컨테이너 상단에 오도록 부드럽게
- * 스크롤. 즉, 본문에 마커가 등장할 때마다 한 칸씩 인용 항목이 따라 움직임.
+ * 방식: 본문(왼쪽) 컨테이너 상단에 *현재 보이는 첫 마커* `[N]` 을 찾아 오른쪽
+ * 패널의 해당 항목 [N] 이 컨테이너 상단에 오도록 부드럽게 스크롤. 사용자가
+ * 보고 있는 본문 영역의 가장 위쪽 마커가 곧 오른쪽 패널의 가장 위쪽 항목과
+ * 일치 — 즉 9·10·11 이 본문에 보이면 9·10·11 이 인용 패널에도 보임.
  *
  * 경계 처리:
- *   - 본문 최상단(아직 마커 미통과) → 오른쪽 top 정렬
- *   - 본문 마지막 마커 이후 / 본문 끝 → 오른쪽도 마지막 항목 정렬(브라우저
- *     scrollTop clamp 로 자연 처리)
+ *   - 본문 마지막 마커마저 위로 스쳐 지나갔으면 마지막 항목 정렬(scrollTop
+ *     은 브라우저가 자동 clamp).
+ *   - 본문에 마커가 없거나 오른쪽 항목이 없으면 no-op.
  *
- * 단방향(왼쪽 → 오른쪽) 동기화 — 오른쪽에서 사용자가 자유 스크롤해도 본문은
+ * 단방향(왼쪽 → 오른쪽) 동기화. 오른쪽에서 사용자가 자유 스크롤해도 본문은
  * 그대로 두고, 다음 본문 스크롤에서 다시 정합됨.
  */
 function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
@@ -309,24 +310,26 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
     function update() {
       raf = null;
       if (!L || !R) return;
-      const markers = L.querySelectorAll<HTMLElement>("[data-citation-n]");
+      const markers = Array.from(
+        L.querySelectorAll<HTMLElement>("[data-citation-n]")
+      );
       if (markers.length === 0) return;
       const lTop = L.getBoundingClientRect().top;
-      // 상단을 통과한 마지막 마커를 찾음 — 마커는 문서 순서대로 가정.
-      // 8px 여유로 막 등장한 마커 직전에 살짝 미리 움직이도록 함.
+      // 컨테이너 상단 기준(아래로 8px 여유) 이하에 첫 등장하는 마커를 선택.
+      // = 사용자가 본문에서 보고 있는 가장 위쪽 마커.
       let current: number | null = null;
-      markers.forEach((m) => {
-        if (m.getBoundingClientRect().top <= lTop + 8) {
+      for (const m of markers) {
+        if (m.getBoundingClientRect().top >= lTop - 8) {
           current = Number(m.dataset.citationN);
+          break;
         }
-      });
-      if (current === lastCurrent) return;
-      lastCurrent = current ?? -1;
-      if (current === null) {
-        // 아직 어떤 마커도 상단 위로 올라가지 않음 → 오른쪽 최상단
-        R.scrollTo({ top: 0, behavior: "smooth" });
-        return;
       }
+      // 모든 마커가 상단 위로 스쳐 지나간 상태 → 마지막 항목으로 정렬.
+      if (current === null) {
+        current = Number(markers[markers.length - 1].dataset.citationN);
+      }
+      if (current === lastCurrent) return;
+      lastCurrent = current;
       const item = R.querySelector<HTMLElement>(
         `[data-citation-item="${current}"]`
       );
