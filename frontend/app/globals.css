@@ -134,8 +134,11 @@
   html.convert-snap body {
     scroll-snap-type: y proximity;
   }
+  /* scroll-padding-top 을 헤더 높이(3.5rem) 보다 살짝 크게 잡아 snap 발동
+   *   임계점을 아래로 끌어내림. 사용자가 섹션 경계에 거의 닿았을 때만
+   *   흡착되도록 해서 "뻑뻑함" 완화 — 거리가 멀면 자유 스크롤 유지. */
   html.landing-snap,
-  html.convert-snap { scroll-padding-top: 3.5rem; }
+  html.convert-snap { scroll-padding-top: 5rem; }
   html.landing-snap .snap-section,
   html.convert-snap .snap-section {
     scroll-snap-align: start;
