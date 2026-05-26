@@ -344,6 +344,9 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
       raf = requestAnimationFrame(update);
     }
     L.addEventListener("scroll", onScroll, { passive: true });
+    // 초기 마운트 직후 한 번 동기화 — 새 결과가 떴을 때 오른쪽 패널이 잘못된
+    // 이전 스크롤 위치에 머무는 것을 방지.
+    update();
     return () => {
       L.removeEventListener("scroll", onScroll);
       if (raf != null) cancelAnimationFrame(raf);

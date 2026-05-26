@@ -117,13 +117,6 @@
     letter-spacing: 0.01em;
   }
 
-  /* ──────────── UX 편의 — 줄 포커스 (02) ──────────── */
-  /* 상시 작동. .focus-region 안에서 호버한 단락만 선명하게. */
-  .focus-region p:not(:hover) { opacity: 0.5; transition: opacity 200ms ease; }
-  .focus-region:hover p:hover { opacity: 1; }
-  /* 처음 진입(호버 전)에는 모든 단락 정상 — 호버 영역 진입 후에만 흐려짐. */
-  .focus-region:not(:hover) p { opacity: 1; }
-
   /* ──────────── 랜딩 — 풀-뷰포트 snap scroll ──────────── */
   /* sticky header(3.5rem) 만큼 scroll-padding-top 으로 viewport snap area 를
    * 아래로 내림. scroll-margin-top 은 일부러 두지 않는다 — 함께 쓰면 offset 이
