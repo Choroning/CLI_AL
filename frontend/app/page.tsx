@@ -178,15 +178,33 @@ function HeroPreview() {
           <sup className="citation-marker !static !align-baseline ml-1">2</sup>
         </p>
 
-        {/* 미니 핵심정보 — 카테고리 색 제거, ink 톤 사각 라벨 */}
-        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-hairline pt-3 text-body-sm">
+        {/* 미니 핵심정보 — 글자 크기 토글(size-l/size-xl) 영향 차단:
+            inline style 로 px 고정해 본문이 커져도 메타 위계는 그대로 유지. */}
+        <dl
+          className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-hairline pt-3"
+          style={{ fontSize: "15px", lineHeight: 1.5 }}
+        >
           <div className="flex items-baseline gap-2">
-            <dt className="text-caption font-bold tracking-wider text-ink-muted">기한</dt>
-            <dd className="text-ink font-medium">계약 + 7일</dd>
+            <dt
+              className="font-bold tracking-wider text-ink-muted"
+              style={{ fontSize: "13px" }}
+            >
+              기한
+            </dt>
+            <dd className="text-ink font-medium" style={{ fontSize: "15px" }}>
+              계약 + 7일
+            </dd>
           </div>
           <div className="flex items-baseline gap-2">
-            <dt className="text-caption font-bold tracking-wider text-ink-muted">금액</dt>
-            <dd className="text-ink font-medium">3,000만 원</dd>
+            <dt
+              className="font-bold tracking-wider text-ink-muted"
+              style={{ fontSize: "13px" }}
+            >
+              금액
+            </dt>
+            <dd className="text-ink font-medium" style={{ fontSize: "15px" }}>
+              3,000만 원
+            </dd>
           </div>
         </dl>
       </article>
