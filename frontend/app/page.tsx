@@ -3,17 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
-
-/**
- * 랜딩 페이지에 한정해 viewport 단위 snap scroll 활성화.
- * 다른 페이지로 이동하면 클래스를 제거해 일반 흐름 스크롤로 복귀.
- */
-function useLandingSnap() {
-  useEffect(() => {
-    document.documentElement.classList.add("landing-snap");
-    return () => document.documentElement.classList.remove("landing-snap");
-  }, []);
-}
+import { useScrollSnap } from "@/lib/useScrollSnap";
 
 /**
  * 랜딩 페이지 — 행정 신뢰형 톤 (정부24·복지로·GOV.UK 참고).
@@ -86,7 +76,7 @@ function Typewriter() {
 }
 
 export default function LandingPage() {
-  useLandingSnap();
+  useScrollSnap();
   return (
     <>
       <Hero />

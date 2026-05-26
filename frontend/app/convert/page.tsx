@@ -15,6 +15,7 @@ import { Checklist } from "@/components/Checklist";
 import { Section } from "@/components/Section";
 import { Dropzone } from "@/components/Dropzone";
 import { ResultActions } from "@/components/ResultActions";
+import { useScrollSnap } from "@/lib/useScrollSnap";
 
 const SAMPLE = `주택임대차계약서
 
@@ -62,23 +63,18 @@ function ConvertPageInner() {
   const [restoredAt, setRestoredAt] = useState<string | null>(null);
   const resultRef = useRef<HTMLElement>(null);
 
-  /* 결과가 나타나면 html 에 convert-snap 클래스를 붙여 입력 페이지 ↔ 결과
-   * 페이지 간 snap scroll 을 활성화하고, 결과 섹션으로 부드럽게 이동. 결과를
-   * 비우거나(언마운트) 다시 입력으로 돌아오면 클래스 제거. */
+  /* 결과 표시 직후 결과 섹션으로 부드럽게 이동. snap 자체는 useScrollSnap
+   * (GSAP 기반) 이 result 가 있을 때만 활성화 — native scroll-snap CSS 가
+   * 사라졌으므로 클래스 토글은 더 이상 필요 없음. */
   useEffect(() => {
-    if (!result) {
-      document.documentElement.classList.remove("convert-snap");
-      return;
-    }
-    document.documentElement.classList.add("convert-snap");
+    if (!result) return;
     const t = setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
-    return () => {
-      clearTimeout(t);
-      document.documentElement.classList.remove("convert-snap");
-    };
+    return () => clearTimeout(t);
   }, [result]);
+
+  useScrollSnap(".snap-section", 56, !!result);
 
   // 이력에서 진입(?id=) — 해당 변환 결과를 그대로 복원한다.
   useEffect(() => {
