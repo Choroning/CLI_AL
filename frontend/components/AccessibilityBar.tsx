@@ -17,10 +17,12 @@ import { cn } from "@/lib/cn";
 type Size = "" | "size-l" | "size-xl";
 const SIZE_KEY = "cli_al_font_size";
 const THEME_KEY = "cli_al_theme";
+const DYSLEXIA_KEY = "cli_al_dyslexia";
 
 export function AccessibilityBar() {
   const [size, setSize] = useState<Size>("");
   const [dark, setDark] = useState<boolean | null>(null);
+  const [dyslexia, setDyslexia] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -33,6 +35,7 @@ export function AccessibilityBar() {
       /* private mode */
     }
     setDark(document.documentElement.classList.contains("dark"));
+    setDyslexia(document.documentElement.classList.contains("dyslexia-mode"));
   }, []);
 
   useEffect(() => {
@@ -54,6 +57,18 @@ export function AccessibilityBar() {
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem(THEME_KEY, next ? "dark" : "light");
+    } catch {
+      /* private mode */
+    }
+  }
+
+  function toggleDyslexia() {
+    if (dyslexia === null) return;
+    const next = !dyslexia;
+    setDyslexia(next);
+    document.documentElement.classList.toggle("dyslexia-mode", next);
+    try {
+      localStorage.setItem(DYSLEXIA_KEY, next ? "1" : "0");
     } catch {
       /* private mode */
     }
@@ -148,6 +163,28 @@ export function AccessibilityBar() {
               )}
             >
               {dark ? <SunIcon /> : <MoonIcon />}
+            </button>
+          )}
+
+          {dyslexia !== null && (
+            <button
+              type="button"
+              onClick={toggleDyslexia}
+              aria-pressed={dyslexia}
+              title={
+                dyslexia
+                  ? "난독증 서체 끄기"
+                  : "난독증 서체 — OpenDyslexic + 어절 머리 강조"
+              }
+              aria-label="난독증 서체"
+              className={cn(
+                "inline-flex h-[28px] min-w-[28px] items-center justify-center rounded-sm border px-[6px] text-[12px] font-bold transition-colors",
+                dyslexia
+                  ? "border-primary bg-primary text-primary-on"
+                  : "border-hairline-strong bg-canvas text-ink hover:border-ink"
+              )}
+            >
+              난독
             </button>
           )}
         </div>

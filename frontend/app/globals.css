@@ -2,6 +2,9 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
+/* OpenDyslexic — 난독증 친화 라틴 서체. 한글은 fallback(Pretendard)로 자연스럽게 넘어감.
+ *   html.dyslexia-mode 가 켜졌을 때만 body font-family 의 1순위로 적용. */
+@import url("https://fonts.cdnfonts.com/css/open-dyslexic");
 
 @tailwind base;
 @tailwind components;
@@ -100,12 +103,19 @@
   html.size-l  { font-size: 19px; }
   html.size-xl { font-size: 21px; }
 
-  /* ──────────── UX 편의 — Bionic Reading (난독증 모드) ──────────── */
+  /* ──────────── UX 편의 — Bionic Reading + 난독증 서체 (난독증 모드) ──────────── */
   /* 기본: 어절 머리 강조 꺼짐 — 굵게 처리 안 함.
    *   html.dyslexia-mode 가 켜졌을 때만 .bionic-target 안의 어절 머리 글자를
-   *   굵게/진하게 표시한다. AccessibilityBar 의 "난독" 토글로 on/off. */
+   *   굵게/진하게 표시하고, body 의 라틴 글꼴을 OpenDyslexic 으로 swap.
+   *   한글은 fallback(Pretendard) 가 그대로 렌더링되므로 한국어 가독성에는 영향 없음. */
   .bionic-target b.bx { font-weight: inherit; color: inherit; }
   html.dyslexia-mode .bionic-target b.bx { font-weight: 800; color: var(--ink); }
+  html.dyslexia-mode body {
+    font-family: "OpenDyslexic", "Open Dyslexic", "Pretendard Variable", "Pretendard",
+                 "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 system-ui, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: 0.01em;
+  }
 
   /* ──────────── UX 편의 — 줄 포커스 (02) ──────────── */
   /* 상시 작동. .focus-region 안에서 호버한 단락만 선명하게. */
@@ -114,11 +124,14 @@
   /* 처음 진입(호버 전)에는 모든 단락 정상 — 호버 영역 진입 후에만 흐려짐. */
   .focus-region:not(:hover) p { opacity: 1; }
 
-  /* ──────────── 랜딩 — 풀-뷰포트 섹션 (스냅 없음) ──────────── */
-  /* CSS 스냅은 흡착 애니메이션 끝날 때까지 추가 휠 입력을 흡수해 잠긴 느낌을
-   * 준다. 정착 시간 자체는 브라우저 종속이라 끄지 못함 → 스냅 자체를 빼고,
-   * 섹션은 min-h 로 viewport 를 채워 "한 페이지 한 섹션" 감만 유지. */
+  /* ──────────── 랜딩 — 풀-뷰포트 snap scroll ──────────── */
+  /* 일반 흐름 스크롤 + viewport-fit 섹션 구조를 유지하되, 랜딩 페이지에 한해서만
+   * `landing-snap` 클래스를 html 에 추가해 snap scroll 을 켠다. 다른 페이지로
+   * 이동하면 클래스가 해제되어 일반 스크롤 흐름으로 돌아간다.
+   * 'proximity' 로 두어 흡착-잠금감을 줄이고 자연스러운 정착만 유도. */
   .snap-section { scroll-margin-top: 3.5rem; }
+  html.landing-snap { scroll-snap-type: y proximity; scroll-padding-top: 3.5rem; }
+  html.landing-snap .snap-section { scroll-snap-align: start; }
 
 }
 

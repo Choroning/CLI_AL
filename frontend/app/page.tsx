@@ -5,6 +5,17 @@ import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
 
 /**
+ * 랜딩 페이지에 한정해 viewport 단위 snap scroll 활성화.
+ * 다른 페이지로 이동하면 클래스를 제거해 일반 흐름 스크롤로 복귀.
+ */
+function useLandingSnap() {
+  useEffect(() => {
+    document.documentElement.classList.add("landing-snap");
+    return () => document.documentElement.classList.remove("landing-snap");
+  }, []);
+}
+
+/**
  * 랜딩 페이지 — 행정 신뢰형 톤 (정부24·복지로·GOV.UK 참고).
  *
  * 결정 사항:
@@ -75,6 +86,7 @@ function Typewriter() {
 }
 
 export default function LandingPage() {
+  useLandingSnap();
   return (
     <>
       <Hero />
@@ -89,23 +101,21 @@ function Hero() {
     <section className="snap-section border-b border-hairline min-h-[calc(100vh-3.5rem)] flex items-center">
       <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:items-center w-full">
         {/* 좌: 카피 + CTA */}
-        <div className="lg:col-span-7">
-          <p className="inline-flex items-center gap-2 border-l-2 border-primary pl-3 text-caption font-bold tracking-wider text-primary">
-            행정문서 쉬운말 변환기
-          </p>
-          <h1 className="mt-5 text-display-lg md:text-display-xl text-ink">
+        <div className="lg:col-span-8">
+          <h1 className="text-display-lg xl:text-display-xl text-ink">
             공문이 어렵다고
             <br />
-            {/* 두 줄 분량의 고정 높이를 미리 잡아둬서 phrase 가 1→2줄로 wrap 될 때
-             *  hero 가 통째로 늘었다 줄었다 하는 jitter 차단. */}
-            <span className="block min-h-[2.4em]">
+            {/* 줄바꿈이 실제로 일어날 가능성이 있는 너비(< xl)에서는 두 줄 분량의 고정 높이로
+             *  hero jitter 차단. xl 이상에서는 좌측 칼럼이 충분히 넓어 wrap 이 거의 없으므로
+             *  1줄 높이만 reserve — 빈 공간이 위아래로 늘어지지 않음. */}
+            <span className="block min-h-[2.4em] xl:min-h-[1.2em]">
               <Typewriter />
             </span>
           </h1>
           <p className="mt-7 text-body-lg text-ink leading-relaxed max-w-2xl">
             어려운 행정문서·공문·약관을 붙여넣으면 <strong>누구나 한 번에
-            이해되는</strong> 한국어로 풀어드립니다. 모든 문장에 원문 출처와 AI
-            검증 신뢰도를 함께 표시합니다.
+            이해되는</strong> 한국어로 풀어드립니다. 모든 문장에 원문 출처와
+            인공지능 검증 신뢰도를 함께 표시합니다.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link href="/convert" className="btn-primary">
@@ -117,8 +127,8 @@ function Hero() {
           </div>
         </div>
 
-        {/* 우: 변환 전후 미리보기 */}
-        <div className="lg:col-span-5">
+        {/* 우: 변환 전후 미리보기 — 좌측 타이핑 텍스트가 wrap 되지 않도록 폭을 좁힘 */}
+        <div className="lg:col-span-4">
           <HeroPreview />
         </div>
       </div>
@@ -192,9 +202,9 @@ function HowItWorks() {
     },
     {
       n: "02",
-      title: "AI 변환",
+      title: "인공지능 변환",
       body:
-        "Upstage Solar Pro 2가 원문 의미를 보존하면서 어려운 표현만 일상 한국어로 바꿉니다.",
+        "Upstage Solar Pro 3가 원문 의미를 보존하면서 어려운 표현만 일상 한국어로 바꿉니다.",
     },
     {
       n: "03",
