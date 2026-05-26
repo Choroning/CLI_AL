@@ -8,7 +8,11 @@ import {
   postRewrite,
   type RewriteResponse,
 } from "@/lib/api";
-import { CitationsPanel, RewriteText } from "@/components/RewriteText";
+import {
+  CitationsPanel,
+  RewriteSearch,
+  RewriteText,
+} from "@/components/RewriteText";
 import { GlossaryList } from "@/components/GlossaryList";
 import { KeyInfoCards } from "@/components/KeyInfoCards";
 import { Checklist } from "@/components/Checklist";
@@ -348,6 +352,25 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
 
+  // 본문 검색 상태 — 입력은 RewriteSearch (Section right slot), 적용은 RewriteText.
+  const [query, setQuery] = useState("");
+  const [activeMatch, setActiveMatch] = useState(1);
+  const [matchCount, setMatchCount] = useState(0);
+
+  // query 변경 시 항상 첫 매치로 리셋. 결과 자체 변경 시도 동일.
+  useEffect(() => {
+    setActiveMatch(1);
+  }, [query, result]);
+
+  function gotoPrev() {
+    if (matchCount === 0) return;
+    setActiveMatch((cur) => (cur <= 1 ? matchCount : cur - 1));
+  }
+  function gotoNext() {
+    if (matchCount === 0) return;
+    setActiveMatch((cur) => (cur >= matchCount ? 1 : cur + 1));
+  }
+
   useEffect(() => {
     const L = leftRef.current;
     const R = rightRef.current;
@@ -406,13 +429,30 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
   // 시각적 일관성 유지 — 쉬운말 재작성(메인) 7, 출처 인용(보조) 3.
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
-      <Section title="쉬운말 재작성" accent className="lg:col-span-7">
+      <Section
+        title="쉬운말 재작성"
+        accent
+        className="lg:col-span-7"
+        right={
+          <RewriteSearch
+            query={query}
+            setQuery={setQuery}
+            matchCount={matchCount}
+            activeMatch={activeMatch}
+            onPrev={gotoPrev}
+            onNext={gotoNext}
+          />
+        }
+      >
         <div ref={leftRef} className="max-h-[32vh] overflow-y-auto pr-2">
           <RewriteText
             text={result.rewrite}
             citations={result.citations}
             glossary={result.glossary}
             hideCitations
+            query={query}
+            activeMatch={activeMatch}
+            onMatchesChange={setMatchCount}
           />
         </div>
       </Section>

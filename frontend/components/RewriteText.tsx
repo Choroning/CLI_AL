@@ -19,6 +19,9 @@ export function RewriteText({
   citations,
   glossary,
   hideCitations = false,
+  query = "",
+  activeMatch = 0,
+  onMatchesChange,
 }: {
   text: string;
   citations: string[];
@@ -26,6 +29,12 @@ export function RewriteText({
   /* true 면 본문만 렌더. 출처 인용 리스트는 부모가 <CitationsPanel /> 로 따로
    * 배치할 때 사용 (예: convert 결과 페이지의 쉬운말 | 출처 2-col 구조). */
   hideCitations?: boolean;
+  /* 본문 내 검색 — query 가 있으면 매치를 <mark> 로 하이라이트, activeMatch
+   * (1-based) 가 가리키는 매치는 강조 + 자동 scrollIntoView. matchCount 는
+   * 콜백으로 부모(검색 UI) 에 전달 — 부모가 카운트/현재위치를 표시. */
+  query?: string;
+  activeMatch?: number;
+  onMatchesChange?: (count: number) => void;
 }) {
   const [active, setActive] = useState<number | null>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -35,10 +44,15 @@ export function RewriteText({
     left: number;
   } | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
-  const tokens = useMemo(
+  const baseTokens = useMemo(
     () => tokenize(text, (glossary ?? []).map((g) => g.term)),
     [text, glossary]
+  );
+  const { tokens, matchCount } = useMemo(
+    () => applySearchMatch(baseTokens, query),
+    [baseTokens, query]
   );
   const glossaryByTerm = useMemo(() => {
     const m = new Map<string, GlossaryTerm>();
@@ -47,6 +61,22 @@ export function RewriteText({
   }, [glossary]);
 
   const segments = useMemo(() => groupBySegment(tokens), [tokens]);
+
+  // 매치 카운트를 부모(검색 UI) 에 전달.
+  useEffect(() => {
+    onMatchesChange?.(matchCount);
+  }, [matchCount, onMatchesChange]);
+
+  // activeMatch 가 바뀌면 해당 <mark> 으로 스크롤.
+  useEffect(() => {
+    if (!query.trim() || activeMatch < 1 || matchCount === 0) return;
+    const root = contentRef.current;
+    if (!root) return;
+    const el = root.querySelector<HTMLElement>(
+      `[data-search-match="${activeMatch}"]`,
+    );
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [activeMatch, query, matchCount]);
 
   const previewIndex = hover ?? active;
   const preview =
@@ -71,12 +101,32 @@ export function RewriteText({
        *  있도록 본문 자체에서는 스크롤을 잡지 않는다. hideCitations 일 때만 본문
        *  단독 사용으로 가정 — 내부 스크롤이 추가되면 이중 스크롤바가 생김. */}
       <div>
-        <div className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
+        <div
+          ref={contentRef}
+          className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap"
+        >
           {segments.map((seg, si) => (
             <p key={si} className="mb-3 last:mb-0">
               {seg.children.map((t, i) => {
                 if (t.kind === "text") {
                   return <Bionic key={i} text={t.value} />;
+                }
+                if (t.kind === "match") {
+                  const isActive = activeMatch === t.matchIndex;
+                  return (
+                    <mark
+                      key={i}
+                      data-search-match={t.matchIndex}
+                      className={cn(
+                        "rounded-xs px-0.5 -mx-0.5",
+                        isActive
+                          ? "bg-primary text-primary-on ring-1 ring-primary"
+                          : "bg-primary/15 text-ink ring-1 ring-primary/30"
+                      )}
+                    >
+                      <Bionic text={t.value} />
+                    </mark>
+                  );
                 }
                 if (t.kind === "term") {
                   return (
@@ -175,6 +225,140 @@ export function RewriteText({
             </ol>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * 본문 내 검색 — Section 의 right slot 에 배치되는 컨트롤.
+ *   - 입력창 (placeholder "본문 검색")
+ *   - 매치 카운트 (n/m 또는 "0건")
+ *   - 이전/다음 점프 (Enter/Shift+Enter 단축키 동일)
+ *   - 닫기 (Esc 단축키 동일)
+ * RewriteText 의 query/activeMatch/onMatchesChange props 와 연동.
+ */
+export function RewriteSearch({
+  query,
+  setQuery,
+  matchCount,
+  activeMatch,
+  onPrev,
+  onNext,
+}: {
+  query: string;
+  setQuery: (q: string) => void;
+  matchCount: number;
+  activeMatch: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (e.shiftKey) onPrev();
+      else onNext();
+    } else if (e.key === "Escape") {
+      setQuery("");
+    }
+  }
+  const hasQuery = query.trim().length > 0;
+  return (
+    <div className="flex items-center gap-1 text-caption text-ink">
+      <div className="relative">
+        <span
+          className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-subtle pointer-events-none"
+          aria-hidden
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        </span>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="본문 검색"
+          aria-label="쉬운말 본문에서 검색"
+          className="w-40 rounded-sm bg-canvas ring-1 ring-hairline pl-7 pr-2 py-1 text-caption text-ink placeholder:text-ink-subtle focus:outline-none focus:ring-2 focus:ring-ink transition-shadow"
+        />
+      </div>
+      {hasQuery && (
+        <>
+          <span className="tabular-nums text-ink-subtle min-w-[2.5rem] text-center">
+            {matchCount === 0 ? "0건" : `${activeMatch}/${matchCount}`}
+          </span>
+          <button
+            type="button"
+            onClick={onPrev}
+            disabled={matchCount === 0}
+            aria-label="이전 결과"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-sm ring-1 ring-hairline text-ink hover:bg-surface-1 hover:ring-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={matchCount === 0}
+            aria-label="다음 결과"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-sm ring-1 ring-hairline text-ink hover:bg-surface-1 hover:ring-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="검색 닫기"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-sm text-ink-muted hover:bg-surface-1 hover:text-ink transition-colors"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </>
       )}
     </div>
   );
@@ -314,9 +498,59 @@ function CitationChip({ n, active }: { n: number; active?: boolean }) {
 type Token =
   | { kind: "text"; value: string }
   | { kind: "marker"; index: number }
-  | { kind: "term"; value: string };
+  | { kind: "term"; value: string }
+  | { kind: "match"; value: string; matchIndex: number };
 
 const REGEX_META = /[.*+?^${}()|[\]\\]/g;
+
+/**
+ * tokenize 결과의 text 토큰 안에서 query 매치를 찾아 별도 match 토큰으로 분리.
+ *   - 대소문자 무시 (한글엔 영향 없음)
+ *   - term/marker 토큰은 그대로 (term 안 매치는 의도적으로 무시 — 행정 도메인에서
+ *     검색어가 어려운 용어 자체일 가능성이 낮고, 토큰 split 시 메타 정보가 깨짐)
+ *   - 매치마다 1-based matchIndex 부여 — 점프/카운트 표시용
+ */
+function applySearchMatch(
+  tokens: Token[],
+  query: string,
+): { tokens: Token[]; matchCount: number } {
+  const q = query.trim();
+  if (!q) return { tokens, matchCount: 0 };
+  const needle = q.toLowerCase();
+  let counter = 0;
+  const out: Token[] = [];
+  for (const t of tokens) {
+    if (t.kind !== "text") {
+      out.push(t);
+      continue;
+    }
+    const text = t.value;
+    const haystack = text.toLowerCase();
+    let cursor = 0;
+    let idx = haystack.indexOf(needle, cursor);
+    if (idx === -1) {
+      out.push(t);
+      continue;
+    }
+    while (idx !== -1) {
+      if (idx > cursor) {
+        out.push({ kind: "text", value: text.slice(cursor, idx) });
+      }
+      counter++;
+      out.push({
+        kind: "match",
+        value: text.slice(idx, idx + needle.length),
+        matchIndex: counter,
+      });
+      cursor = idx + needle.length;
+      idx = haystack.indexOf(needle, cursor);
+    }
+    if (cursor < text.length) {
+      out.push({ kind: "text", value: text.slice(cursor) });
+    }
+  }
+  return { tokens: out, matchCount: counter };
+}
 
 function tokenize(text: string, terms: string[]): Token[] {
   const sorted = terms.filter((t) => t && t.trim().length > 0).sort((a, b) => b.length - a.length);
