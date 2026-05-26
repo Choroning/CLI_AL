@@ -299,11 +299,16 @@ function ConvertPageInner() {
       </section>
 
       {result && (
+        // 결과 섹션은 snap-section 에서 의도적으로 제외 + min-h 제거 —
+        // 내부에 ResultView (재작성/인용/꼭알아야할정보/어려운말풀이/해야할일 등)
+        // 가 길어 한 viewport 에 다 안 들어가므로 snap 이 위로 잡아당기면
+        // 아래 내용을 못 봄. 결과 영역 안에선 자유 스크롤, 결과 ↔ 입력 사이는
+        // 입력 섹션의 snap-section 클래스만으로 충분히 부드럽게 작동.
         <section
           ref={resultRef}
-          className="snap-section min-h-[calc(100dvh-5rem)] flex flex-col bg-surface-1"
+          className="flex flex-col bg-surface-1"
         >
-          <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col min-h-0">
+          <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col">
             <ResultView result={result} original={text} />
           </div>
         </section>
@@ -345,53 +350,51 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
     const R = rightRef.current;
     if (!L || !R) return;
 
+    // 비율 기반 동기화 — 재작성 50% 내리면 인용도 50%, 끝까지 내리면 끝.
+    // 마커 위치 기반 점프(=항목 단위 이동)가 아니라 progress 1:1 대응이라
+    // 사용자가 본문 어디 있든 인용 패널이 같은 비율로 따라옴.
     let raf: number | null = null;
-    let lastCurrent = -1;
-    function update() {
+    let syncing = false; // R → L 역방향 sync 중일 때 L → R 재발화 차단
+    function syncFromLeft() {
       raf = null;
-      if (!L || !R) return;
-      const markers = Array.from(
-        L.querySelectorAll<HTMLElement>("[data-citation-n]")
-      );
-      if (markers.length === 0) return;
-      const lTop = L.getBoundingClientRect().top;
-      // 컨테이너 상단 기준(아래로 8px 여유) 이하에 첫 등장하는 마커를 선택.
-      // = 사용자가 본문에서 보고 있는 가장 위쪽 마커.
-      let current: number | null = null;
-      for (const m of markers) {
-        if (m.getBoundingClientRect().top >= lTop - 8) {
-          current = Number(m.dataset.citationN);
-          break;
-        }
-      }
-      // 모든 마커가 상단 위로 스쳐 지나간 상태 → 마지막 항목으로 정렬.
-      if (current === null) {
-        current = Number(markers[markers.length - 1].dataset.citationN);
-      }
-      if (current === lastCurrent) return;
-      lastCurrent = current;
-      const item = R.querySelector<HTMLElement>(
-        `[data-citation-item="${current}"]`
-      );
-      if (!item) return;
-      // rect-based 계산 — offsetParent 가 어디든 정확. 오른쪽 컨테이너 top 과
-      // 항목 top 차이만큼 현재 scrollTop 에 가산. 끝/처음 위치도 브라우저가
-      // 자동으로 clamp 하므로 추가 처리 불필요.
-      const rRect = R.getBoundingClientRect();
-      const itemRect = item.getBoundingClientRect();
-      const target = R.scrollTop + (itemRect.top - rRect.top);
-      R.scrollTo({ top: target, behavior: "smooth" });
+      if (!L || !R || syncing) return;
+      const lMax = L.scrollHeight - L.clientHeight;
+      const rMax = R.scrollHeight - R.clientHeight;
+      if (lMax <= 0 || rMax <= 0) return;
+      const progress = Math.min(1, Math.max(0, L.scrollTop / lMax));
+      syncing = true;
+      R.scrollTop = progress * rMax;
+      // 다음 프레임에 release — 그 사이 발생한 R scroll 이벤트는 동기화로 인식.
+      requestAnimationFrame(() => {
+        syncing = false;
+      });
     }
-    function onScroll() {
+    function syncFromRight() {
+      if (!L || !R || syncing) return;
+      const lMax = L.scrollHeight - L.clientHeight;
+      const rMax = R.scrollHeight - R.clientHeight;
+      if (lMax <= 0 || rMax <= 0) return;
+      const progress = Math.min(1, Math.max(0, R.scrollTop / rMax));
+      syncing = true;
+      L.scrollTop = progress * lMax;
+      requestAnimationFrame(() => {
+        syncing = false;
+      });
+    }
+    function onLeftScroll() {
       if (raf != null) return;
-      raf = requestAnimationFrame(update);
+      raf = requestAnimationFrame(syncFromLeft);
     }
-    L.addEventListener("scroll", onScroll, { passive: true });
-    // 초기 마운트 직후 한 번 동기화 — 새 결과가 떴을 때 오른쪽 패널이 잘못된
-    // 이전 스크롤 위치에 머무는 것을 방지.
-    update();
+    function onRightScroll() {
+      syncFromRight();
+    }
+    L.addEventListener("scroll", onLeftScroll, { passive: true });
+    R.addEventListener("scroll", onRightScroll, { passive: true });
+    // 새 결과 마운트 직후 정렬 — 이전 스크롤 위치 잔재 제거.
+    R.scrollTop = 0;
     return () => {
-      L.removeEventListener("scroll", onScroll);
+      L.removeEventListener("scroll", onLeftScroll);
+      R.removeEventListener("scroll", onRightScroll);
       if (raf != null) cancelAnimationFrame(raf);
     };
   }, [result]);
