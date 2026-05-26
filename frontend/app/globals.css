@@ -131,11 +131,15 @@
    * 헤더 / scroll-padding / section min-h 모두 rem 기반이라 글자 크기 토글
    * (size-l/size-xl) 변경 시에도 동일한 비율로 함께 스케일됨. */
   html.landing-snap,
-  html.landing-snap body {
+  html.convert-snap,
+  html.landing-snap body,
+  html.convert-snap body {
     scroll-snap-type: y mandatory;
   }
-  html.landing-snap { scroll-padding-top: 3.5rem; }
-  html.landing-snap .snap-section {
+  html.landing-snap,
+  html.convert-snap { scroll-padding-top: 3.5rem; }
+  html.landing-snap .snap-section,
+  html.convert-snap .snap-section {
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
@@ -155,7 +159,10 @@
   /* 극단적으로 짧은 viewport(가로 모바일 등) 에서는 mandatory 가 섹션 내 스크롤을
    * 잠그므로 proximity 로 전환해 자연 스크롤 우선. snap 자체는 유지. */
   @media (max-height: 560px) {
-    html.landing-snap, html.landing-snap body { scroll-snap-type: y proximity; }
+    html.landing-snap, html.convert-snap,
+    html.landing-snap body, html.convert-snap body {
+      scroll-snap-type: y proximity;
+    }
     .section-pad { padding-top: 1rem; padding-bottom: 1rem; }
   }
 

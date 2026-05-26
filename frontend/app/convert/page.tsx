@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import {
   getHistoryDetail,
   postParse,
@@ -60,6 +60,25 @@ function ConvertPageInner() {
   const [result, setResult] = useState<RewriteResponse | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoredAt, setRestoredAt] = useState<string | null>(null);
+  const resultRef = useRef<HTMLElement>(null);
+
+  /* 결과가 나타나면 html 에 convert-snap 클래스를 붙여 입력 페이지 ↔ 결과
+   * 페이지 간 snap scroll 을 활성화하고, 결과 섹션으로 부드럽게 이동. 결과를
+   * 비우거나(언마운트) 다시 입력으로 돌아오면 클래스 제거. */
+  useEffect(() => {
+    if (!result) {
+      document.documentElement.classList.remove("convert-snap");
+      return;
+    }
+    document.documentElement.classList.add("convert-snap");
+    const t = setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+    return () => {
+      clearTimeout(t);
+      document.documentElement.classList.remove("convert-snap");
+    };
+  }, [result]);
 
   // 이력에서 진입(?id=) — 해당 변환 결과를 그대로 복원한다.
   useEffect(() => {
@@ -127,118 +146,129 @@ function ConvertPageInner() {
   }
 
   return (
-    <div className="mx-auto max-w-content px-6 py-12 space-y-12">
-      <header data-print="hide">
-        <p className="eyebrow mb-3">변환</p>
-        <h1 className="text-display-md text-ink">원문 입력</h1>
-        <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
-          변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
-        </p>
-      </header>
-
-      {restoring && (
-        <div
-          className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse"
-          data-print="hide"
-        >
-          이력에서 결과를 불러오는 중…
-        </div>
-      )}
-
-      {restoredAt && !restoring && (
-        <div
-          className="rounded-md border-l-2 border-primary bg-surface-1 px-4 py-3 text-body-sm text-ink-muted"
-          data-print="hide"
-        >
-          <span className="font-bold text-ink mr-2">이력 복원</span>
-          {formatStamp(restoredAt)} 변환 결과를 불러왔습니다. 새로 변환하려면 원문을
-          수정 후 “쉬운말로 변환하기”를 눌러 주세요.
-        </div>
-      )}
-
-      <form id="convert-form" onSubmit={onSubmit} className="space-y-5" data-print="hide">
-        <section className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-stretch">
-          <div className="lg:col-span-3 flex flex-col gap-3">
-            <h2 className="text-body font-medium text-ink-muted">① 파일에서 가져오기</h2>
-            <Dropzone onFile={onFile} disabled={parsing || loading} className="flex-1" />
-            {parsing && (
-              <div className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse">
-                문서를 분석하고 있습니다…
-              </div>
-            )}
-          </div>
-
-          <div className="lg:col-span-7 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h2 id="text-pane-heading" className="text-body font-medium text-ink-muted">
-                ② 원문 텍스트
-              </h2>
-              <span className="text-caption text-ink-subtle font-mono">
-                {text.length.toLocaleString()} / 20,000
-              </span>
-            </div>
-            <textarea
-              id="src"
-              aria-labelledby="text-pane-heading"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
-              className="input flex-1 min-h-[420px] resize-none text-body leading-relaxed text-ink"
-              maxLength={20000}
-            />
-            <p className="text-caption text-ink-subtle">
-              개인정보(주민번호, 계좌번호 등)는 사전에 가려서 입력해 주세요.
+    <>
+      <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
+        <div className="section-pad mx-auto max-w-content w-full px-6 space-y-8">
+          <header data-print="hide">
+            <p className="eyebrow mb-3">변환</p>
+            <h1 className="text-display-md text-ink">원문 입력</h1>
+            <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
+              변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
             </p>
-            {/* 원문 칸 바로 아래 — 예시 채우기 / 변환 버튼 */}
-            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => setText(SAMPLE)}
-                className="btn-secondary"
-              >
-                예시 입력 채우기
-              </button>
-              <button
-                type="submit"
-                disabled={loading || !text.trim()}
-                className="btn-primary"
-              >
-                {loading ? "변환 중…" : "쉬운말로 변환하기"}
-              </button>
+          </header>
+
+          {restoring && (
+            <div
+              className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse"
+              data-print="hide"
+            >
+              이력에서 결과를 불러오는 중…
             </div>
+          )}
+
+          {restoredAt && !restoring && (
+            <div
+              className="rounded-md border-l-2 border-primary bg-surface-1 px-4 py-3 text-body-sm text-ink-muted"
+              data-print="hide"
+            >
+              <span className="font-bold text-ink mr-2">이력 복원</span>
+              {formatStamp(restoredAt)} 변환 결과를 불러왔습니다. 새로 변환하려면 원문을
+              수정 후 “쉬운말로 변환하기”를 눌러 주세요.
+            </div>
+          )}
+
+          <form id="convert-form" onSubmit={onSubmit} className="space-y-5" data-print="hide">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-stretch">
+              <div className="lg:col-span-3 flex flex-col gap-3">
+                <h2 className="text-body font-medium text-ink-muted">① 파일에서 가져오기</h2>
+                <Dropzone onFile={onFile} disabled={parsing || loading} className="flex-1" />
+                {parsing && (
+                  <div className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse">
+                    문서를 분석하고 있습니다…
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-7 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h2 id="text-pane-heading" className="text-body font-medium text-ink-muted">
+                    ② 원문 텍스트
+                  </h2>
+                  <span className="text-caption text-ink-subtle font-mono">
+                    {text.length.toLocaleString()} / 20,000
+                  </span>
+                </div>
+                <textarea
+                  id="src"
+                  aria-labelledby="text-pane-heading"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
+                  className="input flex-1 min-h-[320px] resize-none text-body leading-relaxed text-ink"
+                  maxLength={20000}
+                />
+                <p className="text-caption text-ink-subtle">
+                  개인정보(주민번호, 계좌번호 등)는 사전에 가려서 입력해 주세요.
+                </p>
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setText(SAMPLE)}
+                    className="btn-secondary"
+                  >
+                    예시 입력 채우기
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || !text.trim()}
+                    className="btn-primary"
+                  >
+                    {loading ? "변환 중…" : "쉬운말로 변환하기"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          {error && (
+            <div
+              role="alert"
+              className="rounded-md bg-surface-1 ring-1 ring-hairline-strong px-4 py-3 text-body-sm text-ink"
+              data-print="hide"
+            >
+              <span className="font-mono mr-2 text-primary">!</span>
+              {error}
+            </div>
+          )}
+
+          {loading && (
+            <div
+              className="rounded-md bg-surface-1 ring-1 ring-hairline p-6 flex items-center gap-3 text-body text-ink"
+              role="status"
+              aria-live="polite"
+              data-print="hide"
+            >
+              <svg aria-hidden className="h-5 w-5 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+                <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+              <span>변환 중입니다. 잠시만 기다려 주세요.</span>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {result && (
+        <section
+          ref={resultRef}
+          className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1"
+        >
+          <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col min-h-0">
+            <ResultView result={result} original={text} />
           </div>
         </section>
-
-      </form>
-
-      {error && (
-        <div
-          role="alert"
-          className="rounded-md bg-surface-1 ring-1 ring-hairline-strong px-4 py-3 text-body-sm text-ink"
-          data-print="hide"
-        >
-          <span className="font-mono mr-2 text-primary">!</span>
-          {error}
-        </div>
       )}
-
-      {loading && (
-        <div
-          className="rounded-md bg-surface-1 ring-1 ring-hairline p-6 flex items-center gap-3 text-body text-ink"
-          role="status"
-          aria-live="polite"
-          data-print="hide"
-        >
-          <svg aria-hidden className="h-5 w-5 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-            <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-          </svg>
-          <span>변환 중입니다. 잠시만 기다려 주세요.</span>
-        </div>
-      )}
-
-      {result && <ResultView result={result} original={text} />}
-    </div>
+    </>
   );
 }
 
@@ -257,15 +287,18 @@ function ResultView({
   result: RewriteResponse;
   original: string;
 }) {
+  /* snap-section 한 viewport(=100dvh-3.5rem) 안에 컨텐츠를 모두 들이는 컴팩트
+   * 레이아웃. 텍스트가 길어질 수 있는 패널(원문, 쉬운말, 어려운 말 풀이, 해야
+   * 할 일)에는 max-h + overflow-y-auto 로 자체 스크롤바가 보이도록 함. */
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-5 flex-1 min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="eyebrow mb-2 !text-primary">변환 결과</p>
+          <p className="eyebrow mb-1 !text-primary">변환 결과</p>
           <h2 className="text-headline text-ink">읽기 쉬운 버전</h2>
           {typeof result.preservation_ratio === "number" && (
             <p
-              className="mt-3 inline-flex items-baseline gap-2 border-l-2 border-primary pl-3 text-body-sm text-ink-muted"
+              className="mt-2 inline-flex items-baseline gap-2 border-l-2 border-primary pl-3 text-body-sm text-ink-muted"
               title="LCS(Longest Common Subsequence) 기반 단어 일치율"
             >
               <span className="text-caption font-bold tracking-wider text-primary">
@@ -284,49 +317,53 @@ function ResultView({
 
       {result.summary && (
         <aside
-          className="rounded-md border-l-2 border-primary bg-surface-1 px-5 py-4"
+          className="rounded-md border-l-2 border-primary bg-canvas px-5 py-3"
           aria-label="한 줄 요약"
         >
-          <p className="text-caption font-bold tracking-wider text-primary mb-1.5">
+          <p className="text-caption font-bold tracking-wider text-primary mb-1">
             한 줄 요약
           </p>
-          <p className="text-body-lg text-ink leading-relaxed">{result.summary}</p>
+          <p className="text-body text-ink leading-relaxed">{result.summary}</p>
         </aside>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Section title="원문">
-          {/* lg 이상: 옆 재작성 카드와 같은 행 높이로 stretch 되어야 하므로 absolute inset-0.
-           *   lg 미만(stack): 부모 행이 0 높이로 무너져 원문이 안 보이는 이슈 → 자연 block 으로
-           *   자기 높이만큼 차지하고, 너무 길어지면 max-h 로만 제한. */}
-          <div className="lg:absolute lg:inset-0 max-h-[60vh] lg:max-h-none overflow-y-auto pr-2">
+          <div className="max-h-[32vh] overflow-y-auto pr-2">
             <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
               {original}
             </p>
           </div>
         </Section>
         <Section title="쉬운말 재작성" accent>
-          <RewriteText
-            text={result.rewrite}
-            citations={result.citations}
-            glossary={result.glossary}
-          />
+          <div className="max-h-[32vh] overflow-y-auto pr-2">
+            <RewriteText
+              text={result.rewrite}
+              citations={result.citations}
+              glossary={result.glossary}
+            />
+          </div>
         </Section>
       </div>
 
       <Section title="꼭 알아야 할 정보">
-        <KeyInfoCards items={result.key_info} />
+        <div className="max-h-[18vh] overflow-y-auto pr-2">
+          <KeyInfoCards items={result.key_info} />
+        </div>
       </Section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Section title="어려운 말 풀이">
-          <GlossaryList items={result.glossary} />
+          <div className="max-h-[22vh] overflow-y-auto pr-2">
+            <GlossaryList items={result.glossary} />
+          </div>
         </Section>
         <Section title="해야 할 일">
-          <Checklist items={result.checklist} />
+          <div className="max-h-[22vh] overflow-y-auto pr-2">
+            <Checklist items={result.checklist} />
+          </div>
         </Section>
       </div>
-
     </div>
   );
 }
