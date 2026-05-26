@@ -23,7 +23,9 @@ export function KeyInfoCards({ items }: { items: KeyInfoItem[] }) {
           <div className="space-y-2">
             <p className="text-body text-ink leading-relaxed">{k.content}</p>
             {(k.deadline || k.amount || k.contact) && (
-              <dl className="flex flex-wrap gap-x-6 gap-y-1 text-body-sm">
+              // 글자 크기 토글(size-l/size-xl) 영향에서 분리 — 메타 정보는
+              // 본문이 커져도 동일한 크기로 유지해 위계가 깨지지 않게 함.
+              <dl className="flex flex-wrap gap-x-6 gap-y-1 text-[15px] leading-[1.5]">
                 {k.deadline && <Field label="기한" value={k.deadline} />}
                 {k.amount && <Field label="금액" value={k.amount} />}
                 {k.contact && <Field label="연락처" value={k.contact} />}
@@ -39,7 +41,7 @@ export function KeyInfoCards({ items }: { items: KeyInfoItem[] }) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-2">
-      <dt className="text-caption text-ink-subtle">{label}</dt>
+      <dt className="text-[13px] text-ink-subtle">{label}</dt>
       <dd className="text-ink font-medium break-keep">{value}</dd>
     </div>
   );
