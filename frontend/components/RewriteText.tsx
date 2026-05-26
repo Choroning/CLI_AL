@@ -203,10 +203,17 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
             <li
               key={num}
               data-citation-item={num}
-              className="px-4 py-3 text-body-sm text-ink bg-surface-1 flex items-start gap-1"
+              // 좁은 컬럼(col-span-3)에서 텍스트가 찌그러지지 않도록 처리:
+              //   - 폰트 text-body-sm → text-caption (좁은 박스에서 적정 크기)
+              //   - li 에 min-w-0 으로 flex 자식이 부모 폭을 넘지 못하게
+              //   - span 도 min-w-0 + flex-1 + overflow-wrap anywhere 로 한글
+              //     keep-all 환경에서도 폭 초과 어절은 줄바꿈되도록 안전망
+              className="px-3 py-3 text-caption text-ink bg-surface-1 flex items-start gap-2 min-w-0"
             >
               <CitationChip n={num} />
-              <span>{c}</span>
+              <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                {c}
+              </span>
             </li>
           );
         })}
