@@ -19,10 +19,14 @@ export function RewriteText({
   text,
   citations,
   glossary,
+  hideCitations = false,
 }: {
   text: string;
   citations: string[];
   glossary?: GlossaryTerm[];
+  /* true 면 본문만 렌더. 출처 인용 리스트는 부모가 <CitationsPanel /> 로 따로
+   * 배치할 때 사용 (예: convert 결과 페이지의 쉬운말 | 출처 2-col 구조). */
+  hideCitations?: boolean;
 }) {
   const [active, setActive] = useState<number | null>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -139,7 +143,7 @@ export function RewriteText({
         />
       )}
 
-      {citations.length > 0 && (
+      {!hideCitations && citations.length > 0 && (
         <div className="border-t border-hairline pt-4">
           <div className="mb-2 flex items-baseline justify-between">
             <p className="text-body-sm font-medium text-ink-muted">출처 인용</p>
@@ -171,6 +175,41 @@ export function RewriteText({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * 출처 인용 독립 패널 — convert 결과의 쉬운말 옆 column 에 단독 배치할 때 사용.
+ * 본문(RewriteText) 와 상태 공유는 하지 않는다 (간단 정적 리스트).
+ */
+export function CitationsPanel({ citations }: { citations: string[] }) {
+  if (citations.length === 0) {
+    return (
+      <p className="text-body-sm text-ink-subtle">
+        표시할 출처 인용이 없습니다.
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-caption text-ink-subtle">
+        본문에서 [숫자]로 표시된 마커가 가리키는 원문 인용입니다.
+      </p>
+      <ol className="rounded-md ring-1 ring-hairline divide-y divide-hairline overflow-hidden">
+        {citations.map((c, idx) => {
+          const num = idx + 1;
+          return (
+            <li
+              key={num}
+              className="px-4 py-3 text-body-sm text-ink bg-surface-1 flex items-start gap-1"
+            >
+              <CitationChip n={num} />
+              <span>{c}</span>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

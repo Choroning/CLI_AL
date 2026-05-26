@@ -8,7 +8,7 @@ import {
   postRewrite,
   type RewriteResponse,
 } from "@/lib/api";
-import { RewriteText } from "@/components/RewriteText";
+import { CitationsPanel, RewriteText } from "@/components/RewriteText";
 import { GlossaryList } from "@/components/GlossaryList";
 import { KeyInfoCards } from "@/components/KeyInfoCards";
 import { Checklist } from "@/components/Checklist";
@@ -216,7 +216,7 @@ function ConvertPageInner() {
                     onClick={() => setText(SAMPLE)}
                     className="btn-secondary"
                   >
-                    예시 입력 채우기
+                    예시 보기
                   </button>
                   <button
                     type="submit"
@@ -327,21 +327,22 @@ function ResultView({
         </aside>
       )}
 
+      {/* 원문 패널은 제거 — 입력 페이지에서 위로 스크롤하면 보임. 대신 쉬운말
+       *  재작성을 왼쪽으로 옮기고, 출처 인용을 오른쪽 독립 패널로 분리. */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Section title="원문">
-          <div className="max-h-[32vh] overflow-y-auto pr-2">
-            <p className="text-body leading-relaxed text-ink whitespace-pre-wrap">
-              {original}
-            </p>
-          </div>
-        </Section>
         <Section title="쉬운말 재작성" accent>
           <div className="max-h-[32vh] overflow-y-auto pr-2">
             <RewriteText
               text={result.rewrite}
               citations={result.citations}
               glossary={result.glossary}
+              hideCitations
             />
+          </div>
+        </Section>
+        <Section title="출처 인용">
+          <div className="max-h-[32vh] overflow-y-auto pr-2">
+            <CitationsPanel citations={result.citations} />
           </div>
         </Section>
       </div>
