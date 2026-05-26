@@ -150,7 +150,6 @@ function ConvertPageInner() {
       <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
         <div className="section-pad mx-auto max-w-content w-full px-6 space-y-8">
           <header data-print="hide">
-            <p className="eyebrow mb-3">변환</p>
             <h1 className="text-display-md text-ink">원문 입력</h1>
             <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
               변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
@@ -204,16 +203,47 @@ function ConvertPageInner() {
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
-                  className="input min-h-[320px] resize-none text-body leading-relaxed text-ink"
+                  className="input min-h-[400px] resize-none text-body leading-relaxed text-ink"
                   maxLength={20000}
                 />
                 <p className="text-caption text-ink-subtle text-right">
                   개인정보는 삭제 후 입력해주세요.
                 </p>
                 <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                  {loading && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="flex-1 min-h-[44px] rounded-sm bg-surface-1 ring-1 ring-hairline px-5 flex items-center gap-3 text-body text-ink"
+                    >
+                      <svg
+                        aria-hidden
+                        className="h-5 w-5 shrink-0 animate-spin text-primary"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeOpacity="0.25"
+                          strokeWidth="3"
+                        />
+                        <path
+                          d="M22 12a10 10 0 0 1-10 10"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span>변환 중입니다. 잠시만 기다려 주세요.</span>
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => setText(SAMPLE)}
+                    disabled={loading}
                     className="btn-secondary"
                   >
                     예시 보기
@@ -223,7 +253,7 @@ function ConvertPageInner() {
                     disabled={loading || !text.trim()}
                     className="btn-primary"
                   >
-                    {loading ? "변환 중…" : "쉬운말로 변환하기"}
+                    쉬운말로 변환하기
                   </button>
                 </div>
               </div>
@@ -241,20 +271,6 @@ function ConvertPageInner() {
             </div>
           )}
 
-          {loading && (
-            <div
-              className="rounded-md bg-surface-1 ring-1 ring-hairline p-6 flex items-center gap-3 text-body text-ink"
-              role="status"
-              aria-live="polite"
-              data-print="hide"
-            >
-              <svg aria-hidden className="h-5 w-5 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-                <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-              <span>변환 중입니다. 잠시만 기다려 주세요.</span>
-            </div>
-          )}
         </div>
       </section>
 
