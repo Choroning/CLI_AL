@@ -125,10 +125,9 @@
   .focus-region:not(:hover) p { opacity: 1; }
 
   /* ──────────── 랜딩 — 풀-뷰포트 snap scroll ──────────── */
-  /* 랜딩 페이지에서만 html(viewport scroll container)과 body 양쪽에 snap-type 을
-   * 걸어 브라우저가 어느 쪽을 scroll container 로 잡든 안전하게 동작하도록 한다.
-   * mandatory + scroll-snap-stop: always 로 매 휠/터치마다 다음 섹션에 확실히 정착. */
-  .snap-section { scroll-margin-top: 3.5rem; }
+  /* sticky header(3.5rem) 만큼 scroll-padding-top 으로 viewport snap area 를
+   * 아래로 내림. scroll-margin-top 은 일부러 두지 않는다 — 함께 쓰면 offset 이
+   * 더해져(7rem) 헤더 아래로 이전 섹션의 끝부분이 노출되는 버그가 발생함. */
   html.landing-snap,
   html.landing-snap body {
     scroll-snap-type: y mandatory;
