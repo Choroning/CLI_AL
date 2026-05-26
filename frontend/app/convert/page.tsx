@@ -518,12 +518,12 @@ function ResultView({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Section title="어려운 말 풀이">
-          <div className="max-h-[22vh] overflow-y-auto pr-2">
+          <div className="max-h-[32vh] overflow-y-auto pr-2">
             <GlossaryList items={result.glossary} />
           </div>
         </Section>
         <Section title="해야 할 일">
-          <div className="max-h-[22vh] overflow-y-auto pr-2">
+          <div className="max-h-[32vh] overflow-y-auto pr-2">
             <Checklist items={result.checklist} />
           </div>
         </Section>
