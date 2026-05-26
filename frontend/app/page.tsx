@@ -102,7 +102,7 @@ function Hero() {
       <div className="mx-auto grid max-w-content grid-cols-1 gap-12 px-6 py-16 md:py-20 lg:grid-cols-12 lg:items-center w-full">
         {/* 좌: 카피 + CTA */}
         <div className="lg:col-span-8">
-          <h1 className="text-display-lg xl:text-display-xl text-ink">
+          <h1 className="text-display-lg md:text-display-xl text-ink">
             공문이 어렵다고
             <br />
             {/* 줄바꿈이 실제로 일어날 가능성이 있는 너비(< xl)에서는 두 줄 분량의 고정 높이로

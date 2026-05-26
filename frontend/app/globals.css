@@ -125,13 +125,19 @@
   .focus-region:not(:hover) p { opacity: 1; }
 
   /* ──────────── 랜딩 — 풀-뷰포트 snap scroll ──────────── */
-  /* 일반 흐름 스크롤 + viewport-fit 섹션 구조를 유지하되, 랜딩 페이지에 한해서만
-   * `landing-snap` 클래스를 html 에 추가해 snap scroll 을 켠다. 다른 페이지로
-   * 이동하면 클래스가 해제되어 일반 스크롤 흐름으로 돌아간다.
-   * 'proximity' 로 두어 흡착-잠금감을 줄이고 자연스러운 정착만 유도. */
+  /* 랜딩 페이지에서만 html(viewport scroll container)과 body 양쪽에 snap-type 을
+   * 걸어 브라우저가 어느 쪽을 scroll container 로 잡든 안전하게 동작하도록 한다.
+   * mandatory + scroll-snap-stop: always 로 매 휠/터치마다 다음 섹션에 확실히 정착. */
   .snap-section { scroll-margin-top: 3.5rem; }
-  html.landing-snap { scroll-snap-type: y proximity; scroll-padding-top: 3.5rem; }
-  html.landing-snap .snap-section { scroll-snap-align: start; }
+  html.landing-snap,
+  html.landing-snap body {
+    scroll-snap-type: y mandatory;
+  }
+  html.landing-snap { scroll-padding-top: 3.5rem; }
+  html.landing-snap .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
 
 }
 
