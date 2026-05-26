@@ -7,7 +7,7 @@ import { AppFooter } from "@/components/AppFooter";
 
 export const metadata: Metadata = {
   title: "행정문서 쉬운말 변환기",
-  description: "어려운 행정문서·공문·약관을 쉬운 한국어로. 출처 인용·신뢰도 검증 포함.",
+  description: "어려운 행정문서, 공문, 약관을 쉬운 한국어로. 출처 인용과 신뢰도 검증 포함.",
 };
 
 /**

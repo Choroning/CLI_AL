@@ -113,7 +113,7 @@ function Hero() {
             </span>
           </h1>
           <p className="mt-7 text-body-lg text-ink leading-relaxed max-w-2xl">
-            어려운 행정문서·공문·약관을 붙여넣으면 <strong>누구나 한 번에
+            어려운 행정문서, 공문, 약관을 붙여넣으면 <strong>누구나 한 번에
             이해되는</strong> 한국어로 풀어드립니다. 모든 문장에 원문 출처와
             인공지능 검증 신뢰도를 함께 표시합니다.
           </p>
@@ -198,7 +198,7 @@ function HowItWorks() {
       n: "01",
       title: "원문 입력",
       body:
-        "텍스트를 붙여넣거나 PDF · TXT · DOCX · HWPX 파일을 올립니다. 표·레이아웃은 보존됩니다.",
+        "텍스트를 붙여넣거나 PDF, TXT, DOCX, HWPX 파일을 올립니다. 표와 레이아웃은 보존됩니다.",
     },
     {
       n: "02",

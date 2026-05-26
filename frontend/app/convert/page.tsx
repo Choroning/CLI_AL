@@ -187,7 +187,7 @@ function ConvertPageInner() {
               maxLength={20000}
             />
             <p className="text-caption text-ink-subtle">
-              개인정보(주민번호 · 계좌번호 등)는 사전에 가려서 입력해 주세요.
+              개인정보(주민번호, 계좌번호 등)는 사전에 가려서 입력해 주세요.
             </p>
             {/* 원문 칸 바로 아래 — 예시 채우기 / 변환 버튼 */}
             <div className="flex flex-wrap items-center justify-end gap-2 pt-1">

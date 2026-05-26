@@ -44,7 +44,7 @@ export function Dropzone({
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       /\.(pdf|txt|docx|hwpx)$/i.test(file.name);
     if (!ok) {
-      setError("PDF · TXT · DOCX · HWPX 파일만 업로드할 수 있습니다.");
+      setError("PDF, TXT, DOCX, HWPX 파일만 업로드할 수 있습니다.");
       return;
     }
     onFile(file);
@@ -74,7 +74,7 @@ export function Dropzone({
             inputRef.current?.click();
           }
         }}
-        aria-label="PDF · TXT · DOCX · HWPX 파일 업로드"
+        aria-label="PDF, TXT, DOCX, HWPX 파일 업로드"
         className={cn(
           "flex-1 min-h-[420px] grid place-items-center text-center cursor-pointer select-none transition-colors",
           "rounded-lg p-8 ring-1 ring-dashed",

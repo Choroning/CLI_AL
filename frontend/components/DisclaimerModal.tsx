@@ -44,12 +44,12 @@ export function DisclaimerModal() {
         <h2 id="disclaimer-title" className="text-card-title text-ink">
           이용 전 꼭 확인해주세요
         </h2>
-        <div className="mt-5 space-y-4 text-body leading-relaxed text-ink">
+        <div className="mt-5 space-y-4 text-body leading-relaxed text-ink text-justify">
           <p>
-            본 서비스는 행정문서·공문·약관을 더 쉽게 읽도록 돕는{" "}
+            본 서비스는 행정문서, 공문, 약관을 더 쉽게 읽도록 돕는{" "}
             <strong className="font-semibold">참고용 도구</strong>입니다. 변환 결과는
-            법적 효력이 없으며, 실제 권리·의무·기한은 반드시{" "}
-            <strong className="font-semibold">원문 또는 발급 기관·전문가</strong>를 통해
+            법적 효력이 없으며, 실제 권리, 의무, 기한은 반드시{" "}
+            <strong className="font-semibold">원문 또는 발급 기관이나 전문가</strong>를 통해
             확인해 주세요.
           </p>
           <p>
@@ -57,7 +57,7 @@ export function DisclaimerModal() {
             있습니다. 결과 화면의 신뢰도 배지와 인용 마커를 함께 살펴봐 주세요.
           </p>
           <p>
-            법률·의료·세무 자문(예: "이 계약을 해야 할까요?")은 제공하지 않습니다. 자문이
+            법률, 의료, 세무 자문(예: "이 계약을 해야 할까요?")은 제공하지 않습니다. 자문이
             필요한 경우 해당 분야 전문가에게 문의해 주세요.
           </p>
         </div>
