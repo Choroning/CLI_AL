@@ -141,29 +141,29 @@ function Hero() {
 function HeroPreview() {
   // 글자 크기 토글(size-l/size-xl) 영향 완전 차단:
   // 두 박스(원문/쉬운말) 의 폰트·패딩·간격을 전부 px 로 고정.
-  // Tailwind 의 text-* / p-* / mb-* / space-y-* 는 rem 기반이라 root font-size
-  // 변경 때 같이 커지므로, 박스 내부 사이즈 관련 utility 를 인라인 px 로 대체.
+  // 기준은 "중간" 토글(size-l, root 19px) 정도의 effective 크기에 맞춤
+  //   — 본문 22px / 라벨 17px / dl 17·14px / padding 22px.
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
       {/* 원문 */}
       <article
         className="rounded-md ring-1 ring-hairline bg-surface-1"
-        style={{ padding: "20px" }}
+        style={{ padding: "22px" }}
       >
         <div
           className="flex items-center justify-between"
-          style={{ marginBottom: "8px" }}
+          style={{ marginBottom: "10px" }}
         >
           <span
             className="font-bold tracking-wider text-ink-subtle"
-            style={{ fontSize: "14px" }}
+            style={{ fontSize: "17px" }}
           >
             원문 · 행정문서
           </span>
         </div>
         <p
           className="text-ink-muted"
-          style={{ fontSize: "16px", lineHeight: 1.625 }}
+          style={{ fontSize: "22px", lineHeight: 1.65 }}
         >
           임차인은 본 계약체결일로부터 <strong className="text-ink">7일 이내</strong>에
           임차보증금 30,000,000원을 임대인이 지정한 계좌로 입금하여야 하며, 입금이{" "}
@@ -181,22 +181,22 @@ function HeroPreview() {
       {/* 변환 결과 — primary 1px 보더로만 강조 */}
       <article
         className="rounded-md ring-1 ring-primary bg-canvas"
-        style={{ padding: "20px" }}
+        style={{ padding: "22px" }}
       >
         <div
           className="flex items-center justify-between"
-          style={{ marginBottom: "8px" }}
+          style={{ marginBottom: "10px" }}
         >
           <span
             className="font-bold tracking-wider text-primary"
-            style={{ fontSize: "14px" }}
+            style={{ fontSize: "17px" }}
           >
             쉬운말
           </span>
         </div>
         <p
           className="text-ink"
-          style={{ fontSize: "18px", lineHeight: 1.7 }}
+          style={{ fontSize: "22px", lineHeight: 1.7 }}
         >
           계약을 맺고 <strong>7일 안에</strong> 보증금{" "}
           <strong>3,000만 원</strong>을 집주인 계좌로 보내야 해요.
@@ -210,33 +210,33 @@ function HeroPreview() {
         <dl
           className="grid grid-cols-2 border-t border-hairline"
           style={{
-            fontSize: "15px",
+            fontSize: "17px",
             lineHeight: 1.5,
-            marginTop: "16px",
-            paddingTop: "12px",
-            columnGap: "16px",
-            rowGap: "8px",
+            marginTop: "18px",
+            paddingTop: "14px",
+            columnGap: "18px",
+            rowGap: "10px",
           }}
         >
-          <div className="flex items-baseline" style={{ gap: "8px" }}>
+          <div className="flex items-baseline" style={{ gap: "10px" }}>
             <dt
               className="font-bold tracking-wider text-ink-muted"
-              style={{ fontSize: "13px" }}
+              style={{ fontSize: "14px" }}
             >
               기한
             </dt>
-            <dd className="text-ink font-medium" style={{ fontSize: "15px" }}>
+            <dd className="text-ink font-medium" style={{ fontSize: "17px" }}>
               계약 + 7일
             </dd>
           </div>
-          <div className="flex items-baseline" style={{ gap: "8px" }}>
+          <div className="flex items-baseline" style={{ gap: "10px" }}>
             <dt
               className="font-bold tracking-wider text-ink-muted"
-              style={{ fontSize: "13px" }}
+              style={{ fontSize: "14px" }}
             >
               금액
             </dt>
-            <dd className="text-ink font-medium" style={{ fontSize: "15px" }}>
+            <dd className="text-ink font-medium" style={{ fontSize: "17px" }}>
               3,000만 원
             </dd>
           </div>
