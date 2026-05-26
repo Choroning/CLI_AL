@@ -69,7 +69,10 @@ export function RewriteText({
 
   return (
     <div className="flex flex-col gap-4">
-      <div ref={bodyRef} className="max-h-[460px] overflow-y-auto pr-2 focus-region">
+      {/* 부모(예: convert 결과 카드) 가 max-h + overflow 로 스크롤을 제어할 수
+       *  있도록 본문 자체에서는 스크롤을 잡지 않는다. hideCitations 일 때만 본문
+       *  단독 사용으로 가정 — 내부 스크롤이 추가되면 이중 스크롤바가 생김. */}
+      <div ref={bodyRef} className="focus-region">
         <div className="bionic-target text-body-lg leading-[1.85] text-ink whitespace-pre-wrap">
           {segments.map((seg, si) => (
             <p key={si} className="mb-3 last:mb-0">
