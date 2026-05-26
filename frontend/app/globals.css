@@ -118,36 +118,27 @@
   }
 
   /* ──────────── 랜딩 — 풀-뷰포트 snap scroll ──────────── */
-  /* 정책 변경(2026-05): mandatory + snap-stop always 조합은 크롬 휠 스크롤에서
-   *   "끊김/떨림" 버그가 잘 알려져 있음(blog.hectodata.co.kr/scroll-tech 참고).
-   *   사용자가 휠/트랙패드로 자연스럽게 흐를 수 있도록 proximity 로 완화 —
-   *   섹션 경계에 거의 도달했을 때만 부드럽게 흡착, 중간에선 자유 스크롤.
-   *   scroll-snap-stop 제거로 빠르게 굴리면 여러 섹션을 한 번에 넘길 수 있음.
-   *
-   *   sticky header(3.5rem) 만큼 scroll-padding-top 으로 viewport snap area 를
-   *   아래로 내림. scroll-margin-top 은 일부러 두지 않는다 — 함께 쓰면 offset 이
-   *   더해져(7rem) 헤더 아래로 이전 섹션의 끝부분이 노출되는 버그가 발생함. */
+  /* 정책(2026-05):
+   *   - mandatory + snap-stop always 는 크롬 휠 스크롤에서 끊김 버그
+   *     (blog.hectodata.co.kr/scroll-tech). proximity 로 완화 — 섹션 경계에
+   *     거의 도달했을 때만 부드럽게 흡착, 중간에선 자유 스크롤.
+   *   - scroll-behavior: smooth 도 의도적으로 빼둠. smooth 가 켜져 있으면
+   *     휠 스크롤이 보간되는 동안 사용자가 방향을 반대로 바꿔도 새 입력이
+   *     보간 종료까지 무시됨 → "스크롤이 멈춘 것처럼" 느껴짐. native
+   *     즉시 반응이 휠/트랙패드엔 가장 자연스러움.
+   *   - sticky header(3.5rem) 만큼 scroll-padding-top 으로 snap area 하향.
+   *     scroll-margin-top 은 일부러 미사용 (함께 두면 offset 7rem 누적 버그). */
   html.landing-snap,
   html.convert-snap,
   html.landing-snap body,
   html.convert-snap body {
     scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
   }
   html.landing-snap,
   html.convert-snap { scroll-padding-top: 3.5rem; }
   html.landing-snap .snap-section,
   html.convert-snap .snap-section {
     scroll-snap-align: start;
-  }
-
-  /* 접근성 — 모션 감소를 요청한 사용자에겐 smooth 끄기.
-   *   휠 스크롤 시 매끄러운 보간 대신 즉시 점프로 처리 (어지러움 방지). */
-  @media (prefers-reduced-motion: reduce) {
-    html.landing-snap, html.convert-snap,
-    html.landing-snap body, html.convert-snap body {
-      scroll-behavior: auto;
-    }
   }
 
   /* 섹션 내부 컨텐츠 컨테이너 — viewport 높이/글자 크기에 따라 패딩을 자동
