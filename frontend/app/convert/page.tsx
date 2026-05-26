@@ -264,7 +264,7 @@ function ConvertPageInner() {
           className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1"
         >
           <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col min-h-0">
-            <ResultView result={result} />
+            <ResultView result={result} original={text} />
           </div>
         </section>
       )}
@@ -342,27 +342,32 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
   );
 }
 
-function ResultView({ result }: { result: RewriteResponse }) {
+function ResultView({
+  result,
+  original,
+}: {
+  result: RewriteResponse;
+  original: string;
+}) {
   /* snap-section 한 viewport(=100dvh-3.5rem) 안에 컨텐츠를 모두 들이는 컴팩트
    * 레이아웃. 텍스트가 길어질 수 있는 패널(원문, 쉬운말, 어려운 말 풀이, 해야
    * 할 일)에는 max-h + overflow-y-auto 로 자체 스크롤바가 보이도록 함. */
+  const shorten =
+    original.length > 0
+      ? Math.round((1 - result.rewrite.length / original.length) * 100)
+      : 0;
   return (
     <div className="flex flex-col gap-5 flex-1 min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="eyebrow mb-1 !text-primary">변환 결과</p>
-          <h2 className="text-headline text-ink">읽기 쉬운 버전</h2>
-          {typeof result.preservation_ratio === "number" && (
-            <p
-              className="mt-2 inline-flex items-baseline gap-2 border-l-2 border-primary pl-3 text-body-sm text-ink-muted"
-              title="LCS(Longest Common Subsequence) 기반 단어 일치율"
-            >
-              <span className="text-caption font-bold tracking-wider text-primary">
-                원문 보존율
-              </span>
-              <span className="font-mono tabular-nums text-ink text-base">
-                {Math.round(result.preservation_ratio * 100)}%
-              </span>
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h2 className="text-headline text-ink">변환 결과</h2>
+          {shorten > 0 && (
+            <p className="text-body-sm text-ink-muted">
+              원문 대비{" "}
+              <span className="font-mono tabular-nums text-ink font-semibold">
+                {shorten}%
+              </span>{" "}
+              짧아졌어요.
             </p>
           )}
         </div>
