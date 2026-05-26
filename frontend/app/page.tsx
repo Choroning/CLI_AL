@@ -139,16 +139,32 @@ function Hero() {
 }
 
 function HeroPreview() {
+  // 글자 크기 토글(size-l/size-xl) 영향 완전 차단:
+  // 두 박스(원문/쉬운말) 의 폰트·패딩·간격을 전부 px 로 고정.
+  // Tailwind 의 text-* / p-* / mb-* / space-y-* 는 rem 기반이라 root font-size
+  // 변경 때 같이 커지므로, 박스 내부 사이즈 관련 utility 를 인라인 px 로 대체.
   return (
-    <div className="space-y-3">
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* 원문 */}
-      <article className="rounded-md ring-1 ring-hairline bg-surface-1 p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-caption font-bold tracking-wider text-ink-subtle">
+      <article
+        className="rounded-md ring-1 ring-hairline bg-surface-1"
+        style={{ padding: "20px" }}
+      >
+        <div
+          className="flex items-center justify-between"
+          style={{ marginBottom: "8px" }}
+        >
+          <span
+            className="font-bold tracking-wider text-ink-subtle"
+            style={{ fontSize: "14px" }}
+          >
             원문 · 행정문서
           </span>
         </div>
-        <p className="text-body-sm leading-relaxed text-ink-muted">
+        <p
+          className="text-ink-muted"
+          style={{ fontSize: "16px", lineHeight: 1.625 }}
+        >
           임차인은 본 계약체결일로부터 <strong className="text-ink">7일 이내</strong>에
           임차보증금 30,000,000원을 임대인이 지정한 계좌로 입금하여야 하며, 입금이{" "}
           <strong className="text-ink">지연될 경우 연 5%의 지연이자</strong>를 부담한다.
@@ -163,13 +179,25 @@ function HeroPreview() {
       </div>
 
       {/* 변환 결과 — primary 1px 보더로만 강조 */}
-      <article className="rounded-md ring-1 ring-primary bg-canvas p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-caption font-bold tracking-wider text-primary">
+      <article
+        className="rounded-md ring-1 ring-primary bg-canvas"
+        style={{ padding: "20px" }}
+      >
+        <div
+          className="flex items-center justify-between"
+          style={{ marginBottom: "8px" }}
+        >
+          <span
+            className="font-bold tracking-wider text-primary"
+            style={{ fontSize: "14px" }}
+          >
             쉬운말
           </span>
         </div>
-        <p className="text-body leading-relaxed text-ink">
+        <p
+          className="text-ink"
+          style={{ fontSize: "18px", lineHeight: 1.7 }}
+        >
           계약을 맺고 <strong>7일 안에</strong> 보증금{" "}
           <strong>3,000만 원</strong>을 집주인 계좌로 보내야 해요.
           <sup className="citation-marker !static !align-baseline ml-1">1</sup>
@@ -178,10 +206,7 @@ function HeroPreview() {
           <sup className="citation-marker !static !align-baseline ml-1">2</sup>
         </p>
 
-        {/* 미니 핵심정보 — 글자 크기 토글(size-l/size-xl) 영향 완전 차단:
-            font-size · spacing(margin/gap/padding) 모두 px 로 고정.
-            rem 기반 spacing 이 남아있으면 박스가 같이 커지면서 텍스트도
-            확대된 것처럼 보임 → 모든 치수를 px 로 박아둠. */}
+        {/* 미니 핵심정보 */}
         <dl
           className="grid grid-cols-2 border-t border-hairline"
           style={{
@@ -193,10 +218,7 @@ function HeroPreview() {
             rowGap: "8px",
           }}
         >
-          <div
-            className="flex items-baseline"
-            style={{ gap: "8px" }}
-          >
+          <div className="flex items-baseline" style={{ gap: "8px" }}>
             <dt
               className="font-bold tracking-wider text-ink-muted"
               style={{ fontSize: "13px" }}
@@ -207,10 +229,7 @@ function HeroPreview() {
               계약 + 7일
             </dd>
           </div>
-          <div
-            className="flex items-baseline"
-            style={{ gap: "8px" }}
-          >
+          <div className="flex items-baseline" style={{ gap: "8px" }}>
             <dt
               className="font-bold tracking-wider text-ink-muted"
               style={{ fontSize: "13px" }}
