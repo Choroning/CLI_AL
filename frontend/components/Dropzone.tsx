@@ -76,7 +76,7 @@ export function Dropzone({
         }}
         aria-label="PDF, TXT, DOCX, HWPX 파일 업로드"
         className={cn(
-          "min-h-[400px] grid place-items-center text-center cursor-pointer select-none transition-colors",
+          "flex-1 min-h-[160px] grid place-items-center text-center cursor-pointer select-none transition-colors",
           "rounded-lg p-8 ring-1 ring-dashed",
           over
             ? "ring-primary bg-surface-2"

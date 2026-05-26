@@ -148,7 +148,11 @@ function ConvertPageInner() {
   return (
     <>
       <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
-        <div className="section-pad mx-auto max-w-content w-full px-6 space-y-8">
+        {/* 컨텐츠 컨테이너가 flex-col + flex-1 + min-h-0 으로 section 높이를
+         *  채우고, 내부 form 이 다시 flex-1 로 잔여 공간을 점유. form 안 grid 가
+         *  grid-rows-[auto_1fr_auto] 로 박스 행만 1fr 로 잡아 viewport 변화에
+         *  비례 — 화면이 커지면 박스가 함께 커지고, 좁아져도 같이 줄어듦. */}
+        <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col gap-8 min-h-0">
           <header data-print="hide">
             <h1 className="text-display-md text-ink">원문 입력</h1>
             <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
@@ -176,19 +180,40 @@ function ConvertPageInner() {
             </div>
           )}
 
-          <form id="convert-form" onSubmit={onSubmit} className="space-y-5" data-print="hide">
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:items-start">
-              <div className="lg:col-span-3 flex flex-col gap-3">
+          <form
+            id="convert-form"
+            onSubmit={onSubmit}
+            className="flex-1 flex flex-col min-h-0 gap-3"
+            data-print="hide"
+          >
+            {/* 두 컬럼 wrapper(=block) 구조. lg 이상에서는 grid 가 단일 1fr row
+             *  을 채워 두 컬럼이 같은 높이로 stretch, 내부 박스는 flex-1 로 자라
+             *  → viewport 비례 박스. 모바일에서는 grid 가 단순 stacked 단열. */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:grid-rows-[1fr] lg:items-stretch flex-1 min-h-0">
+              {/* file column */}
+              <div className="lg:col-span-3 flex flex-col gap-3 min-h-0">
                 <h2 className="text-body font-medium text-ink-muted">① 파일에서 가져오기</h2>
-                <Dropzone onFile={onFile} disabled={parsing || loading} />
-                {parsing && (
-                  <div className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-3 text-body-sm text-ink animate-pulse">
+                <Dropzone
+                  onFile={onFile}
+                  disabled={parsing || loading}
+                  className="flex-1 min-h-0"
+                />
+                {/* text column 의 [개인정보 안내문] 줄과 높이를 맞추는 invisible
+                 *  spacer — 박스 하단이 같은 라인에서 끝나도록.
+                 *  parsing 중에는 그 자리를 안내문구가 차지. */}
+                {parsing ? (
+                  <div className="rounded-md bg-surface-1 ring-1 ring-hairline px-4 py-2 text-body-sm text-ink animate-pulse">
                     문서를 분석하고 있습니다…
                   </div>
+                ) : (
+                  <p className="text-caption text-ink-subtle invisible select-none" aria-hidden>
+                    spacer
+                  </p>
                 )}
               </div>
 
-              <div className="lg:col-span-7 flex flex-col gap-3">
+              {/* text column */}
+              <div className="lg:col-span-7 flex flex-col gap-3 min-h-0">
                 <div className="flex items-center justify-between">
                   <h2 id="text-pane-heading" className="text-body font-medium text-ink-muted">
                     ② 원문 텍스트
@@ -203,60 +228,63 @@ function ConvertPageInner() {
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
-                  className="input min-h-[400px] resize-none text-body leading-relaxed text-ink"
+                  className="input flex-1 min-h-[160px] resize-none text-body leading-relaxed text-ink"
                   maxLength={20000}
                 />
                 <p className="text-caption text-ink-subtle text-right">
                   개인정보는 삭제 후 입력해주세요.
                 </p>
-                <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                  {loading && (
-                    <div
-                      role="status"
-                      aria-live="polite"
-                      className="flex-1 min-h-[44px] rounded-sm bg-surface-1 ring-1 ring-hairline px-5 flex items-center gap-3 text-body text-ink"
-                    >
-                      <svg
-                        aria-hidden
-                        className="h-5 w-5 shrink-0 animate-spin text-primary"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeOpacity="0.25"
-                          strokeWidth="3"
-                        />
-                        <path
-                          d="M22 12a10 10 0 0 1-10 10"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <span>변환 중입니다. 잠시만 기다려 주세요.</span>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setText(SAMPLE)}
-                    disabled={loading}
-                    className="btn-secondary"
-                  >
-                    예시 보기
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading || !text.trim()}
-                    className="btn-primary"
-                  >
-                    쉬운말로 변환하기
-                  </button>
-                </div>
               </div>
+            </div>
+
+            {/* 변환 인디케이터 + 버튼 — grid 아래 전체 너비 행.
+             *  인디케이터는 파일 박스 아래 좌측 끝부터 [예시 보기] 직전까지 차지. */}
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {loading && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="flex-1 min-h-[44px] rounded-sm bg-surface-1 ring-1 ring-hairline px-5 flex items-center gap-3 text-body text-ink"
+                >
+                  <svg
+                    aria-hidden
+                    className="h-5 w-5 shrink-0 animate-spin text-primary"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeOpacity="0.25"
+                      strokeWidth="3"
+                    />
+                    <path
+                      d="M22 12a10 10 0 0 1-10 10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span>변환 중입니다. 잠시만 기다려 주세요.</span>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setText(SAMPLE)}
+                disabled={loading}
+                className="btn-secondary"
+              >
+                예시 보기
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !text.trim()}
+                className="btn-primary"
+              >
+                쉬운말로 변환하기
+              </button>
             </div>
           </form>
 
