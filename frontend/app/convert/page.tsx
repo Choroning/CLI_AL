@@ -396,9 +396,11 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
     };
   }, [result]);
 
+  // 입력 페이지의 [파일3 : 원문7] 그리드 비율을 그대로 결과 페이지로 가져와
+  // 시각적 일관성 유지 — 쉬운말 재작성(메인) 7, 출처 인용(보조) 3.
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <Section title="쉬운말 재작성" accent>
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+      <Section title="쉬운말 재작성" accent className="lg:col-span-7">
         <div ref={leftRef} className="max-h-[32vh] overflow-y-auto pr-2">
           <RewriteText
             text={result.rewrite}
@@ -408,7 +410,7 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
           />
         </div>
       </Section>
-      <Section title="출처 인용">
+      <Section title="출처 인용" className="lg:col-span-3">
         <div ref={rightRef} className="max-h-[32vh] overflow-y-auto pr-2">
           <CitationsPanel citations={result.citations} />
         </div>

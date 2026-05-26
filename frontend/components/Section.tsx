@@ -13,11 +13,13 @@ export function Section({
   children,
   right,
   accent = false,
+  className,
 }: {
   title: string;
   children: React.ReactNode;
   right?: React.ReactNode;
   accent?: boolean;
+  className?: string;
 }) {
   return (
     <section
@@ -25,7 +27,8 @@ export function Section({
         "rounded-md p-6 flex flex-col",
         accent
           ? "bg-canvas ring-1 ring-primary"
-          : "bg-canvas ring-1 ring-hairline"
+          : "bg-canvas ring-1 ring-hairline",
+        className
       )}
     >
       <div className="mb-4 flex items-center justify-between gap-3 border-b border-hairline pb-3">
