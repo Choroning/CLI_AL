@@ -17,8 +17,10 @@ import { useMemo } from "react";
 
 export function Bionic({ text }: { text: string }) {
   const parts = useMemo(() => splitBionic(text), [text]);
+  // data-bionic-react 마커 — JS walker(dyslexiaBionic) 가 이 컨테이너 안은
+  // 이미 React 가 관리하는 Bionic 으로 인식하고 재처리/언래핑하지 않도록 한다.
   return (
-    <>
+    <span data-bionic-react>
       {parts.map((p, i) =>
         p.head ? (
           <span key={i}>
@@ -29,7 +31,7 @@ export function Bionic({ text }: { text: string }) {
           <span key={i}>{p.tail}</span>
         ),
       )}
-    </>
+    </span>
   );
 }
 
