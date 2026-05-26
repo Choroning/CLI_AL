@@ -264,7 +264,7 @@ function ConvertPageInner() {
           className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1"
         >
           <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col min-h-0">
-            <ResultView result={result} original={text} />
+            <ResultView result={result} />
           </div>
         </section>
       )}
@@ -280,13 +280,69 @@ function formatStamp(iso: string): string {
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function ResultView({
-  result,
-  original,
-}: {
-  result: RewriteResponse;
-  original: string;
-}) {
+/**
+ * 쉬운말 재작성 ↔ 출처 인용 두 패널의 스크롤을 progress 비율로 동기화.
+ *
+ * 동기화 규칙:
+ *   - 한쪽 컨테이너의 scrollTop / (scrollHeight - clientHeight) 비율을 그대로
+ *     반대편 컨테이너의 scrollTop 으로 매핑. 양쪽 길이가 달라도 처음(0%)과 끝
+ *     (100%)이 항상 일치 — 첫 인용/끝 인용에서 스크롤이 멈춰버리는 문제 없음.
+ *   - 무한 루프 방지를 위해 lock flag 사용. setScrollTop 으로 발생하는 반대편
+ *     scroll 이벤트는 무시되고 다음 프레임에 lock 해제.
+ */
+function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
+  const leftRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const L = leftRef.current;
+    const R = rightRef.current;
+    if (!L || !R) return;
+    let lock = false;
+    function syncFrom(src: HTMLDivElement, dst: HTMLDivElement) {
+      if (lock) return;
+      const maxSrc = src.scrollHeight - src.clientHeight;
+      const maxDst = dst.scrollHeight - dst.clientHeight;
+      if (maxSrc <= 0 || maxDst <= 0) return;
+      const t = src.scrollTop / maxSrc;
+      lock = true;
+      dst.scrollTop = t * maxDst;
+      requestAnimationFrame(() => {
+        lock = false;
+      });
+    }
+    const onL = () => syncFrom(L, R);
+    const onR = () => syncFrom(R, L);
+    L.addEventListener("scroll", onL, { passive: true });
+    R.addEventListener("scroll", onR, { passive: true });
+    return () => {
+      L.removeEventListener("scroll", onL);
+      R.removeEventListener("scroll", onR);
+    };
+  }, [result]);
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <Section title="쉬운말 재작성" accent>
+        <div ref={leftRef} className="max-h-[32vh] overflow-y-auto pr-2">
+          <RewriteText
+            text={result.rewrite}
+            citations={result.citations}
+            glossary={result.glossary}
+            hideCitations
+          />
+        </div>
+      </Section>
+      <Section title="출처 인용">
+        <div ref={rightRef} className="max-h-[32vh] overflow-y-auto pr-2">
+          <CitationsPanel citations={result.citations} />
+        </div>
+      </Section>
+    </div>
+  );
+}
+
+function ResultView({ result }: { result: RewriteResponse }) {
   /* snap-section 한 viewport(=100dvh-3.5rem) 안에 컨텐츠를 모두 들이는 컴팩트
    * 레이아웃. 텍스트가 길어질 수 있는 패널(원문, 쉬운말, 어려운 말 풀이, 해야
    * 할 일)에는 max-h + overflow-y-auto 로 자체 스크롤바가 보이도록 함. */
@@ -315,37 +371,10 @@ function ResultView({
         </div>
       </div>
 
-      {result.summary && (
-        <aside
-          className="rounded-md border-l-2 border-primary bg-canvas px-5 py-3"
-          aria-label="한 줄 요약"
-        >
-          <p className="text-caption font-bold tracking-wider text-primary mb-1">
-            한 줄 요약
-          </p>
-          <p className="text-body text-ink leading-relaxed">{result.summary}</p>
-        </aside>
-      )}
-
       {/* 원문 패널은 제거 — 입력 페이지에서 위로 스크롤하면 보임. 대신 쉬운말
-       *  재작성을 왼쪽으로 옮기고, 출처 인용을 오른쪽 독립 패널로 분리. */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Section title="쉬운말 재작성" accent>
-          <div className="max-h-[32vh] overflow-y-auto pr-2">
-            <RewriteText
-              text={result.rewrite}
-              citations={result.citations}
-              glossary={result.glossary}
-              hideCitations
-            />
-          </div>
-        </Section>
-        <Section title="출처 인용">
-          <div className="max-h-[32vh] overflow-y-auto pr-2">
-            <CitationsPanel citations={result.citations} />
-          </div>
-        </Section>
-      </div>
+       *  재작성을 왼쪽으로 옮기고, 출처 인용을 오른쪽 독립 패널로 분리. 두 패널은
+       *  SyncedRewriteCitations 가 progress 기반으로 스크롤 동기화. */}
+      <SyncedRewriteCitations result={result} />
 
       <Section title="꼭 알아야 할 정보">
         <div className="max-h-[18vh] overflow-y-auto pr-2">
