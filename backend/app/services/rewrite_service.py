@@ -28,6 +28,7 @@ from app.models.schemas import (
     GlossaryTerm,
     GroundednessResult,
     KeyInfoItem,
+    RelevanceResult,
     RewriteResponse,
 )
 from app.rag.indexer import format_rag_context, index_text
@@ -109,6 +110,52 @@ def _generate_summary(rewrite_text: str) -> str | None:
         return None
 
 
+# ---------------------------------------------------------------------------
+# Call 0: Relevance check
+# ---------------------------------------------------------------------------
+
+_NOT_RELEVANT_BADGE = GroundednessResult(label="notSure", score=None, badge="low")
+_NOT_RELEVANT_REWRITE = (
+    "입력하신 내용이 행정문서·공문·약관·계약서가 아닌 것 같아요. "
+    "변환하고 싶은 행정문서 텍스트를 붙여 넣어 주세요."
+)
+
+
+def check_relevance(text: str, upstage: object) -> RelevanceResult:
+    """Call 0: LLM으로 입력 텍스트가 행정문서인지 판별.
+
+    응답 JSON: { "is_relevant": bool, "confidence": str, "reason": str }
+    파싱 실패나 예외 발생 시 is_relevant=True (false negative 방지) 로 복원.
+    """
+    system = load_prompt("relevance_check_v1")
+    try:
+        raw = upstage.chat_json(  # type: ignore[attr-defined]
+            system=system,
+            user=text,
+            temperature=0.0,
+            max_tokens=128,
+        )
+        is_rel = bool(raw.get("is_relevant", True))
+        confidence_raw = raw.get("confidence", "medium")
+        confidence = confidence_raw if confidence_raw in {"high", "medium", "low"} else "medium"
+        reason = _sanitize(raw.get("reason") or "")
+        result = RelevanceResult(
+            is_relevant=is_rel,
+            confidence=confidence,  # type: ignore[arg-type]
+            reason=reason or None,
+        )
+        logger.info(
+            "Relevance check: is_relevant=%s confidence=%s reason=%s",
+            result.is_relevant,
+            result.confidence,
+            result.reason,
+        )
+        return result
+    except Exception as e:  # noqa: BLE001 — 판별 실패 시 true로 복원 (false negative 방지)
+        logger.warning("Relevance check failed (defaulting to relevant): %s", e)
+        return RelevanceResult(is_relevant=True, confidence="low", reason=None)
+
+
 def _build_rewrite_user_message(text: str, rag_context: str) -> str:
     """User message for Call 1: inject RAG context block when available."""
     if rag_context:
@@ -138,6 +185,21 @@ def run_rewrite(text: str) -> RewriteResponse:
     settings = get_settings()
     upstage = get_upstage()
     store = get_store()
+
+    # ── Call 0: relevance check ────────────────────────────────────────────────
+    relevance = check_relevance(text, upstage)
+    if not relevance.is_relevant:
+        return RewriteResponse(
+            rewrite=_NOT_RELEVANT_REWRITE,
+            citations=[],
+            glossary=[],
+            key_info=[],
+            checklist=[],
+            groundedness=_NOT_RELEVANT_BADGE,
+            preservation_ratio=None,
+            summary=None,
+            relevance=relevance,
+        )
 
     # ── RAG: retrieve related chunks BEFORE indexing (no self-reference) ──────
     rag_results = hybrid_search(text, store, n=3)
@@ -254,6 +316,7 @@ def run_rewrite(text: str) -> RewriteResponse:
         groundedness=groundedness,
         preservation_ratio=preservation_ratio,
         summary=summary,
+        relevance=relevance,
     )
     _cache.put(text, result)
     return result

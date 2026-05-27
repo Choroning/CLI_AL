@@ -8,6 +8,18 @@ class RewriteRequest(BaseModel):
     save_history: bool = Field(default=True, description="Supabase 이력 저장 여부")
 
 
+class RelevanceResult(BaseModel):
+    """관련성 판별 LLM(Call 0) 결과."""
+
+    is_relevant: bool = Field(description="행정문서 여부")
+    confidence: Literal["high", "medium", "low"] = Field(
+        default="medium", description="판단 확신도"
+    )
+    reason: str | None = Field(
+        default=None, description="판단 근거 한 문장 (30자 이내)"
+    )
+
+
 class GlossaryTerm(BaseModel):
     term: str
     definition: str
@@ -54,6 +66,10 @@ class RewriteResponse(BaseModel):
     summary: str | None = Field(
         default=None,
         description="결과 본문을 30자 안팎 한 문장으로 요약한 헤드라인 (chat_text 보조 호출)",
+    )
+    relevance: RelevanceResult | None = Field(
+        default=None,
+        description="Call 0 관련성 판별 결과. is_relevant=false 이면 조기 반환.",
     )
     document_id: str | None = Field(
         default=None, description="Supabase에 저장된 documents.id (저장 안 했으면 null)"
