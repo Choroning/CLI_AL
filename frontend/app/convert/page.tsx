@@ -19,6 +19,7 @@ import { Checklist } from "@/components/Checklist";
 import { Section } from "@/components/Section";
 import { Dropzone } from "@/components/Dropzone";
 import { ResultActions } from "@/components/ResultActions";
+import { Footer } from "@/components/Footer";
 import { useScrollSnap } from "@/lib/useScrollSnap";
 
 const SAMPLE = `주택임대차계약서
@@ -318,12 +319,14 @@ function ConvertPageInner() {
             </div>
           </section>
 
-          {/* 결과 ② — 꼭 알아야 할 정보 + 어려운 말 + 해야 할 일. 풀뷰포트 스냅
-           *  섹션이고, 이어서 전역 푸터가 따라온다(랜딩 마지막 섹션과 동일 구조). */}
+          {/* 결과 ③ — 꼭 알아야 할 정보 + 어려운 말 + 해야 할 일 + 푸터를 한 화면에.
+           *  랜딩 FinalCTA 처럼 푸터를 섹션 안에 직접 넣어 한 viewport 에 같이 담는다
+           *  (전역 AppFooter 는 /convert 에서 숨김). */}
           <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1">
             <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
               <ResultDetails result={result} />
             </div>
+            <Footer />
           </section>
         </>
       )}
@@ -518,21 +521,23 @@ function ResultRewrite({
 /* 결과 ② 섹션 — 꼭 알아야 할 정보 + 어려운 말 풀이 + 해야 할 일. */
 function ResultDetails({ result }: { result: RewriteResponse }) {
   return (
-    <div className="flex flex-col gap-5 flex-1 min-h-0">
-      <Section title="꼭 알아야 할 정보">
-        <div className="max-h-[20vh] overflow-y-auto pr-2">
+    <div className="flex flex-col gap-4 flex-1 min-h-0">
+      <Section title="꼭 알아야 할 정보" className="shrink-0">
+        <div className="max-h-[18vh] overflow-y-auto pr-2">
           <KeyInfoCards items={result.key_info} />
         </div>
       </Section>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Section title="어려운 말 풀이">
-          <div className="max-h-[44vh] overflow-y-auto pr-2">
+      {/* 어려운 말·해야 할 일은 남는 높이를 유동적으로 채운다 — 푸터까지 한 화면에
+       *  들어가도록 필요하면 줄어든다. 데스크탑 좌우, 모바일 상하로 분할 채움. */}
+      <div className="grid grid-cols-1 grid-rows-2 gap-4 lg:grid-cols-2 lg:grid-rows-1 flex-1 min-h-0">
+        <Section title="어려운 말 풀이" className="min-h-0">
+          <div className="absolute inset-0 overflow-y-auto pr-2">
             <GlossaryList items={result.glossary} />
           </div>
         </Section>
-        <Section title="해야 할 일">
-          <div className="max-h-[44vh] overflow-y-auto pr-2">
+        <Section title="해야 할 일" className="min-h-0">
+          <div className="absolute inset-0 overflow-y-auto pr-2">
             <Checklist items={result.checklist} />
           </div>
         </Section>
