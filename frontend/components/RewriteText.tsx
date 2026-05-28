@@ -380,8 +380,10 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
   return (
     <div className="flex flex-col">
       {/* 컨테이너 상단에 항목 1 이 바로 와닿도록 안내 캡션은 제외 — 본문 ↔ 인용
-       *  스크롤 sync 가 항목 정렬을 시도할 때 캡션이 가려지는 점프를 방지. */}
-      <ol className="rounded-md ring-1 ring-hairline divide-y divide-hairline overflow-hidden">
+       *  스크롤 sync 가 항목 정렬을 시도할 때 캡션이 가려지는 점프를 방지.
+       *  바깥 Section 카드가 이미 박스이므로 내부 ol 의 테두리/배경은 제거(이중 상자
+       *  방지)하고, 행 좌우 패딩도 빼서 좁은 컬럼에서 글을 더 넓게 쓴다. */}
+      <ol className="divide-y divide-hairline">
         {citations.map((c, idx) => {
           const num = idx + 1;
           return (
@@ -393,7 +395,8 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
               //   - li 에 min-w-0 으로 flex 자식이 부모 폭을 넘지 못하게
               //   - span 도 min-w-0 + flex-1 + overflow-wrap anywhere 로 한글
               //     keep-all 환경에서도 폭 초과 어절은 줄바꿈되도록 안전망
-              className="px-3 py-3 text-caption text-ink bg-surface-1 flex items-start gap-2 min-w-0"
+              //   - 좌우 패딩·배경 제거 — 바깥 Section 카드 패딩만으로 충분, 글 폭 확보
+              className="py-3 text-caption text-ink flex items-start gap-2 min-w-0"
             >
               <CitationChip n={num} />
               <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
