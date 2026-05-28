@@ -53,8 +53,15 @@ export function useScrollSnap(
     // 1 = 아래, -1 = 위, 0 = 없음. 휠 종료 후 어느 쪽 섹션을 우선할지 결정.
     let lastDirection = 0;
 
+    // 헤더 높이를 런타임에 실측 — html font-size(18/19/21px)·size 토글에 따라
+    // sticky 헤더의 px 높이가 달라지므로, 하드코딩(56) 대신 매번 측정해 오차 제거.
+    function headerOffset(): number {
+      const h = document.querySelector("header");
+      return h ? h.getBoundingClientRect().height : headerOffsetPx;
+    }
+
     function pickTargetSection(): HTMLElement | null {
-      const targetY = window.scrollY + headerOffsetPx;
+      const targetY = window.scrollY + headerOffset();
       const threshold = window.innerHeight * THRESHOLD_RATIO;
 
       // 임계 거리 안에 들어오는 모든 섹션을 부호 거리(signed)와 함께 수집.
@@ -94,7 +101,7 @@ export function useScrollSnap(
         if (snapping) return;
         const target = pickTargetSection();
         if (!target) return;
-        const destY = Math.max(0, target.offsetTop - headerOffsetPx);
+        const destY = Math.max(0, target.offsetTop - headerOffset());
         if (Math.abs(window.scrollY - destY) < 2) return;
         snapping = true;
         gsap.to(window, {
@@ -136,15 +143,25 @@ export function useScrollSnap(
       scheduleSnap();
     }
 
+    function onResize() {
+      // 리사이즈로 dvh 기반 섹션 높이가 reflow 되면 기존 스냅 정렬이 어긋난다.
+      // 방향 없이(가장 가까운 섹션) 다시 흡착 — 휠처럼 디바운스되어 리사이즈가
+      // 끝난 뒤 한 번만 발동한다.
+      lastDirection = 0;
+      scheduleSnap();
+    }
+
     window.addEventListener("wheel", onWheel, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onResize, { passive: true });
 
     return () => {
       if (timer) clearTimeout(timer);
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onResize);
       gsap.killTweensOf(window);
     };
   }, [selector, headerOffsetPx, enabled]);
