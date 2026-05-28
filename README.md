@@ -101,9 +101,10 @@ All five concepts are implemented in [`Backend/app/services/algorithms.py`](Back
 | Backend | FastAPI + uvicorn (Python 3.11) |
 | Database / Auth | Supabase (Postgres, free plan) |
 | LLM | Upstage Solar Pro 2 (rewrite, glossary, key-info), Document Parse, Groundedness Check |
+| External APIs | 국가법령정보센터 Open API (legal term lookup via `GET /law/term`) |
 | Frontend hosting | Vercel (Hobby plan) |
 | Backend hosting | Render (free plan, Singapore) |
-| Cold-start mitigation | GitHub Actions cron (`*/10 * * * *`) pinging `/health` |
+| Cold-start mitigation | External cron pinger (cron-job.org, every 5 min) on `/health` |
 
 See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the deployment topology and operational notes.
 
@@ -116,9 +117,9 @@ CLI_AL/
 ├── backend/             FastAPI app (uvicorn entry: app.main:app)
 │   ├── app/
 │   │   ├── main.py      App factory + CORS
-│   │   ├── config.py    pydantic-settings (UPSTAGE_*, SUPABASE_*, CORS_*)
-│   │   ├── routers/     /health · /parse · /rewrite · /history
-│   │   └── services/    upstage_client · supabase_client · rewrite_service · …
+│   │   ├── config.py    pydantic-settings (UPSTAGE_*, SUPABASE_*, CORS_*, LAW_API_KEY)
+│   │   ├── routers/     /health · /parse · /rewrite · /history · /law
+│   │   └── services/    upstage_client · supabase_client · rewrite_service · law_client · …
 │   ├── tests/           pytest
 │   └── pyproject.toml
 ├── frontend/            Next.js (App Router)
