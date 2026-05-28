@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from app.models.schemas import HistoryDetail, HistoryResponse
 from app.services.history_service import (
@@ -27,7 +27,5 @@ def get_one(rewrite_id: str) -> HistoryDetail:
 
 @router.delete("/{rewrite_id}", status_code=204)
 def delete_one(rewrite_id: str) -> None:
-    ok = delete_history(rewrite_id)
-    if not ok:
-        raise HTTPException(status_code=404, detail="이력을 찾을 수 없습니다.")
+    delete_history(rewrite_id)
     return None

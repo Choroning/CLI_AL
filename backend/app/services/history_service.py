@@ -25,6 +25,8 @@ def save_rewrite(original_text: str, response: RewriteResponse) -> str | None:
     sb = get_supabase()
     if sb is None:
         return None
+
+    document_id: str | None = None
     try:
         doc = (
             sb.table("documents")
@@ -51,6 +53,11 @@ def save_rewrite(original_text: str, response: RewriteResponse) -> str | None:
         return str(document_id)
     except Exception as e:  # noqa: BLE001 — persistence failure shouldn't block response
         logger.warning("save_rewrite failed: %s", e)
+        if document_id:
+            try:
+                sb.table("documents").delete().eq("id", document_id).execute()
+            except Exception as cleanup_err:  # noqa: BLE001
+                logger.warning("save_rewrite cleanup (document rollback) failed: %s", cleanup_err)
         return None
 
 

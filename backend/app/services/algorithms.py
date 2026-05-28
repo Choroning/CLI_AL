@@ -15,6 +15,7 @@ Algorithm → CLRS reference:
 from __future__ import annotations
 
 import random
+import re
 from collections import deque
 from typing import Any, TypeVar
 
@@ -166,6 +167,9 @@ def counting_sort_checklist(items: list[ChecklistItem]) -> list[ChecklistItem]:
 # CLRS 15.4 — Longest Common Subsequence → preservation ratio
 # ---------------------------------------------------------------------------
 
+_CITATION_MARKER_RE = re.compile(r'\[\d+\]')
+
+
 def lcs_word_ratio(original: str, rewrite: str) -> float:
     """Compute LCS length on word tokens, normalised to [0, 1].
 
@@ -175,9 +179,11 @@ def lcs_word_ratio(original: str, rewrite: str) -> float:
 
     Space-optimised to O(n) using two rolling rows instead of the full O(mn) table.
     Returns  LCS_length / max(|original_words|, |rewrite_words|).
+    Citation markers ([1], [2], …) are stripped before tokenisation so that
+    non-content tokens do not distort the ratio.
     """
-    a = original.split()
-    b = rewrite.split()
+    a = _CITATION_MARKER_RE.sub('', original).split()
+    b = _CITATION_MARKER_RE.sub('', rewrite).split()
     m, n = len(a), len(b)
     if m == 0 or n == 0:
         return 0.0

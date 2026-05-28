@@ -37,7 +37,7 @@ class UpstageClient:
             logger.warning(
                 "UPSTAGE_API_KEY is empty — Upstage calls will fail until configured."
             )
-        self._oa = OpenAI(api_key=self._api_key or "missing", base_url=UPSTAGE_BASE_URL)
+        self._oa = OpenAI(api_key=self._api_key or "missing", base_url=UPSTAGE_BASE_URL, timeout=settings.solar_llm_timeout)
 
     def chat_json(
         self,

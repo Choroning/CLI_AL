@@ -57,7 +57,7 @@ async def post_parse(file: UploadFile = File(...)) -> ParseResponse:
     # Plain text path: skip Document Parse entirely.
     if name.endswith(".txt") or file.content_type == "text/plain":
         try:
-            text = raw.decode("utf-8")
+            text = raw.decode("utf-8-sig")
         except UnicodeDecodeError:
             try:
                 text = raw.decode("cp949")

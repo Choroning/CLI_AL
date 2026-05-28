@@ -12,6 +12,8 @@ from threading import Lock
 
 from fastapi import HTTPException, Request
 
+from app.config import get_settings
+
 
 class RateLimiter:
     def __init__(self, *, times: int, seconds: int) -> None:
@@ -21,6 +23,8 @@ class RateLimiter:
         self._lock = Lock()
 
     def __call__(self, request: Request) -> None:
+        if get_settings().disable_rate_limit:
+            return
         ip = self._client_ip(request)
         key = f"{ip}:{request.url.path}"
         now = time.monotonic()

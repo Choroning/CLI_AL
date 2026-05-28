@@ -21,8 +21,11 @@ class Settings(BaseSettings):
         default="http://localhost:3000", alias="CORS_ALLOW_ORIGINS"
     )
 
+    disable_rate_limit: bool = Field(default=False, alias="DISABLE_RATE_LIMIT")
+
     solar_model: str = Field(default="solar-pro2", alias="SOLAR_MODEL")
     solar_temperature: float = Field(default=0.2, alias="SOLAR_TEMPERATURE")
+    solar_llm_timeout: float = Field(default=60.0, alias="SOLAR_LLM_TIMEOUT")
     groundedness_threshold: float = Field(default=0.7, alias="GROUNDEDNESS_THRESHOLD")
 
     law_api_key: str = Field(default="", alias="LAW_API_KEY")
