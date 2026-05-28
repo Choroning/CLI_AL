@@ -10,9 +10,9 @@ import {
 /**
  * 우측 하단 fixed 도구 패널 — 글자 크기 3단계 + 다크모드 토글.
  *
- * 모바일: 화면을 가리지 않도록 기본 닫힘. 아이콘 버튼 → 탭하면 패널이
- *   bottom-right 기준으로 scale + fade 로 펼쳐짐. 패널 내부 ✕ 로 다시 접음.
- * PC(sm 이상): 항상 펼친 상태로 유지 — 기존 동작 그대로.
+ * 모바일·PC 공통: 화면을 가리지 않도록 기본 최소화(아이콘만). 아이콘 클릭 →
+ *   패널이 bottom-right 기준으로 scale + fade 로 펼쳐짐. 패널 내부 ✕ 또는
+ *   바깥 클릭으로 다시 최소화.
  *
  * Bionic Reading 과 줄 포커스는 v2에서 상시 작동으로 전환 — 사용자가 켜고 끌
  * 필요 없이 기본 가독성 보조로 항상 동작.
@@ -27,7 +27,7 @@ export function AccessibilityBar() {
   const [size, setSize] = useState<Size>("");
   const [dark, setDark] = useState<boolean | null>(null);
   const [dyslexia, setDyslexia] = useState<boolean | null>(null);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -104,7 +104,7 @@ export function AccessibilityBar() {
 
   return (
     <div data-print="hide" className="fixed bottom-[16px] right-[16px] z-40">
-      {/* 모바일 토글 아이콘 — 닫혔을 때 보임. sm 이상에서는 영구 hidden.
+      {/* 토글 아이콘 — 닫혔을 때 보임(모바일·PC 공통, 기본 최소화).
        *   글자 크기 옵션(size-l/size-xl)에 영향받지 않도록 모든 치수를 px arbitrary
        *   값으로 고정 — root font-size 변화에도 패널이 부풀지 않음. */}
       <button
@@ -114,7 +114,7 @@ export function AccessibilityBar() {
         aria-label="화면 표시 옵션 열기"
         aria-expanded={open}
         className={cn(
-          "sm:hidden inline-flex h-[44px] w-[44px] items-center justify-center",
+          "inline-flex h-[44px] w-[44px] items-center justify-center",
           "rounded-md border border-hairline-strong bg-canvas text-ink shadow-lg",
           "transition-all duration-200 ease-out origin-bottom-right",
           "hover:bg-surface-1 hover:border-ink",
@@ -126,32 +126,29 @@ export function AccessibilityBar() {
       </button>
 
       {/* 패널 — 아이콘 버튼과 동일한 fixed wrapper 안에서 absolute 로 bottom-right 앵커.
-       *   wrapper 자체가 bottom-4 right-4 이므로 패널은 거기에 정렬된 상태로 펼침/접힘.
-       *   PC: scale-100 opacity-100 강제로 항상 보임. */}
+       *   기본 최소화(닫힘), 아이콘 클릭 시 펼침. 모바일·PC 동일. */}
       <div
         ref={panelRef}
         className={cn(
           "absolute bottom-0 right-0",
           "rounded-md border border-hairline-strong bg-canvas shadow-lg",
           "origin-bottom-right transition-all duration-200 ease-out",
-          // 모바일 기본: 닫힘 → 축소 + 투명 + 클릭 불가
+          // 기본: 닫힘 → 축소 + 투명 + 클릭 불가
           "scale-90 opacity-0 pointer-events-none",
-          // 모바일 펼침
-          open && "scale-100 opacity-100 pointer-events-auto",
-          // PC: 항상 펼침 (above 모바일 closed 클래스 override)
-          "sm:scale-100 sm:opacity-100 sm:pointer-events-auto"
+          // 펼침
+          open && "scale-100 opacity-100 pointer-events-auto"
         )}
         role="region"
         aria-label="화면 표시 옵션"
         aria-hidden={!open ? true : undefined}
       >
         <div className="flex flex-nowrap items-center gap-[8px] px-[12px] py-[8px] text-[14px] text-ink-muted whitespace-nowrap">
-          {/* 모바일 전용 닫기 — sm 이상에서는 hidden */}
+          {/* 닫기(최소화) — 모바일·PC 공통 */}
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="옵션 닫기"
-            className="sm:hidden inline-flex h-[28px] w-[28px] items-center justify-center rounded-sm border border-hairline-strong bg-canvas text-ink hover:border-ink transition-colors"
+            className="inline-flex h-[28px] w-[28px] items-center justify-center rounded-sm border border-hairline-strong bg-canvas text-ink hover:border-ink transition-colors"
           >
             <CloseIcon />
           </button>
