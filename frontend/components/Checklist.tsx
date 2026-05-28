@@ -19,7 +19,7 @@ const RANK: Record<ChecklistItem["priority"], number> = {
 };
 
 const LABEL: Record<ChecklistItem["priority"], string> = {
-  high: "긴급",
+  high: "중요",
   medium: "보통",
   low: "참고",
 };
