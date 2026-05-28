@@ -108,7 +108,9 @@ export function Dropzone({
             파일을 끌어오거나 클릭해서 선택
           </p>
           <p className="text-body-sm text-ink">
-            PDF · TXT · DOCX · HWPX 최대 10MB
+            PDF · TXT · DOCX · HWPX
+            <br />
+            최대 10MB
           </p>
         </div>
         <input

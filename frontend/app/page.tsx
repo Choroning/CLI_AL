@@ -88,7 +88,7 @@ export default function LandingPage() {
 
 function Hero() {
   return (
-    <section className="snap-section border-b border-hairline min-h-[calc(100dvh-5rem)] flex items-center">
+    <section className="snap-section border-b border-hairline min-h-[calc(100dvh-3.5rem)] flex items-center">
       <div className="section-pad mx-auto grid max-w-content grid-cols-1 gap-12 px-6 lg:grid-cols-12 lg:items-center w-full">
         {/* 좌: 카피 + CTA */}
         <div className="lg:col-span-8">
@@ -258,7 +258,7 @@ function HowItWorks() {
     },
   ];
   return (
-    <section className="snap-section border-b border-hairline bg-surface-1 min-h-[calc(100dvh-5rem)] flex items-center">
+    <section className="snap-section border-b border-hairline bg-surface-1 min-h-[calc(100dvh-3.5rem)] flex items-center">
       <div className="section-pad mx-auto max-w-content w-full px-6">
         <SectionHeading eyebrow="사용 방법" title="세 단계로 끝납니다" />
         <ol className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-md bg-hairline ring-1 ring-hairline md:grid-cols-3">
@@ -282,7 +282,7 @@ function FinalCTA() {
   //   - 상단 영역: flex-1 로 푸터 위 남은 공간을 채워 카드를 세로 중앙 배치
   //   - 하단 영역: 푸터 컴포넌트(surface-1 + border-t)
   return (
-    <section className="snap-section min-h-[calc(100dvh-5rem)] flex flex-col">
+    <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
       <div className="flex-1 flex items-center">
         <div className="section-pad mx-auto max-w-content w-full px-6">
           <div className="rounded-md border border-ink bg-canvas p-8 md:p-12">

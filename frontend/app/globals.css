@@ -128,7 +128,7 @@
    * .snap-section 클래스는 selector 로 hook 이 그대로 사용. */
 
   /* 섹션 내부 컨텐츠 컨테이너 — viewport 높이/글자 크기에 따라 패딩을 자동
-   * 축소해 컨텐츠가 (100dvh - 5rem) 안에 들어가도록 유지.
+   * 축소해 컨텐츠가 (100dvh - 3.5rem) 안에 들어가도록 유지. (3.5rem = 헤더 h-14)
    *
    * clamp(min, preferred, max):
    *   - min 2rem: 매우 좁아도 최소 여백 확보

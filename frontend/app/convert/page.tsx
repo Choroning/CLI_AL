@@ -147,7 +147,7 @@ function ConvertPageInner() {
 
   return (
     <>
-      <section className="snap-section min-h-[calc(100dvh-5rem)] flex flex-col">
+      <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
         {/* 컨텐츠 컨테이너가 flex-col + flex-1 + min-h-0 으로 section 높이를
          *  채우고, 내부 form 이 다시 flex-1 로 잔여 공간을 점유. form 안 grid 가
          *  grid-rows-[auto_1fr_auto] 로 박스 행만 1fr 로 잡아 viewport 변화에
