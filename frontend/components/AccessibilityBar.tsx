@@ -27,7 +27,7 @@ export function AccessibilityBar() {
   const [size, setSize] = useState<Size>("");
   const [dark, setDark] = useState<boolean | null>(null);
   const [dyslexia, setDyslexia] = useState<boolean | null>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 

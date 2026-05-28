@@ -313,7 +313,7 @@ function ConvertPageInner() {
         // 있어 결과 안에서 아래로 스크롤할 때는 잡아당기지 않음.
         <section
           ref={resultRef}
-          className="snap-section flex flex-col bg-surface-1"
+          className="snap-section scroll-mt-14 flex flex-col bg-surface-1"
         >
           <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col">
             <ResultView result={result} original={text} />
