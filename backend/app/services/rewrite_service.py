@@ -51,13 +51,16 @@ logger = logging.getLogger(__name__)
 # CLRS 11.2 / 11.3.1 — hash table with chaining, division method
 _cache = HashTableCache(table_size=256, max_entries=128, ttl_seconds=3600.0)
 
+_ESCAPED_NEWLINE: str = chr(92) + chr(110)  # literal backslash + n as emitted by some LLMs
+_REAL_NEWLINE: str = chr(10)                # actual line-feed character
+
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _label_to_badge(label: str, threshold: float) -> str:
-    """Map Groundedness label (+ optional score) to UI badge level."""
+def _label_to_badge(label: str) -> str:
+    """Map Groundedness label to UI badge level."""
     if label == "grounded":
         return "high"
     if label == "notSure":
@@ -80,9 +83,7 @@ def _sanitize(value: object) -> str:
     """
     if not isinstance(value, str):
         value = str(value)
-    # Replace the literal two-character sequence backslash + n with real newline.
-    BSLASH_N = chr(92) + chr(110)  # \ + n
-    value = value.replace(BSLASH_N, chr(10))
+    value = value.replace(_ESCAPED_NEWLINE, _REAL_NEWLINE)
     return value.strip()
 
 
@@ -160,7 +161,7 @@ def _build_rewrite_user_message(text: str, rag_context: str) -> str:
     """User message for Call 1: inject RAG context block when available."""
     if rag_context:
         return (
-            "[참고 자료 - 유사 문서에서 발췌]\n"
+            "[참고 자료 - 법제처 어려운 표현 정비 사례]\n"
             f"{rag_context}\n\n"
             "[변환할 원문]\n"
             f"{text}"
@@ -171,6 +172,92 @@ def _build_rewrite_user_message(text: str, rag_context: str) -> str:
 def _build_analysis_user_message(original: str, rewrite: str) -> str:
     """User message for Call 2: original + rewrite so glossary matches rewrite wording."""
     return f"[원문]\n{original}\n\n[재작성 결과]\n{rewrite}"
+
+
+# ---------------------------------------------------------------------------
+# Call-2 parse helpers
+# ---------------------------------------------------------------------------
+
+def _parse_glossary(raw: dict) -> list[GlossaryTerm]:
+    """Extract and validate the glossary list from a raw analysis response dict.
+
+    Ch. 11.2 - deduplication via hash table chaining, then Ch. 2.3 - merge sort.
+    """
+    glossary: list[GlossaryTerm] = []
+    for g in _safe_list(raw, "glossary"):
+        if not isinstance(g, dict):
+            continue
+        term = _sanitize(g.get("term") or "")
+        definition = _sanitize(g.get("definition") or "")
+        if not term or not definition:
+            continue
+        glossary.append(
+            GlossaryTerm(
+                term=term,
+                definition=definition,
+                example=(_sanitize(ex) if (ex := g.get("example")) else None) or None,
+            )
+        )
+    # Ch. 11.2 — remove duplicates via hash table chaining, then Ch. 2.3 — merge sort
+    return merge_sort_glossary(dedup_glossary(glossary))
+
+
+def _parse_key_info(raw: dict) -> list[KeyInfoItem]:
+    """Extract and validate the key_info list from a raw analysis response dict."""
+    key_info: list[KeyInfoItem] = []
+    for k in _safe_list(raw, "key_info"):
+        if not isinstance(k, dict):
+            continue
+        kt = k.get("type")
+        content = _sanitize(k.get("content") or "")
+        if kt not in {"의무", "권리", "기한", "금액", "연락처"} or not content:
+            continue
+        key_info.append(
+            KeyInfoItem(
+                type=kt,  # type: ignore[arg-type]
+                content=content,
+                deadline=k.get("deadline"),
+                amount=k.get("amount"),
+                contact=k.get("contact"),
+            )
+        )
+    return key_info
+
+
+def _parse_checklist(raw: dict) -> list[ChecklistItem]:
+    """Extract and validate the checklist list from a raw analysis response dict.
+
+    Ch. 8.2 - stable sort high to medium to low in O(n + k).
+    """
+    checklist: list[ChecklistItem] = []
+    for c in _safe_list(raw, "checklist"):
+        if not isinstance(c, dict):
+            continue
+        ct = _sanitize(c.get("text") or "")
+        if not ct:
+            continue
+        priority = c.get("priority")
+        if priority not in {"high", "medium", "low"}:
+            priority = "medium"
+        checklist.append(ChecklistItem(text=ct, priority=priority))
+    # Ch. 8.2 — stable sort high → medium → low in Θ(n + k)
+    return counting_sort_checklist(checklist)
+
+
+def _run_groundedness(text: str, rewrite_text: str, upstage: object) -> GroundednessResult:
+    """Call the Upstage Groundedness API and return a GroundednessResult.
+
+    Falls back to notSure / low on any exception so callers never crash.
+    """
+    try:
+        gnd = upstage.groundedness_check(context=text, answer=rewrite_text)
+        label = gnd["label"]
+    except Exception as e:  # noqa: BLE001 — surface as low-confidence, never crash
+        logger.warning("Groundedness check failed: %s", e)
+        label = "notSure"
+    
+    badge = _label_to_badge(label)
+    return GroundednessResult(label=label, score=None, badge=badge)  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------
@@ -221,62 +308,29 @@ def run_rewrite(text: str) -> RewriteResponse:
     rewrite_text = _sanitize(raw_rewrite.get("rewrite", "") if isinstance(raw_rewrite, dict) else "")
     citations = [s for c in _safe_list(raw_rewrite, "citations") if (s := _sanitize(c))]
 
+    if not rewrite_text:
+        logger.warning("Call 1 returned empty rewrite — skipping Call 2")
+        return RewriteResponse(
+            rewrite="",
+            citations=citations,
+            glossary=[],
+            key_info=[],
+            checklist=[],
+            groundedness=_NOT_RELEVANT_BADGE,
+            preservation_ratio=None,
+            summary=None,
+            relevance=relevance,
+        )
+
     # ── Call 2: glossary + key_info + checklist ────────────────────────────────
     system_analysis = load_prompt("analysis_v1")
     user_analysis = _build_analysis_user_message(text, rewrite_text)
     raw_analysis = upstage.chat_json(system=system_analysis, user=user_analysis)
 
-    glossary: list[GlossaryTerm] = []
-    for g in _safe_list(raw_analysis, "glossary"):
-        if not isinstance(g, dict):
-            continue
-        term = _sanitize(g.get("term") or "")
-        definition = _sanitize(g.get("definition") or "")
-        if not term or not definition:
-            continue
-        glossary.append(
-            GlossaryTerm(
-                term=term,
-                definition=definition,
-                example=(_sanitize(ex) if (ex := g.get("example")) else None) or None,
-            )
-        )
-    # Ch. 11.2 — remove duplicates via hash table chaining, then Ch. 2.3 — merge sort
-    glossary = merge_sort_glossary(dedup_glossary(glossary))
+    glossary = _parse_glossary(raw_analysis)
+    key_info = _parse_key_info(raw_analysis)
+    checklist = _parse_checklist(raw_analysis)
 
-    key_info: list[KeyInfoItem] = []
-    for k in _safe_list(raw_analysis, "key_info"):
-        if not isinstance(k, dict):
-            continue
-        kt = k.get("type")
-        content = _sanitize(k.get("content") or "")
-        if kt not in {"의무", "권리", "기한", "금액", "연락처"} or not content:
-            continue
-        key_info.append(
-            KeyInfoItem(
-                type=kt,  # type: ignore[arg-type]
-                content=content,
-                deadline=k.get("deadline"),
-                amount=k.get("amount"),
-                contact=k.get("contact"),
-            )
-        )
-
-    checklist: list[ChecklistItem] = []
-    for c in _safe_list(raw_analysis, "checklist"):
-        if not isinstance(c, dict):
-            continue
-        ct = _sanitize(c.get("text") or "")
-        if not ct:
-            continue
-        priority = c.get("priority")
-        if priority not in {"high", "medium", "low"}:
-            priority = "medium"
-        checklist.append(ChecklistItem(text=ct, priority=priority))
-    # Ch. 8.2 — stable sort high → medium → low in Θ(n + k)
-    checklist = counting_sort_checklist(checklist)
-
-    # ── Post-processing ────────────────────────────────────────────────────────
     # Ch. 15.4 — word-level LCS preservation ratio (original vs rewrite)
     preservation_ratio = lcs_word_ratio(text, rewrite_text)
     logger.info("LCS preservation_ratio=%.4f", preservation_ratio)
@@ -287,15 +341,7 @@ def run_rewrite(text: str) -> RewriteResponse:
         gt.related_terms = bfs_related_terms(term_graph, gt.term)
 
     # ── Groundedness check ─────────────────────────────────────────────────────
-    try:
-        gnd = upstage.groundedness_check(context=text, answer=rewrite_text)
-        label = gnd["label"]
-    except Exception as e:  # noqa: BLE001 — surface as low-confidence, never crash
-        logger.warning("Groundedness check failed: %s", e)
-        label = "notSure"
-
-    badge = _label_to_badge(label, settings.groundedness_threshold)
-    groundedness = GroundednessResult(label=label, score=None, badge=badge)  # type: ignore[arg-type]
+    groundedness = _run_groundedness(text, rewrite_text, upstage)
 
     # ── Summary (보조 호출) ────────────────────────────────────────────────────
     summary = _generate_summary(rewrite_text)

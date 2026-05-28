@@ -27,5 +27,7 @@ def post_rewrite(req: RewriteRequest) -> RewriteResponse:
         raise HTTPException(status_code=500, detail=f"재작성 실패: {e}") from e
 
     if req.save_history:
-        result.document_id = save_rewrite(req.text, result)
+        doc_id = save_rewrite(req.text, result)
+        if doc_id:
+            result = result.model_copy(update={"document_id": doc_id})
     return result
