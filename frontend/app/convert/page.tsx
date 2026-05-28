@@ -307,18 +307,25 @@ function ConvertPageInner() {
       </section>
 
       {result && (
-        // 결과 섹션은 snap-section 으로 다시 표시(입력→결과 진입 시 snap 보존).
-        // min-h 는 의도적으로 빼서 ResultView 내용이 viewport 보다 길어도 OK —
-        // useScrollSnap 이 "이미 도달한 섹션은 down snap 생략" 로직을 갖고
-        // 있어 결과 안에서 아래로 스크롤할 때는 잡아당기지 않음.
-        <section
-          ref={resultRef}
-          className="snap-section scroll-mt-14 flex flex-col bg-surface-1"
-        >
-          <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col">
-            <ResultView result={result} original={text} />
-          </div>
-        </section>
+        <>
+          {/* 결과 ① — 재작성 + 출처 인용. 풀뷰포트 스냅 섹션. */}
+          <section
+            ref={resultRef}
+            className="snap-section scroll-mt-14 min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1"
+          >
+            <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
+              <ResultRewrite result={result} original={text} />
+            </div>
+          </section>
+
+          {/* 결과 ② — 꼭 알아야 할 정보 + 어려운 말 + 해야 할 일. 풀뷰포트 스냅
+           *  섹션이고, 이어서 전역 푸터가 따라온다(랜딩 마지막 섹션과 동일 구조). */}
+          <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1">
+            <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
+              <ResultDetails result={result} />
+            </div>
+          </section>
+        </>
       )}
     </>
   );
@@ -444,7 +451,7 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
           />
         }
       >
-        <div ref={leftRef} className="max-h-[32vh] overflow-y-auto pr-2">
+        <div ref={leftRef} className="max-h-[62vh] overflow-y-auto pr-2">
           <RewriteText
             text={result.rewrite}
             citations={result.citations}
@@ -457,7 +464,7 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
         </div>
       </Section>
       <Section title="출처 인용" className="lg:col-span-3">
-        <div ref={rightRef} className="max-h-[32vh] overflow-y-auto pr-2">
+        <div ref={rightRef} className="max-h-[62vh] overflow-y-auto pr-2">
           <CitationsPanel citations={result.citations} />
         </div>
       </Section>
@@ -465,21 +472,17 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
   );
 }
 
-function ResultView({
+function ResultRewrite({
   result,
   original,
 }: {
   result: RewriteResponse;
   original: string;
 }) {
-  /* snap-section 한 viewport(=100dvh-3.5rem) 안에 컨텐츠를 모두 들이는 컴팩트
-   * 레이아웃. 텍스트가 길어질 수 있는 패널(원문, 쉬운말, 어려운 말 풀이, 해야
-   * 할 일)에는 max-h + overflow-y-auto 로 자체 스크롤바가 보이도록 함. */
-  /* 길이 비교용 — 쉬운말 본문에 박힌 인용 마커 [1] [2] 등은 사용자가 읽는
+  /* 결과 ① 섹션 — 헤더(변환 결과 + 단축률 + 액션) + 재작성/출처인용.
+   * 길이 비교용 — 쉬운말 본문에 박힌 인용 마커 [1] [2] 등은 사용자가 읽는
    * 실제 본문이 아니므로 길이에서 제외해야 정확한 "원문 대비 단축률" 이 나옴.
-   *   delta > 0 → rewrite 가 더 짧음 (= 짧아진 비율)
-   *   delta < 0 → rewrite 가 더 길어짐
-   *   delta = 0 (또는 originalLength 0) → 미표시 */
+   *   delta > 0 → rewrite 가 더 짧음 / < 0 → 더 길어짐 / = 0 → 미표시 */
   const rewriteCleanLen = result.rewrite.replace(/\[\d+\]/g, "").length;
   const delta =
     original.length > 0
@@ -505,25 +508,31 @@ function ResultView({
         </div>
       </div>
 
-      {/* 원문 패널은 제거 — 입력 페이지에서 위로 스크롤하면 보임. 대신 쉬운말
-       *  재작성을 왼쪽으로 옮기고, 출처 인용을 오른쪽 독립 패널로 분리. 두 패널은
-       *  SyncedRewriteCitations 가 progress 기반으로 스크롤 동기화. */}
+      {/* 원문 패널은 제거 — 입력 페이지에서 위로 스크롤하면 보임. 쉬운말 재작성을
+       *  왼쪽, 출처 인용을 오른쪽 독립 패널로. progress 기반 스크롤 동기화. */}
       <SyncedRewriteCitations result={result} />
+    </div>
+  );
+}
 
+/* 결과 ② 섹션 — 꼭 알아야 할 정보 + 어려운 말 풀이 + 해야 할 일. */
+function ResultDetails({ result }: { result: RewriteResponse }) {
+  return (
+    <div className="flex flex-col gap-5 flex-1 min-h-0">
       <Section title="꼭 알아야 할 정보">
-        <div className="max-h-[18vh] overflow-y-auto pr-2">
+        <div className="max-h-[20vh] overflow-y-auto pr-2">
           <KeyInfoCards items={result.key_info} />
         </div>
       </Section>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Section title="어려운 말 풀이">
-          <div className="max-h-[32vh] overflow-y-auto pr-2">
+          <div className="max-h-[44vh] overflow-y-auto pr-2">
             <GlossaryList items={result.glossary} />
           </div>
         </Section>
         <Section title="해야 할 일">
-          <div className="max-h-[32vh] overflow-y-auto pr-2">
+          <div className="max-h-[44vh] overflow-y-auto pr-2">
             <Checklist items={result.checklist} />
           </div>
         </Section>
