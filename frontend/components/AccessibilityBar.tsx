@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import {
+  enableDyslexiaBionic,
+  disableDyslexiaBionic,
+} from "@/lib/dyslexiaBionic";
 
 /**
  * 우측 하단 fixed 도구 패널 — 글자 크기 3단계 + 다크모드 토글.
@@ -38,9 +42,16 @@ export function AccessibilityBar() {
     setDyslexia(document.documentElement.classList.contains("dyslexia-mode"));
   }, []);
 
-  // 난독 모드는 html.dyslexia-mode 클래스만으로 동작 — CSS 가 React <Bionic> 가
-  // 미리 렌더한 b.bx 어절 머리를 굵게 + OpenDyslexic 폰트로 전환한다. 별도 DOM
-  // 조작이 없어 매 렌더 결정적으로 동일한 결과를 보장한다.
+  // 난독 모드 — 사이트 전역 텍스트에 어절 머리 강조(Bionic) 를 적용/해제.
+  // dyslexia state 가 결정될 때마다 동기화. layout 의 themeBootstrap 으로
+  // dyslexia-mode 클래스는 이미 붙어 있어도, JS walker 는 React 마운트 후에야
+  // 가능하므로 이 effect 에서 첫 활성화가 일어난다.
+  useEffect(() => {
+    if (dyslexia === null) return;
+    if (dyslexia) enableDyslexiaBionic();
+    else disableDyslexiaBionic();
+  }, [dyslexia]);
+
   useEffect(() => {
     if (size === null) return;
     const root = document.documentElement;
