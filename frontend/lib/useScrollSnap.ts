@@ -42,8 +42,9 @@ export function useScrollSnap(
 
     const SNAP_DELAY = 150;
     // 흡착 범위 — 후보 섹션 거리가 viewport 의 이 비율 이내여야 snap 발동.
-    // 0.35 → 0.5 → 0.7 (2026-05): 살짝만 굴려도 진행 방향 섹션이 후보로 잡히도록.
-    const THRESHOLD_RATIO = 0.7;
+    // 0.35 → 0.5 → 0.7 → 1.0: 뷰포트 한 화면(100%) 거리 안의 진행 방향 섹션은
+    // 항상 후보가 되어, 사실상 휠을 멈추면 늘 가장 가까운 섹션으로 흡착된다.
+    const THRESHOLD_RATIO = 1.0;
     // 휠 deltaY 임계 — 노이즈 무시. 이보다 큰 입력만 방향으로 인정.
     const DIRECTION_DELTA_MIN = 2;
 
