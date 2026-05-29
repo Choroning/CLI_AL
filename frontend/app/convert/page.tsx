@@ -164,9 +164,13 @@ function ConvertPageInner() {
         <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col gap-4 min-h-0">
           <header data-print="hide">
             <h1 className="text-display-md text-ink">원문 입력</h1>
-            <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
-              변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
-            </p>
+            {/* 안내(에러)가 떠 있으면 일반 설명문은 숨겨 — 안내가 그 자리를 대신
+             *  쓰게 해서 큰 글씨에서도 변환 버튼이 가려지지 않게 높이를 상쇄. */}
+            {!error && (
+              <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
+                변환을 원하는 파일을 올리거나, 문장을 복사하여 붙여넣으세요.
+              </p>
+            )}
           </header>
 
           {restoring && (
