@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChecklistItem } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { Bionic } from "@/lib/Bionic";
@@ -24,7 +24,14 @@ const LABEL: Record<ChecklistItem["priority"], string> = {
   low: "참고",
 };
 
-export function Checklist({ items }: { items: ChecklistItem[] }) {
+export function Checklist({
+  items,
+  onProgress,
+}: {
+  items: ChecklistItem[];
+  /* 완료 개수를 상위로 보고 — 진행률을 Section 헤더에 표시하기 위함. */
+  onProgress?: (done: number) => void;
+}) {
   const [done, setDone] = useState<Set<number>>(new Set());
 
   // CLRS 8.2 Counting Sort — priority bucket sort, 안정 정렬.
@@ -33,6 +40,11 @@ export function Checklist({ items }: { items: ChecklistItem[] }) {
     items.forEach((it) => buckets[RANK[it.priority]].push(it));
     return buckets.flat();
   }, [items]);
+
+  // 완료 개수를 상위(ResultDetails)로 보고 → Section 헤더에 진행률 표시.
+  useEffect(() => {
+    onProgress?.(done.size);
+  }, [done, onProgress]);
 
   if (items.length === 0) {
     return <p className="text-body text-ink">생성된 할 일 목록이 없습니다.</p>;
@@ -47,17 +59,8 @@ export function Checklist({ items }: { items: ChecklistItem[] }) {
     });
   }
 
-  const total = items.length;
-  const doneCount = done.size;
-
   return (
     <div className="space-y-3">
-      <div className="text-caption text-ink-muted">
-        진행률{" "}
-        <span className="font-mono font-bold text-ink">
-          {doneCount} / {total}
-        </span>
-      </div>
       <ul className="divide-y divide-hairline rounded-md ring-1 ring-hairline bg-canvas">
         {sorted.map((c, i) => {
           const isDone = done.has(i);

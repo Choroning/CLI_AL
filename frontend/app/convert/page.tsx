@@ -125,7 +125,12 @@ function ConvertPageInner() {
     setRestoredAt(null);
     try {
       const r = await postRewrite(text);
-      setResult(r);
+      if (r.relevance && r.relevance.is_relevant === false) {
+        // 행정문서가 아니라고 판별되면 결과 섹션을 띄우지 않고 입력부에 안내만 표시.
+        setError(r.rewrite);
+      } else {
+        setResult(r);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했어요.");
     } finally {
@@ -527,6 +532,7 @@ function ResultRewrite({
 
 /* 결과 ② 섹션 — 꼭 알아야 할 정보 + 어려운 말 풀이 + 해야 할 일. */
 function ResultDetails({ result }: { result: RewriteResponse }) {
+  const [checkDone, setCheckDone] = useState(0);
   return (
     <div className="flex flex-col gap-4 flex-1 min-h-0">
       <Section title="꼭 알아야 할 정보" className="shrink-0">
@@ -543,9 +549,22 @@ function ResultDetails({ result }: { result: RewriteResponse }) {
             <GlossaryList items={result.glossary} />
           </div>
         </Section>
-        <Section title="해야 할 일" className="min-h-0">
+        <Section
+          title="해야 할 일"
+          className="min-h-0"
+          right={
+            result.checklist.length > 0 ? (
+              <span className="text-caption text-ink-muted whitespace-nowrap">
+                진행률{" "}
+                <span className="font-mono font-bold text-ink">
+                  {checkDone} / {result.checklist.length}
+                </span>
+              </span>
+            ) : undefined
+          }
+        >
           <div className="absolute inset-0 overflow-y-auto pr-2">
-            <Checklist items={result.checklist} />
+            <Checklist items={result.checklist} onProgress={setCheckDone} />
           </div>
         </Section>
       </div>

@@ -62,6 +62,12 @@ export interface RewriteResponse {
   /** 본문을 30자 안팎 한 문장으로 줄인 헤드라인. null 이면 미생성. */
   summary: string | null;
   document_id: string | null;
+  /** Call 0 관련성 판별 — is_relevant=false 면 행정문서가 아니라 조기 반환된 것. */
+  relevance?: {
+    is_relevant: boolean;
+    confidence?: "high" | "medium" | "low";
+    reason?: string | null;
+  } | null;
 }
 
 export interface ParseResponse {
