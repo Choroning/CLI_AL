@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
+  deleteHistory,
   getHistoryDetail,
   postParse,
   postRewrite,
@@ -128,6 +129,8 @@ function ConvertPageInner() {
       if (r.relevance && r.relevance.is_relevant === false) {
         // 행정문서가 아니라고 판별되면 결과 섹션을 띄우지 않고 입력부에 안내만 표시.
         setError(r.rewrite);
+        // 부적합 입력은 내역에 남기지 않는다(백엔드가 save_history 로 저장하므로 삭제).
+        if (r.document_id) deleteHistory(r.document_id).catch(() => {});
       } else {
         setResult(r);
       }
@@ -183,6 +186,17 @@ function ConvertPageInner() {
               <span className="font-bold text-ink mr-2">이력 복원</span>
               {formatStamp(restoredAt)} 변환 결과를 불러왔습니다. 새로 변환하려면 원문을
               수정 후 “쉬운말로 변환하기”를 눌러 주세요.
+            </div>
+          )}
+
+          {error && (
+            <div
+              role="alert"
+              className="rounded-md bg-surface-1 ring-1 ring-hairline-strong px-4 py-3 text-body-sm text-ink shrink-0"
+              data-print="hide"
+            >
+              <span className="font-mono mr-2 text-primary">!</span>
+              {error}
             </div>
           )}
 
@@ -297,17 +311,6 @@ function ConvertPageInner() {
               </button>
             </div>
           </form>
-
-          {error && (
-            <div
-              role="alert"
-              className="rounded-md bg-surface-1 ring-1 ring-hairline-strong px-4 py-3 text-body-sm text-ink"
-              data-print="hide"
-            >
-              <span className="font-mono mr-2 text-primary">!</span>
-              {error}
-            </div>
-          )}
 
         </div>
       </section>
