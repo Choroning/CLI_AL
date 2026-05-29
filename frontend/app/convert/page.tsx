@@ -148,12 +148,12 @@ function ConvertPageInner() {
 
   return (
     <>
-      <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
+      <section data-print="hide" className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col">
         {/* 컨텐츠 컨테이너가 flex-col + flex-1 + min-h-0 으로 section 높이를
          *  채우고, 내부 form 이 다시 flex-1 로 잔여 공간을 점유. form 안 grid 가
          *  grid-rows-[auto_1fr_auto] 로 박스 행만 1fr 로 잡아 viewport 변화에
          *  비례 — 화면이 커지면 박스가 함께 커지고, 좁아져도 같이 줄어듦. */}
-        <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col gap-8 min-h-0">
+        <div className="section-pad mx-auto max-w-content w-full px-6 flex-1 flex flex-col gap-4 min-h-0">
           <header data-print="hide">
             <h1 className="text-display-md text-ink">원문 입력</h1>
             <p className="mt-3 text-body-lg text-ink-muted max-w-2xl">
@@ -190,7 +190,7 @@ function ConvertPageInner() {
             {/* 두 컬럼 wrapper(=block) 구조. lg 이상에서는 grid 가 단일 1fr row
              *  을 채워 두 컬럼이 같은 높이로 stretch, 내부 박스는 flex-1 로 자라
              *  → viewport 비례 박스. 모바일에서는 grid 가 단순 stacked 단열. */}
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-10 lg:grid-rows-[1fr] lg:items-stretch flex-1 min-h-0">
+            <div className="grid grid-cols-1 grid-rows-[auto_1fr] gap-4 lg:grid-cols-10 lg:grid-rows-[1fr] lg:items-stretch flex-1 min-h-0">
               {/* file column */}
               <div className="lg:col-span-3 flex flex-col gap-3 min-h-0">
                 <h2 className="text-body font-medium text-ink-muted">① 파일에서 가져오기</h2>
@@ -233,7 +233,7 @@ function ConvertPageInner() {
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
-                  className="input flex-1 min-h-[88px] resize-none text-body leading-relaxed text-ink"
+                  className="input flex-1 min-h-[56px] resize-none text-body leading-relaxed text-ink"
                   maxLength={20000}
                 />
                 <p className="text-caption text-ink-subtle text-right">
@@ -439,14 +439,16 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
         accent
         className="lg:col-span-7 min-h-0"
         right={
-          <RewriteSearch
-            query={query}
-            setQuery={setQuery}
-            matchCount={matchCount}
-            activeMatch={activeMatch}
-            onPrev={gotoPrev}
-            onNext={gotoNext}
-          />
+          <div data-print="hide" className="contents">
+            <RewriteSearch
+              query={query}
+              setQuery={setQuery}
+              matchCount={matchCount}
+              activeMatch={activeMatch}
+              onPrev={gotoPrev}
+              onNext={gotoNext}
+            />
+          </div>
         }
       >
         <div ref={leftRef} className="absolute inset-0 overflow-y-auto pr-2">
@@ -518,7 +520,7 @@ function ResultDetails({ result }: { result: RewriteResponse }) {
   return (
     <div className="flex flex-col gap-4 flex-1 min-h-0">
       <Section title="꼭 알아야 할 정보" className="shrink-0">
-        <div className="max-h-[18vh] overflow-y-auto pr-2">
+        <div className="max-h-[13vh] overflow-y-auto pr-2">
           <KeyInfoCards items={result.key_info} />
         </div>
       </Section>

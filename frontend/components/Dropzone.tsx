@@ -77,7 +77,7 @@ export function Dropzone({
         aria-label="PDF, TXT, DOCX, HWPX 파일 업로드"
         className={cn(
           "flex-1 min-h-[96px] grid place-items-center text-center cursor-pointer select-none transition-colors",
-          "rounded-lg p-8 ring-1 ring-dashed",
+          "rounded-lg p-5 ring-1 ring-dashed",
           over
             ? "ring-primary bg-surface-2"
             : "ring-hairline-strong bg-surface-1 hover:ring-primary hover:bg-surface-2",
