@@ -366,6 +366,8 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
   const [query, setQuery] = useState("");
   const [activeMatch, setActiveMatch] = useState(1);
   const [matchCount, setMatchCount] = useState(0);
+  // 현재 보고 있는 줄에 해당하는 인용 번호 — 마커/출처 항목 하이라이트에 사용.
+  const [activeN, setActiveN] = useState(0);
 
   // query 변경 시 항상 첫 매치로 리셋. 결과 자체 변경 시도 동일.
   useEffect(() => {
@@ -397,19 +399,25 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
       const markers = L.querySelectorAll<HTMLElement>("[data-citation-n]");
       if (markers.length === 0) return;
       const lTop = L.getBoundingClientRect().top;
-      // 패널 상단(offset 0) 아래에 있는 첫 마커 = 현재 보고 있는 줄의 인용.
-      // 모든 마커가 위로 지나갔으면 마지막 마커.
+      // 재작성이 끝까지 내려갔으면(마지막 줄) 마지막 마커를 현재로 — 마지막 출처가
+      // 안 보이던 문제 해결. 아니면 패널 상단(offset 0) 아래의 첫 마커 = 현재 줄.
       let target: HTMLElement | null = null;
-      for (const m of Array.from(markers)) {
-        if (m.getBoundingClientRect().top - lTop >= 0) {
-          target = m;
-          break;
+      const atBottom = L.scrollTop + L.clientHeight >= L.scrollHeight - 2;
+      if (atBottom) {
+        target = markers[markers.length - 1];
+      } else {
+        for (const m of Array.from(markers)) {
+          if (m.getBoundingClientRect().top - lTop >= 0) {
+            target = m;
+            break;
+          }
         }
+        if (!target) target = markers[markers.length - 1];
       }
-      if (!target) target = markers[markers.length - 1];
       const n = Number(target.getAttribute("data-citation-n"));
       if (!n || n === lastN) return;
       lastN = n;
+      setActiveN(n);
       const item = R.querySelector<HTMLElement>(`[data-citation-item="${n}"]`);
       if (!item) return;
       const top =
@@ -421,9 +429,10 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
       raf = requestAnimationFrame(syncFromLeft);
     }
     L.addEventListener("scroll", onLeftScroll, { passive: true });
-    // 새 결과 마운트 직후 정렬 — 이전 스크롤 위치 잔재 제거.
+    // 새 결과 마운트 직후 정렬 — 이전 스크롤 위치 잔재 제거 + 첫 마커 하이라이트.
     R.scrollTop = 0;
     lastN = -1;
+    raf = requestAnimationFrame(syncFromLeft);
     return () => {
       L.removeEventListener("scroll", onLeftScroll);
       if (raf != null) cancelAnimationFrame(raf);
@@ -460,12 +469,13 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
             query={query}
             activeMatch={activeMatch}
             onMatchesChange={setMatchCount}
+            activeCitation={activeN}
           />
         </div>
       </Section>
       <Section title="출처 인용" className="lg:col-span-3 min-h-0">
         <div ref={rightRef} className="absolute inset-0 overflow-y-auto pr-2">
-          <CitationsPanel citations={result.citations} />
+          <CitationsPanel citations={result.citations} activeItem={activeN} />
         </div>
       </Section>
     </div>

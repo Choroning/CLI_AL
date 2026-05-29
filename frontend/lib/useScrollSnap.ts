@@ -119,16 +119,15 @@ export function useScrollSnap(
       }, SNAP_DELAY);
     }
 
-    // 휠 지점이 내부 스크롤 영역(재작성/출처인용 등 overflow-y-auto)이고 아직 그
-    // 방향으로 스크롤 여지가 있으면, 페이지 스냅을 잡지 않고 그 영역이 스크롤되게
-    // 둔다. 영역 끝(위/아래)에 닿은 뒤에야 다음 섹션으로 스냅이 넘어간다.
-    function scrollableConsumes(target: EventTarget | null, deltaY: number): boolean {
+    // 휠 지점이 스크롤 가능한 내부 상자(overflow auto/scroll + 내용 넘침) 안이면
+    // 방향·위치와 무관하게 true. 상자 안에서 스크롤하는 동안에는 절대 섹션 스냅이
+    // 일어나지 않도록 페이지 스냅을 잠근다.
+    function isInsideScrollableBox(target: EventTarget | null): boolean {
       let el = target instanceof Element ? (target as HTMLElement) : null;
       while (el && el !== document.body) {
         const oy = getComputedStyle(el).overflowY;
         if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 1) {
-          if (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
-          if (deltaY < 0 && el.scrollTop > 1) return true;
+          return true;
         }
         el = el.parentElement;
       }
@@ -138,8 +137,8 @@ export function useScrollSnap(
     function onWheel(e: WheelEvent) {
       // 휠 입력은 진행 중인 snap 을 autoKill 로 끊고 새 타이머 시작.
       if (timer) clearTimeout(timer);
-      // 내부 스크롤 영역이 더 스크롤될 수 있으면 페이지 스냅 보류(섹션 튐 방지).
-      if (scrollableConsumes(e.target, e.deltaY)) return;
+      // 내부 스크롤 상자 위에서는 스냅 잠금 — 상자 스크롤 중 섹션이 넘어가지 않게.
+      if (isInsideScrollableBox(e.target)) return;
       if (Math.abs(e.deltaY) >= DIRECTION_DELTA_MIN) {
         lastDirection = e.deltaY > 0 ? 1 : -1;
       }

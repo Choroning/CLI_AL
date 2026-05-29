@@ -23,6 +23,7 @@ export function RewriteText({
   query = "",
   activeMatch = 0,
   onMatchesChange,
+  activeCitation = null,
 }: {
   text: string;
   citations: string[];
@@ -36,8 +37,9 @@ export function RewriteText({
   query?: string;
   activeMatch?: number;
   onMatchesChange?: (count: number) => void;
+  /* 현재 보고 있는 줄에 해당하는 인용 번호 — 그 마커를 하이라이트(클릭 대체). */
+  activeCitation?: number | null;
 }) {
-  const [active, setActive] = useState<number | null>(null);
   const [hover, setHover] = useState<number | null>(null);
   const [termHover, setTermHover] = useState<{
     term: string;
@@ -79,22 +81,11 @@ export function RewriteText({
     el?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [activeMatch, query, matchCount]);
 
-  const previewIndex = hover ?? active;
+  const previewIndex = hover;
   const preview =
     previewIndex !== null && previewIndex >= 1 && previewIndex <= citations.length
       ? citations[previewIndex - 1]
       : null;
-
-  // 마커를 클릭해서 active 가 바뀔 때만 해당 list item 으로 scroll-into-view.
-  // 본문 스크롤은 list 와 분리 — 자동 sync 제거로 list 가 어색하게 따라다니지 않음.
-  useEffect(() => {
-    if (active === null) return;
-    const list = listRef.current;
-    if (!list) return;
-    const item = list.querySelector<HTMLElement>(`[data-citation-item="${active}"]`);
-    if (!item) return;
-    item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [active]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -151,23 +142,19 @@ export function RewriteText({
                   );
                 }
                 return (
-                  <button
+                  <span
                     key={i}
-                    type="button"
                     data-citation-n={t.index}
                     className={cn(
                       "citation-marker",
-                      active === t.index && "bg-primary text-primary-on ring-primary"
+                      activeCitation === t.index && "bg-primary text-primary-on ring-primary"
                     )}
-                    onClick={() => setActive(t.index === active ? null : t.index)}
                     onMouseEnter={() => setHover(t.index)}
                     onMouseLeave={() => setHover(null)}
-                    onFocus={() => setHover(t.index)}
-                    onBlur={() => setHover(null)}
-                    aria-label={`인용 ${t.index} 보기`}
+                    aria-label={`인용 ${t.index}`}
                   >
                     {t.index}
-                  </button>
+                  </span>
                 );
               })}
             </p>
@@ -200,7 +187,7 @@ export function RewriteText({
           <div className="mb-2 flex items-baseline justify-between">
             <p className="text-body-sm font-medium text-ink-muted">출처 인용</p>
             <p className="text-caption text-ink-subtle">
-              마커를 누르면 해당 인용으로 이동합니다
+              현재 보고 있는 줄의 인용이 강조됩니다
             </p>
           </div>
           {/* 본문과 분리된 자유 스크롤. 짧으면 자연 높이, 길면 360px 까지. */}
@@ -208,7 +195,7 @@ export function RewriteText({
             <ol className="rounded-md ring-1 ring-hairline divide-y divide-hairline overflow-hidden">
               {citations.map((c, idx) => {
                 const num = idx + 1;
-                const isActive = active === num;
+                const isActive = activeCitation === num;
                 return (
                   <li
                     key={num}
@@ -369,7 +356,14 @@ export function RewriteSearch({
  * 출처 인용 독립 패널 — convert 결과의 쉬운말 옆 column 에 단독 배치할 때 사용.
  * 본문(RewriteText) 와 상태 공유는 하지 않는다 (간단 정적 리스트).
  */
-export function CitationsPanel({ citations }: { citations: string[] }) {
+export function CitationsPanel({
+  citations,
+  activeItem = null,
+}: {
+  citations: string[];
+  /* 현재 보고 있는 줄에 해당하는 인용 번호 — 그 항목을 하이라이트. */
+  activeItem?: number | null;
+}) {
   if (citations.length === 0) {
     return (
       <p className="text-body-sm text-ink-subtle">
@@ -396,7 +390,10 @@ export function CitationsPanel({ citations }: { citations: string[] }) {
               //   - span 도 min-w-0 + flex-1 + overflow-wrap anywhere 로 한글
               //     keep-all 환경에서도 폭 초과 어절은 줄바꿈되도록 안전망
               //   - 좌우 패딩·배경 제거 — 바깥 Section 카드 패딩만으로 충분, 글 폭 확보
-              className="py-3 text-caption text-ink flex items-start gap-2 min-w-0"
+              className={cn(
+                "py-3 text-caption text-ink flex items-start gap-2 min-w-0",
+                num === activeItem && "bg-primary-soft"
+              )}
             >
               <CitationChip n={num} />
               <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
