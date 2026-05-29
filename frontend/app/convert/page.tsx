@@ -3,7 +3,6 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
-  deleteHistory,
   getHistoryDetail,
   postParse,
   postRewrite,
@@ -128,9 +127,8 @@ function ConvertPageInner() {
       const r = await postRewrite(text);
       if (r.relevance && r.relevance.is_relevant === false) {
         // 행정문서가 아니라고 판별되면 결과 섹션을 띄우지 않고 입력부에 안내만 표시.
+        // (부적합 입력은 백엔드에서 이력에 저장하지 않음)
         setError(r.rewrite);
-        // 부적합 입력은 내역에 남기지 않는다(백엔드가 save_history 로 저장하므로 삭제).
-        if (r.document_id) deleteHistory(r.document_id).catch(() => {});
       } else {
         setResult(r);
       }
