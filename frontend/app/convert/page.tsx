@@ -233,7 +233,7 @@ function ConvertPageInner() {
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="여기에 행정문서, 공문, 약관 텍스트를 붙여넣으세요. 왼쪽에서 파일을 올리면 자동으로 채워집니다."
-                  className="input flex-1 min-h-[160px] resize-none text-body leading-relaxed text-ink"
+                  className="input flex-1 min-h-[88px] resize-none text-body leading-relaxed text-ink"
                   maxLength={20000}
                 />
                 <p className="text-caption text-ink-subtle text-right">
@@ -243,8 +243,8 @@ function ConvertPageInner() {
             </div>
 
             {/* 변환 인디케이터 + 버튼 — grid 아래 전체 너비 행.
-             *  인디케이터는 파일 박스 아래 좌측 끝부터 [예시 보기] 직전까지 차지. */}
-            <div className="flex flex-wrap items-center justify-end gap-2">
+             *  shrink-0: 화면이 짧아도 이 버튼 행은 절대 줄거나 잘리지 않게 고정. */}
+            <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
               {loading && (
                 <div
                   role="status"
@@ -386,51 +386,46 @@ function SyncedRewriteCitations({ result }: { result: RewriteResponse }) {
     const R = rightRef.current;
     if (!L || !R) return;
 
-    // 비율 기반 동기화 — 재작성 50% 내리면 인용도 50%, 끝까지 내리면 끝.
-    // 마커 위치 기반 점프(=항목 단위 이동)가 아니라 progress 1:1 대응이라
-    // 사용자가 본문 어디 있든 인용 패널이 같은 비율로 따라옴.
+    // 마커 기반 동기화 — 재작성(왼쪽) 패널 상단에 현재 보이는 첫 인용 마커 [N] 을
+    // 찾아, 출처 인용(오른쪽) 패널에서 그 항목 [N] 이 상단에 오도록 스냅한다.
+    // 단방향(왼쪽 → 오른쪽). N 이 바뀔 때만 스크롤해 떨림 없이 "현재 줄의 출처"를 띄움.
     let raf: number | null = null;
-    let syncing = false; // R → L 역방향 sync 중일 때 L → R 재발화 차단
+    let lastN = -1;
     function syncFromLeft() {
       raf = null;
-      if (!L || !R || syncing) return;
-      const lMax = L.scrollHeight - L.clientHeight;
-      const rMax = R.scrollHeight - R.clientHeight;
-      if (lMax <= 0 || rMax <= 0) return;
-      const progress = Math.min(1, Math.max(0, L.scrollTop / lMax));
-      syncing = true;
-      R.scrollTop = progress * rMax;
-      // 다음 프레임에 release — 그 사이 발생한 R scroll 이벤트는 동기화로 인식.
-      requestAnimationFrame(() => {
-        syncing = false;
-      });
-    }
-    function syncFromRight() {
-      if (!L || !R || syncing) return;
-      const lMax = L.scrollHeight - L.clientHeight;
-      const rMax = R.scrollHeight - R.clientHeight;
-      if (lMax <= 0 || rMax <= 0) return;
-      const progress = Math.min(1, Math.max(0, R.scrollTop / rMax));
-      syncing = true;
-      L.scrollTop = progress * lMax;
-      requestAnimationFrame(() => {
-        syncing = false;
-      });
+      if (!L || !R) return;
+      const markers = L.querySelectorAll<HTMLElement>("[data-citation-n]");
+      if (markers.length === 0) return;
+      const lTop = L.getBoundingClientRect().top;
+      // 패널 상단(offset 0) 아래에 있는 첫 마커 = 현재 보고 있는 줄의 인용.
+      // 모든 마커가 위로 지나갔으면 마지막 마커.
+      let target: HTMLElement | null = null;
+      for (const m of Array.from(markers)) {
+        if (m.getBoundingClientRect().top - lTop >= 0) {
+          target = m;
+          break;
+        }
+      }
+      if (!target) target = markers[markers.length - 1];
+      const n = Number(target.getAttribute("data-citation-n"));
+      if (!n || n === lastN) return;
+      lastN = n;
+      const item = R.querySelector<HTMLElement>(`[data-citation-item="${n}"]`);
+      if (!item) return;
+      const top =
+        item.getBoundingClientRect().top - R.getBoundingClientRect().top + R.scrollTop;
+      R.scrollTo({ top, behavior: "smooth" });
     }
     function onLeftScroll() {
       if (raf != null) return;
       raf = requestAnimationFrame(syncFromLeft);
     }
-    function onRightScroll() {
-      syncFromRight();
-    }
     L.addEventListener("scroll", onLeftScroll, { passive: true });
-    R.addEventListener("scroll", onRightScroll, { passive: true });
     // 새 결과 마운트 직후 정렬 — 이전 스크롤 위치 잔재 제거.
     R.scrollTop = 0;
+    lastN = -1;
     return () => {
       L.removeEventListener("scroll", onLeftScroll);
-      R.removeEventListener("scroll", onRightScroll);
       if (raf != null) cancelAnimationFrame(raf);
     };
   }, [result]);

@@ -119,9 +119,27 @@ export function useScrollSnap(
       }, SNAP_DELAY);
     }
 
+    // 휠 지점이 내부 스크롤 영역(재작성/출처인용 등 overflow-y-auto)이고 아직 그
+    // 방향으로 스크롤 여지가 있으면, 페이지 스냅을 잡지 않고 그 영역이 스크롤되게
+    // 둔다. 영역 끝(위/아래)에 닿은 뒤에야 다음 섹션으로 스냅이 넘어간다.
+    function scrollableConsumes(target: EventTarget | null, deltaY: number): boolean {
+      let el = target instanceof Element ? (target as HTMLElement) : null;
+      while (el && el !== document.body) {
+        const oy = getComputedStyle(el).overflowY;
+        if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 1) {
+          if (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+          if (deltaY < 0 && el.scrollTop > 1) return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    }
+
     function onWheel(e: WheelEvent) {
       // 휠 입력은 진행 중인 snap 을 autoKill 로 끊고 새 타이머 시작.
       if (timer) clearTimeout(timer);
+      // 내부 스크롤 영역이 더 스크롤될 수 있으면 페이지 스냅 보류(섹션 튐 방지).
+      if (scrollableConsumes(e.target, e.deltaY)) return;
       if (Math.abs(e.deltaY) >= DIRECTION_DELTA_MIN) {
         lastDirection = e.deltaY > 0 ? 1 : -1;
       }

@@ -232,4 +232,14 @@
     box-shadow: none !important;
     padding: 0 2px;
   }
+
+  /* 결과 페이지: 풀뷰포트 스냅 높이·내부 스크롤·absolute 채움을 해제해 전체
+     내용이 흐르며 여러 페이지로 인쇄되도록 한다(화면만 캡처돼 잘리던 문제 해결). */
+  .snap-section { min-height: 0 !important; height: auto !important; }
+  .overflow-y-auto, .overflow-x-auto {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+  .absolute.inset-0 { position: static !important; }
 }
