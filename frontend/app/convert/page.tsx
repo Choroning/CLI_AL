@@ -323,7 +323,7 @@ function ConvertPageInner() {
            *  랜딩 FinalCTA 처럼 푸터를 섹션 안에 직접 넣어 한 viewport 에 같이 담는다
            *  (전역 AppFooter 는 /convert 에서 숨김). */}
           <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1">
-            <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
+            <div className="section-pad pb-4 mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
               <ResultDetails result={result} />
             </div>
             <Footer />

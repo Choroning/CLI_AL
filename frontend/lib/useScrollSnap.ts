@@ -119,26 +119,30 @@ export function useScrollSnap(
       }, SNAP_DELAY);
     }
 
-    // 휠 지점이 스크롤 가능한 내부 상자(overflow auto/scroll + 내용 넘침) 안이면
-    // 방향·위치와 무관하게 true. 상자 안에서 스크롤하는 동안에는 절대 섹션 스냅이
-    // 일어나지 않도록 페이지 스냅을 잠근다.
-    function isInsideScrollableBox(target: EventTarget | null): boolean {
+    // 휠 지점의 가장 가까운 스크롤 컨테이너(overflow auto/scroll). 내용 넘침 여부와
+    // 무관하게 박스로 인식 — 출처 인용처럼 내용이 짧아 안 넘쳐도 잠금 대상이 되게.
+    function scrollBoxAt(target: EventTarget | null): HTMLElement | null {
       let el = target instanceof Element ? (target as HTMLElement) : null;
       while (el && el !== document.body) {
         const oy = getComputedStyle(el).overflowY;
-        if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 1) {
-          return true;
-        }
+        if (oy === "auto" || oy === "scroll") return el;
         el = el.parentElement;
       }
-      return false;
+      return null;
     }
 
     function onWheel(e: WheelEvent) {
-      // 휠 입력은 진행 중인 snap 을 autoKill 로 끊고 새 타이머 시작.
       if (timer) clearTimeout(timer);
-      // 내부 스크롤 상자 위에서는 스냅 잠금 — 상자 스크롤 중 섹션이 넘어가지 않게.
-      if (isInsideScrollableBox(e.target)) return;
+      const box = scrollBoxAt(e.target);
+      if (box) {
+        // 상자 위에서는 절대 섹션 스냅을 하지 않는다. 그 방향으로 더 스크롤할 수
+        // 없으면(끝에 닿음·내용 안 넘침) 창 스크롤(=섹션 이동)까지 막아 완전 잠금.
+        const canDown =
+          e.deltaY > 0 && box.scrollTop + box.clientHeight < box.scrollHeight - 1;
+        const canUp = e.deltaY < 0 && box.scrollTop > 1;
+        if (!canDown && !canUp) e.preventDefault();
+        return;
+      }
       if (Math.abs(e.deltaY) >= DIRECTION_DELTA_MIN) {
         lastDirection = e.deltaY > 0 ? 1 : -1;
       }
@@ -168,7 +172,7 @@ export function useScrollSnap(
       scheduleSnap();
     }
 
-    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize, { passive: true });

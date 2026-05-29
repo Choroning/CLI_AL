@@ -390,12 +390,9 @@ export function CitationsPanel({
               //   - span 도 min-w-0 + flex-1 + overflow-wrap anywhere 로 한글
               //     keep-all 환경에서도 폭 초과 어절은 줄바꿈되도록 안전망
               //   - 좌우 패딩·배경 제거 — 바깥 Section 카드 패딩만으로 충분, 글 폭 확보
-              className={cn(
-                "py-3 text-caption text-ink flex items-start gap-2 min-w-0",
-                num === activeItem && "bg-primary-soft"
-              )}
+              className="py-3 text-caption text-ink flex items-start gap-2 min-w-0"
             >
-              <CitationChip n={num} />
+              <CitationChip n={num} active={num === activeItem} />
               <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
                 <Bionic text={c} />
               </span>
