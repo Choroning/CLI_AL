@@ -194,7 +194,7 @@ function ConvertPageInner() {
           {error && (
             <div
               role="alert"
-              className="rounded-md bg-surface-1 ring-1 ring-hairline-strong px-4 py-3 text-body-sm text-ink shrink-0"
+              className="rounded-md bg-surface-1 ring-1 ring-hairline-strong px-3 py-2.5 text-caption text-ink shrink-0"
               data-print="hide"
             >
               <span className="font-mono mr-2 text-primary">!</span>
