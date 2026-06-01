@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Fragment, Suspense, useEffect, useRef, useState } from "react";
 import {
   getHistoryDetail,
   postParse,
@@ -322,6 +322,7 @@ function ConvertPageInner() {
           {/* 결과 ① — 재작성 + 출처 인용. 풀뷰포트 스냅 섹션. */}
           <section
             ref={resultRef}
+            data-print="hide"
             className="snap-section scroll-mt-14 min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1"
           >
             <div className="section-pad mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
@@ -332,12 +333,16 @@ function ConvertPageInner() {
           {/* 결과 ③ — 꼭 알아야 할 정보 + 어려운 말 + 해야 할 일 + 푸터를 한 화면에.
            *  랜딩 FinalCTA 처럼 푸터를 섹션 안에 직접 넣어 한 viewport 에 같이 담는다
            *  (전역 AppFooter 는 /convert 에서 숨김). */}
-          <section className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1">
+          <section data-print="hide" className="snap-section min-h-[calc(100dvh-3.5rem)] flex flex-col bg-surface-1">
             <div className="section-pad pb-4 mx-auto max-w-content w-full px-6 flex flex-col flex-1 min-h-0">
               <ResultDetails result={result} />
             </div>
             <Footer />
           </section>
+
+          {/* 인쇄용 문서 — 화면 숨김, 인쇄에서만 표시. 결과 복사본과 같은 내용을
+           *  깔끔한 문서 형식으로 출력(화면 스크린샷 인쇄 대체). */}
+          <PrintDoc result={result} />
         </>
       )}
     </>
@@ -573,6 +578,103 @@ function ResultDetails({ result }: { result: RewriteResponse }) {
           </div>
         </Section>
       </div>
+    </div>
+  );
+}
+
+/* 인쇄용 문서 — 화면에선 숨고 인쇄에서만 표시(`hidden print:block`). 결과 복사본과
+ * 같은 구성을 깔끔한 문서 HTML 로 렌더한다. 화면 결과 섹션(②③) 은 data-print="hide"
+ * 로 인쇄에서 제외되므로 인쇄에는 이 문서만 나옴. 스타일은 globals.css @media print
+ * 의 .print-doc 규칙. */
+function PrintDoc({ result }: { result: RewriteResponse }) {
+  const PRIORITY: Record<string, string> = { high: "중요", medium: "보통", low: "참고" };
+  const GROUND: Record<string, string> = {
+    grounded: "근거 충분",
+    notGrounded: "근거 부족",
+    notSure: "불확실",
+  };
+  const BADGE: Record<string, string> = { high: "높음", medium: "보통", low: "낮음" };
+  const g = result.groundedness;
+  return (
+    <div className="print-doc hidden print:block">
+      <h1>행정문서 쉬운말 변환 결과</h1>
+      {result.summary && (
+        <p>
+          <strong>요약:</strong> {result.summary}
+        </p>
+      )}
+
+      <h2>쉬운말 재작성</h2>
+      <p style={{ whiteSpace: "pre-wrap" }}>{result.rewrite}</p>
+
+      {result.citations.length > 0 && (
+        <>
+          <h2>원문 인용</h2>
+          <ol>
+            {result.citations.map((c, i) => (
+              <li key={i}>{c}</li>
+            ))}
+          </ol>
+        </>
+      )}
+
+      {result.key_info.length > 0 && (
+        <>
+          <h2>꼭 알아야 할 정보</h2>
+          <ul>
+            {result.key_info.map((k, i) => {
+              const meta = [
+                k.deadline && `기한 ${k.deadline}`,
+                k.amount && `금액 ${k.amount}`,
+                k.contact && `연락처 ${k.contact}`,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                <li key={i}>
+                  <strong>[{k.type}]</strong> {k.content}
+                  {meta && <div className="print-doc-meta">({meta})</div>}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {result.glossary.length > 0 && (
+        <>
+          <h2>어려운 말 풀이</h2>
+          <dl>
+            {result.glossary.map((t, i) => (
+              <Fragment key={i}>
+                <dt>{t.term}</dt>
+                <dd>{t.definition}</dd>
+              </Fragment>
+            ))}
+          </dl>
+        </>
+      )}
+
+      {result.checklist.length > 0 && (
+        <>
+          <h2>해야 할 일</h2>
+          <ul>
+            {result.checklist.map((c, i) => (
+              <li key={i}>
+                ☐ [{PRIORITY[c.priority] ?? c.priority}] {c.text}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <hr />
+      <p>
+        신뢰도: {GROUND[g.label] ?? g.label} ({BADGE[g.badge] ?? g.badge})
+      </p>
+      <p className="print-doc-disclaimer">
+        ※ 본 결과는 참고용입니다. 법적 효력은 원문·전문가 확인이 필요합니다.
+      </p>
     </div>
   );
 }

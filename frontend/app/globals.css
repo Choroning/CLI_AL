@@ -242,4 +242,37 @@
     height: auto !important;
   }
   .absolute.inset-0 { position: static !important; }
+
+  /* 인쇄용 문서(PrintDoc) — 결과 복사본과 동일한 구성을 깔끔한 문서 형식으로 인쇄.
+     화면에선 .print-doc 가 hidden(display:none), 인쇄에서만 print:block 으로 표시. */
+  .print-doc {
+    color: #000;
+    font-family: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+    line-height: 1.6;
+    font-size: 12pt;
+  }
+  .print-doc h1 {
+    font-size: 18pt;
+    font-weight: 700;
+    margin: 0 0 0.8rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.4rem;
+  }
+  .print-doc h2 {
+    font-size: 14pt;
+    font-weight: 600;
+    margin: 1.2rem 0 0.4rem;
+    border-bottom: 1px solid #999;
+    padding-bottom: 0.2rem;
+  }
+  .print-doc p { margin: 0.4rem 0; }
+  .print-doc ol { list-style: decimal outside; padding-left: 1.8rem; margin: 0.4rem 0; }
+  .print-doc ul { list-style: disc outside; padding-left: 1.8rem; margin: 0.4rem 0; }
+  .print-doc li { margin: 0.2rem 0; }
+  .print-doc dl { margin: 0.4rem 0; }
+  .print-doc dt { font-weight: 700; margin-top: 0.4rem; }
+  .print-doc dd { margin: 0 0 0.4rem 1rem; }
+  .print-doc hr { border: 0; border-top: 1px solid #999; margin: 1rem 0; }
+  .print-doc .print-doc-meta { padding-left: 1.5em; font-size: 10pt; color: #555; }
+  .print-doc .print-doc-disclaimer { font-size: 10pt; color: #555; }
 }
